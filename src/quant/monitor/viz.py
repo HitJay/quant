@@ -13,6 +13,7 @@ from pathlib import Path
 def plot_nav(
     nav: pd.Series,
     benchmark: pd.Series | None = None,
+    benchmark_label: str = "Benchmark",
     title: str = "Strategy NAV",
     save_path: str | None = None,
 ):
@@ -24,7 +25,7 @@ def plot_nav(
     if benchmark is not None:
         bench_norm = benchmark / benchmark.iloc[0]
         ax.plot(
-            bench_norm.index, bench_norm.values, label="Benchmark", linewidth=1, color="gray", alpha=0.7
+            bench_norm.index, bench_norm.values, label=benchmark_label, linewidth=1, color="gray", alpha=0.7
         )
 
     ax.set_title(title, fontsize=14, fontweight="bold")
@@ -92,6 +93,7 @@ def plot_report(
     nav: pd.Series,
     metrics: dict,
     benchmark: pd.Series | None = None,
+    benchmark_label: str = "Benchmark",
     title: str = "Backtest Report",
     save_path: str | None = None,
 ):
@@ -106,7 +108,7 @@ def plot_report(
     if benchmark is not None:
         bench_norm = benchmark.reindex(nav.index).ffill()
         bench_norm = bench_norm / bench_norm.iloc[0]
-        ax1.plot(bench_norm.index, bench_norm.values, label="Benchmark", linewidth=1, color="gray", alpha=0.7)
+        ax1.plot(bench_norm.index, bench_norm.values, label=benchmark_label, linewidth=1, color="gray", alpha=0.7)
     ax1.set_title(title, fontsize=14, fontweight="bold")
     ax1.legend(loc="upper left")
     ax1.grid(True, alpha=0.3)
@@ -134,8 +136,13 @@ def plot_report(
         f"Tot.Ret: {metrics.get('total_return', 0)*100:+.1f}%",
         f"Days:    {metrics.get('n_days', 0)}",
     ]
+    if metrics.get("bench_annual") is not None:
+        metric_lines.append("")
+        metric_lines.append(f"Bench ({benchmark_label}):")
+        metric_lines.append(f"  Ann: {metrics['bench_annual']*100:+.1f}%")
+        metric_lines.append(f"  Tot: {metrics.get('bench_total', 0)*100:+.1f}%")
     y_pos = np.arange(len(metric_lines))[::-1] * 0.13
-    ax3.set_ylim(-0.1, 1.0)
+    ax3.set_ylim(-0.1, 1.0 + max(0, len(metric_lines)-8) * 0.05)
     ax3.set_xlim(0, 1)
     for y, line in zip(y_pos, metric_lines):
         ax3.text(0.05, y, line, fontsize=10, family="monospace")
