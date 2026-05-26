@@ -2,14 +2,24 @@
 
 from quant.strategies.base import Strategy, Signal
 from quant.factors.momentum import momentum_scores
+from quant.universe.config import UniverseConfig
 
 
 class ETF_Rotation(Strategy):
     """持有过去N个月动量最强的M只ETF"""
 
-    def __init__(self, momentum_window: int = 63, hold_n: int = 2):
+    def __init__(
+        self,
+        momentum_window: int = 63,
+        hold_n: int = 2,
+        universe: UniverseConfig | None = None,
+    ):
         self.momentum_window = momentum_window
         self.hold_n = hold_n
+        self.universe = universe or UniverseConfig()
+
+    def get_symbols(self) -> list[str]:
+        return self.universe.get_symbols()
 
     def rebalance(self, date, symbols: list[str], prices) -> Signal:
         scores = momentum_scores(prices, symbols, date, self.momentum_window)
