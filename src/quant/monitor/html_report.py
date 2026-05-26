@@ -239,7 +239,8 @@ def report_html(
                       title_text="", row=2, col=1)
     fig.update_xaxes(title_text="", row=2, col=1)
     # 热力图：强制显示12个月
-    fig.update_xaxes(tickmode="array", tickvals=MONTHS, ticktext=MONTHS, row=4, col=1)
+    fig.update_xaxes(tickmode="array", tickvals=list(range(12)), ticktext=MONTHS,
+                     nticks=12, row=4, col=1)
 
     # 回撤子图
     fig.update_yaxes(title_text="DD %", ticksuffix="%", row=3, col=1)
