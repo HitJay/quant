@@ -232,8 +232,12 @@ def share_card_dark(
     ax_chart.spines["left"].set_color(MUTED); ax_chart.spines["left"].set_alpha(0.3)
     ax_chart.spines["bottom"].set_color(MUTED); ax_chart.spines["bottom"].set_alpha(0.3)
     ax_chart.tick_params(colors=MUTED, labelsize=7)
-    ax_chart.set_ylabel("NAV", color=MUTED, fontsize=8)
-    ax_chart.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.1f}x"))
+    ax_chart.set_ylabel("Return", color=MUTED, fontsize=8)
+    ax_chart.set_yscale("log")
+    tick_vals = [0.3, 0.5, 1, 2, 5, 10, 20, 50]
+    tick_labels = ["-70%", "-50%", "0%", "+100%", "+400%", "+900%", "+1900%", "+4900%"]
+    ax_chart.set_yticks(tick_vals)
+    ax_chart.set_yticklabels(tick_labels, fontsize=6, color=MUTED)
     ax_chart.annotate(f"×{nav_ratio.iloc[-1]:.1f}", xy=(nav.index[-1], nav_ratio.iloc[-1]),
                       xytext=(6, 6), textcoords="offset points", fontsize=9,
                       color=hero_color, ha="left", fontweight="bold")
