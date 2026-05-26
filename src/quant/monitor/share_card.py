@@ -106,7 +106,7 @@ def share_card(
     fig.patches.append(rect)
 
     # 对比条：策略 vs 基准
-    label_x = 0.10
+    label_x = 0.12
     bar_x0 = 0.22
     bar_total_w = 0.45
     bar_h = 0.016
@@ -114,11 +114,11 @@ def share_card(
     top_y = bar_y + 0.082
     bot_y = top_y - gap
 
-    # 标签（左对齐+加粗，与条中心对齐）
+    # 标签（居中对齐+加粗，与条中心对齐）
     fig.text(label_x, top_y, f"{benchmark_label}", fontsize=9,
              color="#9ca3af", ha="left", va="center", fontweight="bold")
     fig.text(label_x, bot_y, "Strategy", fontsize=9,
-             color="#d1d5db", ha="left", va="center", fontweight="bold")
+             color=GREEN, ha="left", va="center", fontweight="bold")
 
     # 基准条
     bench_ratio = min(1.0, abs((1+bench_tot)/(1+tot_ret))) if tot_ret != 0 else 1.0
