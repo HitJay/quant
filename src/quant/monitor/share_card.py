@@ -138,7 +138,7 @@ def share_card(
              fontsize=11, color=GREEN, va="center", ha="left", fontweight="bold")
 
     # 底部说明
-    fig.text(0.5, bar_y + 0.025, f"{n_days} trading days · ~{yrs:.1f} years · for reference only",
+    fig.text(0.5, bar_y + 0.015, f"{n_days} trading days · ~{yrs:.1f} years · for reference only",
              fontsize=7, color="#9ca3af", ha="center", va="center")
 
     Path(save_path).parent.mkdir(parents=True, exist_ok=True)
