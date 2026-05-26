@@ -26,7 +26,7 @@ def report_html(
     from plotly.subplots import make_subplots
 
     # ---- 数据准备 ----
-    nav_norm = nav / nav.iloc[0]
+    nav_pct = (nav / nav.iloc[0] - 1) * 100   # 百分比收益
     peak = nav.expanding().max()
     dd = (nav - peak) / peak * 100
 
@@ -39,7 +39,7 @@ def report_html(
         row_heights=[0.45, 0.30, 0.25],
         column_widths=[0.55, 0.45],
         subplot_titles=(
-            "NAV Comparison", "Performance Metrics",
+            "Strategy vs Benchmark", "Performance Metrics",
             "Drawdown", "Monthly Returns Heatmap",
         ),
         vertical_spacing=0.08,
@@ -51,18 +51,20 @@ def report_html(
         ],
     )
 
-    # 1. 净值曲线
+    # 1. 净值曲线（百分比）
     fig.add_trace(
-        go.Scatter(x=nav.index, y=nav_norm, mode="lines", name="Strategy",
-                   line=dict(color="#1f77b4", width=2)),
+        go.Scatter(x=nav.index, y=nav_pct, mode="lines", name="Strategy",
+                   line=dict(color="#1f77b4", width=2),
+                   hovertemplate="%{y:+.1f}%"),
         row=1, col=1,
     )
     if benchmark is not None:
         bench_norm = benchmark.reindex(nav.index).ffill()
-        bench_norm = bench_norm / bench_norm.iloc[0]
+        bench_pct = (bench_norm / bench_norm.iloc[0] - 1) * 100
         fig.add_trace(
-            go.Scatter(x=bench_norm.index, y=bench_norm, mode="lines",
-                       name=benchmark_label, line=dict(color="gray", width=1.5, dash="dash")),
+            go.Scatter(x=bench_norm.index, y=bench_pct, mode="lines",
+                       name=benchmark_label, line=dict(color="gray", width=1.5, dash="dash"),
+                       hovertemplate="%{y:+.1f}%"),
             row=1, col=1,
         )
 
@@ -161,7 +163,7 @@ def report_html(
         hovermode="x unified",
     )
     fig.update_xaxes(title_text="Date", row=1, col=1)
-    fig.update_yaxes(title_text="NAV", row=1, col=1, tickformat=".2f")
+    fig.update_yaxes(title_text="Return %", row=1, col=1, ticksuffix="%")
     fig.update_xaxes(title_text="Date", row=2, col=1)
     fig.update_yaxes(title_text="%", row=2, col=1)
 
