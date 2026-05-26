@@ -31,7 +31,9 @@ def share_card(
     ax_t.text(0, 0.15, period, fontsize=11, color=MUTED, va="center")
 
     # ---- 装饰线 ----
-    fig.add_axes([0.1, 0.87, 0.80, 0.001]).axhline(y=0, color=ACCENT, linewidth=2)
+    ax_line = fig.add_axes([0.1, 0.87, 0.80, 0.001])
+    ax_line.axis("off")
+    ax_line.axhline(y=0, color=ACCENT, linewidth=2)
 
     # ---- KPI 2x2 网格 ----
     ann_ret = metrics.get("annual_return", 0)
