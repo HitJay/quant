@@ -97,7 +97,7 @@ def share_card(
                       color=hero_color, ha="left", fontweight="bold")
 
     # ====== 底部横条：策略 vs 基准对比 ======
-    bar_y = 0.06
+    bar_y = 0.04
     rect = mpatches.FancyBboxPatch(
         (0.06, bar_y), 0.88, 0.12,
         boxstyle="round,pad=0.02", facecolor=DARK, edgecolor="none",
