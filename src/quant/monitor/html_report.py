@@ -1,8 +1,23 @@
-"""可视化模块 — 交互式 HTML 报告 (Plotly)"""
+"""可视化模块 — 精美交互式 HTML 报告 (Plotly dark theme)"""
 
 import pandas as pd
 import numpy as np
 from pathlib import Path
+
+
+# 主题色
+C = {
+    "bg":       "#0d1117",
+    "card":     "#161b22",
+    "border":   "#30363d",
+    "text":     "#c9d1d9",
+    "muted":    "#8b949e",
+    "blue":     "#58a6ff",
+    "green":    "#3fb950",
+    "red":      "#f85149",
+    "orange":   "#d2991d",
+    "purple":   "#bc8cff",
+}
 
 
 def report_html(
@@ -13,200 +28,247 @@ def report_html(
     title: str = "Backtest Report",
     save_path: str = "./output/report.html",
 ) -> str:
-    """
-    生成自包含交互式 HTML 回测报告
-
-    包含:
-      - 净值曲线（策略 vs 基准，可缩放悬停）
-      - 回撤曲线
-      - 月度收益热力图
-      - 绩效指标表 + 策略参数
-    """
+    """生成精美交互式 HTML 回测报告（暗色主题 + KPI + 多图）"""
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
 
     # ---- 数据准备 ----
-    nav_ratio = nav / nav.iloc[0]               # 净值倍数（始终>0），用于log轴
-    nav_pct = (nav_ratio - 1) * 100             # 百分比，用于表格
+    nav_ratio = nav / nav.iloc[0]
+    nav_pct = (nav_ratio - 1) * 100
     peak = nav.expanding().max()
     dd = (nav - peak) / peak * 100
-
+    daily_ret = nav.pct_change().dropna()
     monthly_ret = nav.resample("ME").last().pct_change().dropna()
     monthly_matrix = _monthly_heatmap_data(monthly_ret)
+    annual_ret = nav.resample("YE").last().pct_change().dropna()
+    rolling_1y = nav.pct_change(252).dropna() * 100
+
+    # 基准
+    bench_ratio = bench_pct = bench_annual_ret = bench_nav = None
+    if benchmark is not None:
+        bench_nav = benchmark.reindex(nav.index).ffill().dropna()
+        bench_ratio = bench_nav / bench_nav.iloc[0]
+        bench_pct = (bench_ratio - 1) * 100
+        bench_annual_ret = bench_nav.resample("YE").last().pct_change().dropna()
+
+    # ---- KPI 数据 ----
+    ann_ret = metrics.get("annual_return", 0)
+    mdd_val = metrics.get("max_drawdown", 0)
+    shp_val = metrics.get("sharpe", 0)
+    tot_ret = metrics.get("total_return", 0)
 
     # ---- 构建图表 ----
     fig = make_subplots(
-        rows=3, cols=2,
-        row_heights=[0.45, 0.30, 0.25],
-        column_widths=[0.55, 0.45],
-        subplot_titles=(
-            "Strategy vs Benchmark", "Performance Metrics",
-            "Drawdown", "Monthly Returns Heatmap",
-        ),
-        vertical_spacing=0.08,
-        horizontal_spacing=0.06,
+        rows=5, cols=4,
+        row_heights=[0.12, 0.28, 0.22, 0.20, 0.18],
+        column_widths=[0.25, 0.25, 0.25, 0.25],
+        vertical_spacing=0.06,
+        horizontal_spacing=0.04,
         specs=[
-            [{"type": "xy"}, {"type": "table"}],
-            [{"type": "xy"}, {"type": "heatmap"}],
-            [{"type": "xy", "colspan": 2}, None],
+            [{"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}, {"type": "indicator"}],
+            [{"type": "xy", "colspan": 4}, None, None, None],
+            [{"type": "xy", "colspan": 2}, None, {"type": "xy", "colspan": 2}, None],
+            [{"type": "heatmap", "colspan": 2}, None, {"type": "table", "colspan": 2}, None],
+            [{"type": "xy", "colspan": 4}, None, None, None],
         ],
     )
 
-    # 1. 净值曲线（log刻度，百分比标签）
-    fig.add_trace(
-        go.Scatter(x=nav.index, y=nav_ratio, mode="lines", name="Strategy",
-                   line=dict(color="#1f77b4", width=2),
-                   hovertemplate="%{customdata:+.1f}%",
-                   customdata=nav_pct),
-        row=1, col=1,
-    )
+    # ---- Row 0: KPI 仪表盘 ----
+    fig.add_trace(go.Indicator(
+        mode="number", value=ann_ret*100,
+        number=dict(suffix="%", font=dict(size=36, color=C["green"] if ann_ret>0 else C["red"])),
+        title=dict(text="<b>Ann.Return</b>", font=dict(size=13, color=C["muted"])),
+        domain=dict(row=0, column=0),
+    ), row=1, col=1)
+    fig.add_trace(go.Indicator(
+        mode="number", value=mdd_val*100,
+        number=dict(suffix="%", font=dict(size=36, color=C["red"])),
+        title=dict(text="<b>Max DD</b>", font=dict(size=13, color=C["muted"])),
+        domain=dict(row=0, column=0),
+    ), row=1, col=2)
+    fig.add_trace(go.Indicator(
+        mode="number", value=shp_val,
+        number=dict(font=dict(size=36, color=C["blue"])),
+        title=dict(text="<b>Sharpe</b>", font=dict(size=13, color=C["muted"])),
+        domain=dict(row=0, column=0),
+    ), row=1, col=3)
+    fig.add_trace(go.Indicator(
+        mode="number", value=tot_ret*100,
+        number=dict(suffix="%", font=dict(size=36, color=C["green"] if tot_ret>0 else C["red"])),
+        title=dict(text="<b>Total Return</b>", font=dict(size=13, color=C["muted"])),
+        domain=dict(row=0, column=0),
+    ), row=1, col=4)
+
+    # ---- Row 1: 净值对比 ----
+    fig.add_trace(go.Scatter(
+        x=nav.index, y=nav_ratio, mode="lines", name="Strategy",
+        line=dict(color=C["blue"], width=2.5),
+        hovertemplate="Strategy: %{customdata:+.1f}%<extra></extra>",
+        customdata=nav_pct,
+    ), row=2, col=1)
     if benchmark is not None:
-        bench_norm = benchmark.reindex(nav.index).ffill()
-        bench_ratio = bench_norm / bench_norm.iloc[0]
-        bench_pct = (bench_ratio - 1) * 100
-        fig.add_trace(
-            go.Scatter(x=bench_norm.index, y=bench_ratio, mode="lines",
-                       name=benchmark_label, line=dict(color="gray", width=1.5, dash="dash"),
-                       hovertemplate="%{customdata:+.1f}%",
-                       customdata=bench_pct),
-            row=1, col=1,
-        )
+        fig.add_trace(go.Scatter(
+            x=bench_nav.index, y=bench_ratio, mode="lines",
+            name=benchmark_label, line=dict(color=C["muted"], width=1.5, dash="dot"),
+            hovertemplate=f"{benchmark_label}: %{{customdata:+.1f}}%<extra></extra>",
+            customdata=bench_pct,
+        ), row=2, col=1)
 
-    # 2. 回撤曲线
-    fig.add_trace(
-        go.Scatter(x=dd.index, y=dd, mode="lines", name="Drawdown",
-                   fill="tozeroy", fillcolor="rgba(200,0,0,0.15)",
-                   line=dict(color="darkred", width=1)),
-        row=2, col=1,
-    )
-    max_dd = dd.min()
-    fig.add_hline(y=max_dd, line_dash="dot", line_color="red", row=2, col=1,
-                  annotation_text=f"Max DD: {max_dd:.1f}%")
+    # ---- Row 2: 回撤 (左) + 年度收益柱状图 (右) ----
+    fig.add_trace(go.Scatter(
+        x=dd.index, y=dd, mode="lines", name="Drawdown",
+        fill="tozeroy", fillcolor=f"rgba(248,81,73,0.15)",
+        line=dict(color=C["red"], width=1.2),
+        hovertemplate="DD: %{y:.1f}%<extra></extra>",
+    ), row=3, col=1)
+    fig.add_shape(type="line", x0=dd.index[0], x1=dd.index[-1],
+                  y0=dd.min(), y1=dd.min(), line=dict(dash="dot", color=C["red"]),
+                  row=3, col=1)
+    fig.add_annotation(x=dd.index[-1], y=dd.min(), text=f"Max DD: {dd.min():.1f}%",
+                       showarrow=False, font=dict(color=C["red"], size=11),
+                       xanchor="right", row=3, col=1)
 
-    # 3. 月度收益热力图
+    # 年度收益柱状图
+    years_str = [str(d.year) for d in annual_ret.index]
+    fig.add_trace(go.Bar(
+        x=years_str, y=annual_ret.values * 100, name="Strategy",
+        marker=dict(color=[C["green"] if v>0 else C["red"] for v in annual_ret.values]),
+        hovertemplate="%{y:+.1f}%<extra></extra>",
+        text=[f"{v*100:+.1f}%" for v in annual_ret.values],
+        textposition="outside", textfont=dict(size=10),
+    ), row=3, col=3)
+
+    # ---- Row 3: 月度热力图 (左) + 绩效表 (右) ----
     if monthly_matrix is not None:
-        years = list(monthly_matrix.keys())
-        months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+        yrs = list(monthly_matrix.keys())
+        mons = ["J","F","M","A","M","J","J","A","S","O","N","D"]
         z_data = []
-        annotations = []
-        for y in years:
+        for y in yrs:
             row_data = []
-            for i, m in enumerate(months):
+            for i in range(12):
                 v = monthly_matrix[y].get(i, None)
                 row_data.append(v if v is not None else np.nan)
-                if v is not None:
-                    annotations.append(dict(
-                        x=i, y=years.index(y), text=f"{v*100:+.1f}%",
-                        showarrow=False, font=dict(size=8, color="white" if abs(v)>0.03 else "black")
-                    ))
             z_data.append(row_data)
+        fig.add_trace(go.Heatmap(
+            z=z_data, x=mons, y=[str(y) for y in yrs],
+            colorscale=[[0, C["red"]], [0.5, C["card"]], [1, C["green"]]],
+            zmid=0, zmin=-0.10, zmax=0.10,
+            text=[[f"{v*100:+.1f}%" if not np.isnan(v) else "" for v in row] for row in z_data],
+            texttemplate="%{text}", textfont=dict(size=8, color=C["text"]),
+            showscale=False, hoverongaps=False,
+        ), row=4, col=1)
 
-        fig.add_trace(
-            go.Heatmap(
-                z=z_data, x=months, y=[str(y) for y in years],
-                colorscale="RdYlGn", zmid=0,
-                text=[[f"{v*100:+.1f}%" if not np.isnan(v) else "" for v in row] for row in z_data],
-                texttemplate="%{text}", textfont=dict(size=8),
-                showscale=False,
-            ),
-            row=2, col=2,
-        )
-
-    # 4. 绩效指标表
-    header = ["Metric", "Strategy"]
-    benchmark_col = None
+    # 绩效表
+    header = ["<b>Metric</b>", "<b>Strategy</b>"]
+    bench_col = None
     if benchmark is not None:
-        header.append(benchmark_label)
-        bench_nav = benchmark.reindex(nav.index).ffill().dropna()
-        # 用传入的 metrics 如果有，否则从 benchmark 数列算
-        bench_ann = metrics.get("bench_annual") or _calc_annual_return(bench_nav)
-        bench_mdd = metrics.get("bench_max_dd") or _calc_max_dd(bench_nav)
-        bench_shp = metrics.get("bench_sharpe") or _calc_sharpe(bench_nav)
-        bench_tot = metrics.get("bench_total") or (bench_nav.iloc[-1] / bench_nav.iloc[0] - 1)
-        bench_wr = metrics.get("bench_win_rate") or _calc_win_rate(bench_nav)
-        benchmark_col = [
-            f"{bench_ann*100:+.1f}%",
-            f"{bench_mdd*100:.1f}%",
-            f"{bench_shp:.2f}",
-            _calc_calmar(bench_ann, bench_mdd),
-            f"{bench_wr*100:.1f}%",
-            f"{bench_tot*100:+.1f}%",
-            f"{len(bench_nav)}",
+        header.append(f"<b>{benchmark_label}</b>")
+        b_ann = _calc_annual_return(bench_nav)
+        b_mdd = _calc_max_dd(bench_nav)
+        b_shp = _calc_sharpe(bench_nav)
+        b_tot = bench_nav.iloc[-1]/bench_nav.iloc[0]-1
+        b_wr = _calc_win_rate(bench_nav)
+        bench_col = [
+            f"{b_ann*100:+.1f}%", f"{b_mdd*100:.1f}%", f"{b_shp:.2f}",
+            f"{b_ann/b_mdd:.2f}" if b_mdd>0 else "-", f"{b_wr*100:.1f}%",
+            f"{b_tot*100:+.1f}%", str(len(bench_nav)),
         ]
 
-    cells = [
-        ["Annual Return", "Max Drawdown", "Sharpe", "Calmar", "Win Rate", "Total Return", "Trading Days"],
-        [
-            f"{metrics.get('annual_return', 0)*100:+.1f}%",
-            f"{metrics.get('max_drawdown', 0)*100:.1f}%",
-            f"{metrics.get('sharpe', 0):.2f}",
-            f"{metrics.get('calmar', 0):.2f}",
-            f"{metrics.get('win_rate', 0)*100:.1f}%",
-            f"{metrics.get('total_return', 0)*100:+.1f}%",
-            f"{metrics.get('n_days', 0)}",
-        ],
+    strat_cols = [
+        f"{metrics.get('annual_return',0)*100:+.1f}%",
+        f"{metrics.get('max_drawdown',0)*100:.1f}%",
+        f"{metrics.get('sharpe',0):.2f}",
+        f"{metrics.get('calmar',0):.2f}",
+        f"{metrics.get('win_rate',0)*100:.1f}%",
+        f"{metrics.get('total_return',0)*100:+.1f}%",
+        f"{metrics.get('n_days',0)}",
     ]
-    if benchmark_col:
-        cells.append(benchmark_col)
+    cells_vals = [strat_cols]
+    if bench_col:
+        cells_vals.append(bench_col)
 
-    fig.add_trace(
-        go.Table(
-            header=dict(values=header, fill_color="#1f77b4", font=dict(color="white"), align="left"),
-            cells=dict(values=cells, fill_color=[["white","#f0f0f0"]*4], align="left",
-                       font=dict(size=12)),
+    fig.add_trace(go.Table(
+        header=dict(values=header, fill_color=C["card"], font=dict(color=C["text"], size=12),
+                     line=dict(color=C["border"])),
+        cells=dict(
+            values=cells_vals,
+            fill_color=C["bg"],
+            font=dict(color=C["text"], size=11),
+            line=dict(color=C["border"]),
+            align="left",
         ),
-        row=1, col=2,
-    )
+    ), row=4, col=3)
 
-    # 5. 底部策略参数（可选，留给调用者通过 metrics 传入）
-    if metrics.get("strategy_name"):
-        fig.add_annotation(
-            text=f"Strategy: {metrics['strategy_name']}",
-            xref="paper", yref="paper", x=0.01, y=0.01,
-            showarrow=False, font=dict(size=10, color="gray"),
-        )
+    # ---- Row 4: 滚动1年收益 ----
+    fig.add_trace(go.Scatter(
+        x=rolling_1y.index, y=rolling_1y, mode="lines", name="Rolling 1Y Return",
+        fill="tozeroy", fillcolor=f"rgba(88,166,255,0.08)",
+        line=dict(color=C["blue"], width=1.2),
+        hovertemplate="%{y:+.1f}%<extra></extra>",
+    ), row=5, col=1)
+    fig.add_shape(type="line", x0=rolling_1y.index[0], x1=rolling_1y.index[-1],
+                  y0=0, y1=0, line=dict(dash="solid", color=C["border"]), row=5, col=1)
 
-    # ---- 布局 ----
+    # ---- 全局样式 ----
     fig.update_layout(
-        title=dict(text=title, font=dict(size=18), x=0.5),
-        height=900,
+        template="plotly_dark",
+        paper_bgcolor=C["bg"],
+        plot_bgcolor=C["bg"],
+        title=dict(text=f"<b>{title}</b>", font=dict(size=22, color=C["text"]), x=0.5, y=0.98),
+        height=1400,
         showlegend=True,
+        legend=dict(orientation="h", y=1.08, x=0.5, xanchor="center",
+                     font=dict(color=C["text"])),
+        margin=dict(l=40, r=40, t=100, b=40),
         hovermode="x unified",
+        hoverlabel=dict(bgcolor=C["card"], font=dict(color=C["text"])),
     )
-    fig.update_xaxes(title_text="Date", row=1, col=1)
-    # log刻度 + 百分比标签
-    tick_vals = [0.5, 1, 2, 5, 10, 20]
-    tick_labels = ["-50%", "0%", "+100%", "+400%", "+900%", "+1900%"]
-    fig.update_yaxes(
-        title_text="Return", row=1, col=1, type="log",
-        tickvals=tick_vals, ticktext=tick_labels,
-    )
-    fig.update_xaxes(title_text="Date", row=2, col=1)
-    fig.update_yaxes(title_text="%", row=2, col=1)
+
+    # 各子图样式
+    for r in range(2, 6):
+        fig.update_xaxes(gridcolor=C["border"], zerolinecolor=C["border"], row=r, col=1)
+        fig.update_yaxes(gridcolor=C["border"], zerolinecolor=C["border"], row=r, col=1)
+
+    # Row1 Y轴 log + 百分比
+    tick_vals = [0.3, 0.5, 1, 2, 5, 10, 20, 50]
+    tick_labels = ["-70%", "-50%", "0%", "+100%", "+400%", "+900%", "+1900%", "+4900%"]
+    fig.update_yaxes(type="log", tickvals=tick_vals, ticktext=tick_labels,
+                      title_text="", row=2, col=1)
+    fig.update_xaxes(title_text="", row=2, col=1)
+
+    # 回撤子图
+    fig.update_yaxes(title_text="DD %", ticksuffix="%", row=3, col=1)
+    fig.update_xaxes(title_text="", row=3, col=1)
+
+    # 年度收益
+    fig.update_yaxes(title_text="Yearly Return", ticksuffix="%", row=3, col=3)
+    fig.update_xaxes(title_text="", row=3, col=3)
+    fig.add_shape(type="line", x0=-0.5, x1=len(years_str)-0.5, y0=0, y1=0,
+                  line=dict(dash="solid", color=C["border"]), row=3, col=3)
+
+    # 滚动收益
+    fig.update_yaxes(title_text="Rolling 1Y %", ticksuffix="%", row=5, col=1)
+    fig.update_xaxes(title_text="", row=5, col=1)
 
     # 保存
     path = Path(save_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.write_html(path, include_plotlyjs="cdn", full_html=True)
-
     return str(path)
 
 
 def _monthly_heatmap_data(monthly_ret: pd.Series) -> dict | None:
-    """将月度收益序列转为热力图数据结构 {year: {month_index: return}}"""
     if len(monthly_ret) == 0:
         return None
     data: dict[int, dict[int, float]] = {}
     for dt, ret in monthly_ret.items():
         y = dt.year
-        m = dt.month - 1  # 0-indexed
+        m = dt.month - 1
         if y not in data:
             data[y] = {}
         data[y][m] = float(ret)
     return data
 
-
-# ---- 内部辅助：从净值序列计算指标 ----
 
 def _calc_annual_return(nav: pd.Series) -> float:
     years = (nav.index[-1] - nav.index[0]).days / 365.25
@@ -215,27 +277,16 @@ def _calc_annual_return(nav: pd.Series) -> float:
 
 
 def _calc_max_dd(nav: pd.Series) -> float:
-    peak = nav.expanding().max()
-    return float(abs(((nav - peak) / peak).min()))
+    return float(abs(((nav - nav.expanding().max()) / nav.expanding().max()).min()))
 
 
 def _calc_sharpe(nav: pd.Series, risk_free: float = 0.02) -> float:
     daily = nav.pct_change().dropna()
     if len(daily) < 2 or daily.std() == 0:
         return 0.0
-    excess = daily.mean() * 252 - risk_free
-    vol = daily.std() * np.sqrt(252)
-    return float(excess / vol)
+    return float((daily.mean()*252 - risk_free) / (daily.std()*np.sqrt(252)))
 
 
 def _calc_win_rate(nav: pd.Series) -> float:
     monthly = nav.resample("ME").last().pct_change().dropna()
-    if len(monthly) == 0:
-        return 0.0
-    return float((monthly > 0).sum() / len(monthly))
-
-
-def _calc_calmar(ann_ret: float, mdd: float) -> str:
-    if mdd > 0:
-        return f"{ann_ret / mdd:.2f}"
-    return "-"
+    return float((monthly > 0).sum() / len(monthly)) if len(monthly) > 0 else 0.0
