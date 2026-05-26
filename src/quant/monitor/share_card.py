@@ -52,7 +52,7 @@ def share_card(
                  fontsize=10, color=MUTED, ha="center", va="center")
 
     # ====== 三列 KPI ======
-    card_y = 0.67
+    card_y = 0.62
     card_h = 0.08
     card_w = 0.28
     xs = [0.06, 0.38, 0.70]
