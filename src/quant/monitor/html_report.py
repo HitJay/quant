@@ -42,7 +42,7 @@ def report_html(
     monthly_matrix = _monthly_heatmap_data(monthly_ret)
     annual_ret = nav.resample("YE").last().pct_change().dropna()
     rolling_1y = nav.pct_change(252).dropna() * 100
-    MONTHS = ["J","F","M","A","M","J","J","A","S","O","N","D"]
+    MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
     # 基准
     bench_ratio = bench_pct = bench_annual_ret = bench_nav = None
