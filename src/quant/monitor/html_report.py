@@ -42,6 +42,7 @@ def report_html(
     monthly_matrix = _monthly_heatmap_data(monthly_ret)
     annual_ret = nav.resample("YE").last().pct_change().dropna()
     rolling_1y = nav.pct_change(252).dropna() * 100
+    MONTHS = ["J","F","M","A","M","J","J","A","S","O","N","D"]
 
     # 基准
     bench_ratio = bench_pct = bench_annual_ret = bench_nav = None
@@ -141,7 +142,6 @@ def report_html(
     # ---- Row 3: 月度热力图 (左) + 绩效表 (右) ----
     if monthly_matrix is not None:
         yrs = list(monthly_matrix.keys())
-        mons = ["J","F","M","A","M","J","J","A","S","O","N","D"]
         z_data = []
         for y in yrs:
             row_data = []
@@ -150,13 +150,16 @@ def report_html(
                 row_data.append(v if v is not None else np.nan)
             z_data.append(row_data)
         fig.add_trace(go.Heatmap(
-            z=z_data, x=mons, y=[str(y) for y in yrs],
+            z=z_data, x=MONTHS, y=[str(y) for y in yrs],
             colorscale=[[0, C["red"]], [0.5, C["card"]], [1, C["green"]]],
             zmid=0, zmin=-0.10, zmax=0.10,
             text=[[f"{v*100:+.1f}%" if not np.isnan(v) else "" for v in row] for row in z_data],
             texttemplate="%{text}", textfont=dict(size=9),
             showscale=False, hoverongaps=False,
         ), row=4, col=1)
+
+    # 强制热力图显示全部12个月标签
+    fig.update_xaxes(tickvals=list(range(12)), ticktext=MONTHS, row=4, col=1)
 
     # 绩效表
     header = ["<b>Metric</b>", "<b>Strategy</b>"]
