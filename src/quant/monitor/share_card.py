@@ -30,16 +30,16 @@ def share_card(
     MUTED = "#5f6368"
     LINE = "#e8eaed"
 
-    fig = plt.figure(figsize=(8, 8), facecolor=BG)
+    fig = plt.figure(figsize=(6, 8), facecolor=BG)
     
     # ---- 标题区 ----
-    ax_title = fig.add_axes([0.08, 0.88, 0.84, 0.10])
+    ax_title = fig.add_axes([0.1, 0.90, 0.80, 0.08])
     ax_title.axis("off")
     ax_title.text(0, 0.5, strategy_name, fontsize=22, fontweight="bold", color=DARK, va="center")
     ax_title.text(0, -0.15, period, fontsize=12, color=MUTED, va="center")
 
     # ---- 底部装饰线 ----
-    ax_line = fig.add_axes([0.08, 0.87, 0.84, 0.01])
+    ax_line = fig.add_axes([0.1, 0.89, 0.80, 0.005])
     ax_line.axis("off")
     ax_line.axhline(y=0, color=ACCENT, linewidth=2)
 
@@ -60,23 +60,24 @@ def share_card(
     ]
 
     for i, (label, value, color, sub) in enumerate(cards):
-        x = 0.08 + i * 0.215
+        y0 = 0.65 if i < 2 else 0.40
+        x = 0.1 + (i % 2) * 0.42
         # 卡片背景
         rect = mpatches.FancyBboxPatch(
-            (x, 0.52), 0.19, 0.30,
+            (x, y0), 0.36, 0.22,
             boxstyle="round,pad=0.02", facecolor=CARD_BG, edgecolor=LINE,
             linewidth=1, transform=fig.transFigure,
         )
         fig.patches.append(rect)
-        ax = fig.add_axes([x + 0.03, 0.55, 0.14, 0.24])
+        ax = fig.add_axes([x + 0.04, y0 + 0.03, 0.30, 0.16])
         ax.axis("off")
-        ax.text(0, 0.85, label, fontsize=11, color=MUTED, va="top")
-        ax.text(0, 0.45, value, fontsize=28, fontweight="bold", color=color, va="center")
+        ax.text(0, 0.85, label, fontsize=12, color=MUTED, va="top")
+        ax.text(0, 0.40, value, fontsize=30, fontweight="bold", color=color, va="center")
         if sub:
-            ax.text(0, 0.08, sub, fontsize=9, color=MUTED, va="bottom")
+            ax.text(0, 0.05, sub, fontsize=9, color=MUTED, va="bottom")
 
     # ---- NAV 迷你图 ----
-    ax_chart = fig.add_axes([0.08, 0.18, 0.84, 0.28])
+    ax_chart = fig.add_axes([0.1, 0.15, 0.80, 0.20])
     nav_ratio = nav / nav.iloc[0]
     ax_chart.fill_between(nav.index, nav_ratio, 1, alpha=0.15, color=GREEN)
     ax_chart.plot(nav.index, nav_ratio, color=ACCENT, linewidth=1.8)
@@ -91,7 +92,7 @@ def share_card(
     ax_chart.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.1f}x"))
 
     # ---- 底部信息 ----
-    ax_footer = fig.add_axes([0.08, 0.02, 0.84, 0.10])
+    ax_footer = fig.add_axes([0.1, 0.02, 0.80, 0.08])
     ax_footer.axis("off")
     n_days = metrics.get("n_days", 0)
     yrs = n_days / 252
