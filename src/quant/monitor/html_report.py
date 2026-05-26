@@ -158,9 +158,6 @@ def report_html(
             showscale=False, hoverongaps=False,
         ), row=4, col=1)
 
-    # 强制热力图显示全部12个月标签
-    fig.update_xaxes(tickvals=list(range(12)), ticktext=MONTHS, row=4, col=1)
-
     # 绩效表
     header = ["<b>Metric</b>", "<b>Strategy</b>"]
     bench_col = None
@@ -241,6 +238,8 @@ def report_html(
     fig.update_yaxes(type="log", tickvals=tick_vals, ticktext=tick_labels,
                       title_text="", row=2, col=1)
     fig.update_xaxes(title_text="", row=2, col=1)
+    # 热力图：强制显示12个月
+    fig.update_xaxes(tickmode="array", tickvals=MONTHS, ticktext=MONTHS, row=4, col=1)
 
     # 回撤子图
     fig.update_yaxes(title_text="DD %", ticksuffix="%", row=3, col=1)
