@@ -125,9 +125,9 @@ def report_html(
     fig.add_shape(type="line", x0=dd.index[0], x1=dd.index[-1],
                   y0=dd.min(), y1=dd.min(), line=dict(dash="dot", color=C["red"]),
                   row=3, col=1)
-    fig.add_annotation(x=dd.index[-1], y=dd.min(), text=f"Max DD: {dd.min():.1f}%",
+    fig.add_annotation(x=dd.index[-1], y=dd.min() + 2, text=f"Max DD: {dd.min():.1f}%",
                        showarrow=False, font=dict(color=C["red"], size=11),
-                       xanchor="right", row=3, col=1)
+                       xanchor="right", yanchor="bottom", row=3, col=1)
 
     # 年度收益柱状图
     years_str = [str(d.year) for d in annual_ret.index]
