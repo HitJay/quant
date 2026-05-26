@@ -56,7 +56,7 @@ def share_card(
     card_y = 0.65
     card_h = 0.08
     card_w = 0.28
-    xs = [0.06, 0.38, 0.70]
+    xs = [0.06, 0.36, 0.66]
 
     kpis = [
         ("Sharpe", f"{shp_val:.2f}", ACCENT),
@@ -206,7 +206,7 @@ def share_card_dark(
 
     # 三列 KPI
     card_y, card_h, card_w = 0.65, 0.08, 0.28
-    xs = [0.06, 0.38, 0.70]
+    xs = [0.06, 0.36, 0.66]
     kpis = [
         ("Sharpe", f"{shp_val:.2f}", ACCENT),
         ("Max DD", f"{mdd_val*100:.1f}%", RED),
