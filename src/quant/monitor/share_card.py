@@ -51,18 +51,19 @@ def share_card(
     positions = [(0.63, 0.10), (0.63, 0.52), (0.37, 0.10), (0.37, 0.52)]  # (y0, x0)
 
     for (y0, x0), (label, value, color, sub) in zip(positions, cards):
+        # 圆角卡片背景
         rect = mpatches.FancyBboxPatch(
             (x0, y0), 0.38, 0.22,
             boxstyle="round,pad=0.015", facecolor=CARD_BG, edgecolor=LINE,
-            linewidth=1, transform=fig.transFigure,
+            linewidth=1, transform=fig.transFigure, zorder=0,
         )
         fig.patches.append(rect)
-        ax = fig.add_axes([x0+0.04, y0+0.03, 0.32, 0.16])
-        ax.axis("off")
-        ax.text(0, 0.82, label, fontsize=12, color=MUTED, va="top")
-        ax.text(0, 0.38, value, fontsize=30, fontweight="bold", color=color, va="center")
+        # 文字直接用 fig.text（避免 axes 覆盖问题）
+        cx = x0 + 0.19  # 卡片中心 x
+        fig.text(cx, y0 + 0.17, label, fontsize=12, color=MUTED, ha="center", va="top")
+        fig.text(cx, y0 + 0.10, value, fontsize=30, fontweight="bold", color=color, ha="center", va="center")
         if sub:
-            ax.text(0, 0.02, sub, fontsize=9, color=MUTED, va="bottom")
+            fig.text(cx, y0 + 0.03, sub, fontsize=9, color=MUTED, ha="center", va="bottom")
 
     # ---- NAV 迷你图 (y=0.12~0.32) ----
     ax_chart = fig.add_axes([0.1, 0.12, 0.80, 0.20])
