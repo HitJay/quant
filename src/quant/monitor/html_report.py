@@ -60,7 +60,7 @@ def report_html(
     # ---- 构建图表 ----
     fig = make_subplots(
         rows=5, cols=4,
-        row_heights=[0.12, 0.28, 0.22, 0.20, 0.18],
+        row_heights=[0.10, 0.28, 0.22, 0.22, 0.18],
         column_widths=[0.25, 0.25, 0.25, 0.25],
         vertical_spacing=0.06,
         horizontal_spacing=0.04,
@@ -153,8 +153,8 @@ def report_html(
             z=z_data, x=mons, y=[str(y) for y in yrs],
             colorscale=[[0, C["red"]], [0.5, C["card"]], [1, C["green"]]],
             zmid=0, zmin=-0.10, zmax=0.10,
-            hovertext=[[f"{v*100:+.1f}%" if not np.isnan(v) else "" for v in row] for row in z_data],
-            hoverinfo="text",
+            text=[[f"{v*100:+.1f}%" if not np.isnan(v) else "" for v in row] for row in z_data],
+            texttemplate="%{text}", textfont=dict(size=9),
             showscale=False, hoverongaps=False,
         ), row=4, col=1)
 
