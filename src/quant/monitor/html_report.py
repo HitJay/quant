@@ -153,8 +153,8 @@ def report_html(
             z=z_data, x=mons, y=[str(y) for y in yrs],
             colorscale=[[0, C["red"]], [0.5, C["card"]], [1, C["green"]]],
             zmid=0, zmin=-0.10, zmax=0.10,
-            text=[[f"{v*100:+.1f}%" if not np.isnan(v) else "" for v in row] for row in z_data],
-            texttemplate="%{text}", textfont=dict(size=8, color=C["text"]),
+            hovertext=[[f"{v*100:+.1f}%" if not np.isnan(v) else "" for v in row] for row in z_data],
+            hoverinfo="text",
             showscale=False, hoverongaps=False,
         ), row=4, col=1)
 
@@ -183,7 +183,10 @@ def report_html(
         f"{metrics.get('total_return',0)*100:+.1f}%",
         f"{metrics.get('n_days',0)}",
     ]
-    cells_vals = [strat_cols]
+    cells_vals = [
+        ["Annual Return", "Max Drawdown", "Sharpe", "Calmar", "Win Rate", "Total Return", "Trading Days"],
+        strat_cols,
+    ]
     if bench_col:
         cells_vals.append(bench_col)
 
