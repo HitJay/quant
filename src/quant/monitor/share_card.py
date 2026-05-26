@@ -219,15 +219,18 @@ def share_card_dark(
                           alpha=0.15, color=GREEN)
     ax_chart.fill_between(nav.index, nav_ratio, 1, where=nav_ratio < 1,
                           alpha=0.08, color=RED)
-    ax_chart.plot(nav.index, nav_ratio, color=ACCENT, linewidth=2.2)
+    ax_chart.plot(nav.index, nav_ratio, color=ACCENT, linewidth=2.2, label="Strategy")
     # 基准线
     if benchmark is not None:
         bench_ratio = benchmark.reindex(nav.index).ffill()
         bench_ratio = bench_ratio / bench_ratio.iloc[0]
         ax_chart.plot(bench_ratio.index, bench_ratio, color=MUTED, linewidth=1.2,
-                      linestyle="dashed", alpha=0.7)
+                      linestyle="dashed", alpha=0.7, label=benchmark_label)
     ax_chart.axhline(y=1, color=MUTED, linewidth=0.6, linestyle="--", alpha=0.3)
     ax_chart.set_facecolor(BG)
+    # legend
+    ax_chart.legend(loc="upper left", fontsize=7, framealpha=0.5, edgecolor=CARD_BORDER,
+                    facecolor=CARD_BG, labelcolor=MUTED)
     for s in ["top", "right"]: ax_chart.spines[s].set_visible(False)
     ax_chart.spines["left"].set_color(MUTED); ax_chart.spines["left"].set_alpha(0.3)
     ax_chart.spines["bottom"].set_color(MUTED); ax_chart.spines["bottom"].set_alpha(0.3)
