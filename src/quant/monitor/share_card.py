@@ -151,6 +151,7 @@ def share_card_dark(
     nav,
     metrics: dict,
     benchmark_label: str = "",
+    benchmark: pd.Series | None = None,
     strategy_name: str = "",
     period: str = "",
     save_path: str = "./output/share_card_dark.png",
@@ -219,6 +220,12 @@ def share_card_dark(
     ax_chart.fill_between(nav.index, nav_ratio, 1, where=nav_ratio < 1,
                           alpha=0.08, color=RED)
     ax_chart.plot(nav.index, nav_ratio, color=ACCENT, linewidth=2.2)
+    # 基准线
+    if benchmark is not None:
+        bench_ratio = benchmark.reindex(nav.index).ffill()
+        bench_ratio = bench_ratio / bench_ratio.iloc[0]
+        ax_chart.plot(bench_ratio.index, bench_ratio, color=MUTED, linewidth=1.2,
+                      linestyle="dashed", alpha=0.7)
     ax_chart.axhline(y=1, color=MUTED, linewidth=0.6, linestyle="--", alpha=0.3)
     ax_chart.set_facecolor(BG)
     for s in ["top", "right"]: ax_chart.spines[s].set_visible(False)
