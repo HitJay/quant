@@ -106,35 +106,34 @@ def share_card(
     fig.patches.append(rect)
 
     # 对比条：策略 vs 基准
-    compare_y = bar_y + 0.085
-    bar_total_w = 0.4
-    bar_x0 = 0.15
-    bar_h = 0.012
+    label_x = 0.10
+    bar_x0 = 0.22
+    bar_total_w = 0.45
+    bar_h = 0.014
+    compare_y = bar_y + 0.088
 
-    # 计算柱状图比例（策略相对基准的倍数）
-    strat_width = bar_total_w
-    # 基准条
-    bench_ratio_to_strat = min(1.0, (1 + bench_tot) / (1 + tot_ret)) if tot_ret > bench_tot else 1.0
-    bench_width = bar_total_w * bench_ratio_to_strat if tot_ret > 0 else bar_total_w
-
-    fig.text(0.12, compare_y + 0.02, f"{benchmark_label}", fontsize=8, color="#9ca3af",
-             ha="right", va="center")
-    fig.text(0.12, compare_y - 0.005, "Strategy", fontsize=8, color="#9ca3af",
-             ha="right", va="center")
+    # 标签（左对齐，在框内）
+    fig.text(label_x, compare_y + 0.015, f"{benchmark_label}", fontsize=8,
+             color="#9ca3af", ha="left", va="center")
+    fig.text(label_x, compare_y - 0.012, "Strategy", fontsize=8,
+             color="#9ca3af", ha="left", va="center")
 
     # 基准条
-    ax_bar = fig.add_axes([bar_x0, compare_y + 0.01, bar_total_w, bar_h])
-    ax_bar.barh(0, bench_width, color="#4b5563", height=0.8)
-    ax_bar.set_xlim(0, 1); ax_bar.axis("off")
-    fig.text(bar_x0 + bar_total_w + 0.02, compare_y + 0.01,
-             f"{bench_tot*100:+.1f}%", fontsize=9, color="#9ca3af", va="center")
+    bench_ratio = min(1.0, abs((1+bench_tot)/(1+tot_ret))) if tot_ret != 0 else 1.0
+    bench_width = bar_total_w * bench_ratio
+    ax_bb = fig.add_axes([bar_x0, compare_y + 0.008, bar_total_w, bar_h])
+    ax_bb.barh(0, bench_width, color="#4b5563", height=0.8)
+    ax_bb.set_xlim(0, 1); ax_bb.axis("off")
+    pct_x = bar_x0 + bar_total_w + 0.02
+    fig.text(pct_x, compare_y + 0.008, f"{bench_tot*100:+.1f}%",
+             fontsize=9, color="#9ca3af", va="center", ha="left")
 
-    # 策略条  
-    ax_strat_bar = fig.add_axes([bar_x0, compare_y - 0.015, bar_total_w, bar_h])
-    ax_strat_bar.barh(0, 1.0, color=GREEN, height=0.8)
-    ax_strat_bar.set_xlim(0, 1); ax_strat_bar.axis("off")
-    fig.text(bar_x0 + bar_total_w + 0.02, compare_y - 0.015,
-             f"{tot_ret*100:+.1f}%", fontsize=10, color=GREEN, va="center", fontweight="bold")
+    # 策略条（绿色满格）
+    ax_sb = fig.add_axes([bar_x0, compare_y - 0.018, bar_total_w, bar_h])
+    ax_sb.barh(0, 1.0, color=GREEN, height=0.8)
+    ax_sb.set_xlim(0, 1); ax_sb.axis("off")
+    fig.text(pct_x, compare_y - 0.018, f"{tot_ret*100:+.1f}%",
+             fontsize=11, color=GREEN, va="center", ha="left", fontweight="bold")
 
     # 底部说明
     fig.text(0.5, bar_y + 0.025, f"{n_days} trading days · ~{yrs:.1f} years · for reference only",
