@@ -109,30 +109,32 @@ def share_card(
     label_x = 0.10
     bar_x0 = 0.22
     bar_total_w = 0.45
-    bar_h = 0.014
-    compare_y = bar_y + 0.088
+    bar_h = 0.016
+    gap = 0.025
+    top_y = bar_y + 0.082
+    bot_y = top_y - gap
 
-    # 标签（左对齐，在框内）
-    fig.text(label_x, compare_y + 0.015, f"{benchmark_label}", fontsize=8,
-             color="#9ca3af", ha="left", va="center")
-    fig.text(label_x, compare_y - 0.012, "Strategy", fontsize=8,
-             color="#9ca3af", ha="left", va="center")
+    # 标签（左对齐+加粗，与条中心对齐）
+    fig.text(label_x, top_y, f"{benchmark_label}", fontsize=9,
+             color="#9ca3af", ha="left", va="center", fontweight="bold")
+    fig.text(label_x, bot_y, "Strategy", fontsize=9,
+             color="#d1d5db", ha="left", va="center", fontweight="bold")
 
     # 基准条
     bench_ratio = min(1.0, abs((1+bench_tot)/(1+tot_ret))) if tot_ret != 0 else 1.0
     bench_width = bar_total_w * bench_ratio
-    ax_bb = fig.add_axes([bar_x0, compare_y + 0.008, bar_total_w, bar_h])
+    ax_bb = fig.add_axes([bar_x0, top_y - bar_h/2, bar_total_w, bar_h])
     ax_bb.barh(0, bench_width, color="#4b5563", height=0.8)
     ax_bb.set_xlim(0, 1); ax_bb.axis("off")
-    pct_x = bar_x0 + bar_total_w + 0.02
-    fig.text(pct_x, compare_y + 0.008, f"{bench_tot*100:+.1f}%",
-             fontsize=9, color="#9ca3af", va="center", ha="left")
+    pct_x = bar_x0 + bar_total_w + 0.03
+    fig.text(pct_x, top_y, f"{bench_tot*100:+.1f}%",
+             fontsize=10, color="#9ca3af", va="center", ha="left", fontweight="bold")
 
     # 策略条（绿色满格）
-    ax_sb = fig.add_axes([bar_x0, compare_y - 0.018, bar_total_w, bar_h])
+    ax_sb = fig.add_axes([bar_x0, bot_y - bar_h/2, bar_total_w, bar_h])
     ax_sb.barh(0, 1.0, color=GREEN, height=0.8)
     ax_sb.set_xlim(0, 1); ax_sb.axis("off")
-    fig.text(pct_x, compare_y - 0.018, f"{tot_ret*100:+.1f}%",
+    fig.text(pct_x, bot_y, f"{tot_ret*100:+.1f}%",
              fontsize=11, color=GREEN, va="center", ha="left", fontweight="bold")
 
     # 底部说明
