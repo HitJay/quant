@@ -113,11 +113,26 @@ def report_html(
         )
 
     # 4. 绩效指标表
-    bench_ann = metrics.get("bench_annual")
-    bench_tot = metrics.get("bench_total")
     header = ["Metric", "Strategy"]
-    if bench_ann is not None:
+    benchmark_col = None
+    if benchmark is not None:
         header.append(benchmark_label)
+        bench_nav = benchmark.reindex(nav.index).ffill().dropna()
+        # 用传入的 metrics 如果有，否则从 benchmark 数列算
+        bench_ann = metrics.get("bench_annual") or _calc_annual_return(bench_nav)
+        bench_mdd = metrics.get("bench_max_dd") or _calc_max_dd(bench_nav)
+        bench_shp = metrics.get("bench_sharpe") or _calc_sharpe(bench_nav)
+        bench_tot = metrics.get("bench_total") or (bench_nav.iloc[-1] / bench_nav.iloc[0] - 1)
+        bench_wr = metrics.get("bench_win_rate") or _calc_win_rate(bench_nav)
+        benchmark_col = [
+            f"{bench_ann*100:+.1f}%",
+            f"{bench_mdd*100:.1f}%",
+            f"{bench_shp:.2f}",
+            _calc_calmar(bench_ann, bench_mdd),
+            f"{bench_wr*100:.1f}%",
+            f"{bench_tot*100:+.1f}%",
+            f"{len(bench_nav)}",
+        ]
 
     cells = [
         ["Annual Return", "Max Drawdown", "Sharpe", "Calmar", "Win Rate", "Total Return", "Trading Days"],
@@ -131,16 +146,8 @@ def report_html(
             f"{metrics.get('n_days', 0)}",
         ],
     ]
-    if bench_ann is not None:
-        cells.append([
-            f"{bench_ann*100:+.1f}%",
-            "-",
-            "-",
-            "-",
-            "-",
-            f"{bench_tot*100:+.1f}%" if bench_tot else "-",
-            "-",
-        ])
+    if benchmark_col:
+        cells.append(benchmark_col)
 
     fig.add_trace(
         go.Table(
@@ -197,3 +204,38 @@ def _monthly_heatmap_data(monthly_ret: pd.Series) -> dict | None:
             data[y] = {}
         data[y][m] = float(ret)
     return data
+
+
+# ---- 内部辅助：从净值序列计算指标 ----
+
+def _calc_annual_return(nav: pd.Series) -> float:
+    years = (nav.index[-1] - nav.index[0]).days / 365.25
+    total = nav.iloc[-1] / nav.iloc[0] - 1
+    return float((1 + total) ** (1 / years) - 1) if years > 0.01 else 0.0
+
+
+def _calc_max_dd(nav: pd.Series) -> float:
+    peak = nav.expanding().max()
+    return float(abs(((nav - peak) / peak).min()))
+
+
+def _calc_sharpe(nav: pd.Series, risk_free: float = 0.02) -> float:
+    daily = nav.pct_change().dropna()
+    if len(daily) < 2 or daily.std() == 0:
+        return 0.0
+    excess = daily.mean() * 252 - risk_free
+    vol = daily.std() * np.sqrt(252)
+    return float(excess / vol)
+
+
+def _calc_win_rate(nav: pd.Series) -> float:
+    monthly = nav.resample("ME").last().pct_change().dropna()
+    if len(monthly) == 0:
+        return 0.0
+    return float((monthly > 0).sum() / len(monthly))
+
+
+def _calc_calmar(ann_ret: float, mdd: float) -> str:
+    if mdd > 0:
+        return f"{ann_ret / mdd:.2f}"
+    return "-"
