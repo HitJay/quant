@@ -1,4 +1,4 @@
-"""小红书风格分享卡片 — 3:4竖屏"""
+"""小红书风格分享卡片 — 专业炫酷版"""
 
 import matplotlib
 matplotlib.use("Agg")
@@ -17,74 +17,115 @@ def share_card(
     save_path: str = "./output/share_card.png",
     dpi: int = 200,
 ):
-    """生成小红书风格分享卡片（3:4竖屏PNG）"""
-    BG = "#ffffff"; CARD_BG = "#f8f9fa"; ACCENT = "#1a73e8"
-    GREEN = "#0d904f"; RED = "#d93025"; DARK = "#202124"
-    MUTED = "#5f6368"; LINE = "#e8eaed"
+    BG = "#fafbfc"
+    ACCENT = "#2563eb"      # 宝蓝
+    ACCENT_LIGHT = "#dbeafe"
+    GREEN = "#059669"
+    RED = "#dc2626"
+    DARK = "#111827"
+    MUTED = "#6b7280"
+    CARD_BG = "#ffffff"
+    CARD_SHADOW = "#e5e7eb"
 
     fig = plt.figure(figsize=(6, 8), facecolor=BG)
+    ax_bg = fig.add_axes([0, 0, 1, 1])
+    ax_bg.set_facecolor(BG)
+    ax_bg.axis("off")
 
-    # ---- 标题 (y=0.90~0.98) ----
-    ax_t = fig.add_axes([0.1, 0.90, 0.80, 0.08])
-    ax_t.axis("off")
-    ax_t.text(0, 0.65, strategy_name, fontsize=24, fontweight="bold", color=DARK, va="center")
-    ax_t.text(0, 0.15, period, fontsize=11, color=MUTED, va="center")
-
-    # ---- 装饰线 ----
-
-    # ---- KPI 2x2 网格 ----
     ann_ret = metrics.get("annual_return", 0)
     mdd_val = metrics.get("max_drawdown", 0)
     shp_val = metrics.get("sharpe", 0)
     tot_ret = metrics.get("total_return", 0)
     bench_ann = metrics.get("bench_annual")
+    n_days = metrics.get("n_days", 0)
+    yrs = n_days / 252
 
-    cards = [
-        ("Annual Return", f"{ann_ret*100:+.1f}%", GREEN if ann_ret>0 else RED,
-         f"Benchmark: {bench_ann*100:+.1f}%" if bench_ann else ""),
-        ("Max Drawdown", f"{mdd_val*100:.1f}%", RED, ""),
-        ("Sharpe Ratio", f"{shp_val:.2f}", ACCENT if shp_val>0 else MUTED, ""),
-        ("Total Return", f"{tot_ret*100:+.1f}%", GREEN if tot_ret>0 else RED,
-         f"{metrics.get('win_rate',0)*100:.0f}% winning months"),
+    # ====== 标题区 ======
+    fig.text(0.5, 0.96, strategy_name, fontsize=26, fontweight="bold", color=DARK,
+             ha="center", va="top")
+    fig.text(0.5, 0.92, period, fontsize=12, color=MUTED, ha="center", va="top")
+
+    # ====== Hero KPI — 总收益 ======
+    hero_color = GREEN if tot_ret > 0 else RED
+    fig.text(0.5, 0.84, f"{tot_ret*100:+.1f}%", fontsize=56, fontweight="bold",
+             color=hero_color, ha="center", va="center")
+    fig.text(0.5, 0.78, "Total Return", fontsize=13, color=MUTED, ha="center", va="center")
+    # vs benchmark
+    if bench_ann is not None:
+        delta = ann_ret - bench_ann
+        sign = "+" if delta >= 0 else ""
+        fig.text(0.5, 0.75, f"Ann. {ann_ret*100:+.1f}%  vs  {benchmark_label} {bench_ann*100:+.1f}%",
+                 fontsize=10, color=MUTED, ha="center", va="center")
+
+    # ====== 三列 KPI 卡片 ======
+    card_y = 0.60
+    card_h = 0.11
+    card_w = 0.28
+    gaps = 0.04
+    xs = [0.06, 0.06 + card_w + gaps, 0.06 + 2*(card_w + gaps)]
+
+    kpis = [
+        ("Sharpe", f"{shp_val:.2f}", ACCENT),
+        ("Max DD", f"{mdd_val*100:.1f}%", RED),
+        ("Win Rate", f"{metrics.get('win_rate',0)*100:.0f}%", ACCENT),
     ]
-    positions = [(0.63, 0.10), (0.63, 0.52), (0.37, 0.10), (0.37, 0.52)]  # (y0, x0)
 
-    for (y0, x0), (label, value, color, sub) in zip(positions, cards):
-        # 圆角卡片背景
+    for (label, value, color), x in zip(kpis, xs):
+        # 卡片阴影
         rect = mpatches.FancyBboxPatch(
-            (x0, y0), 0.38, 0.22,
-            boxstyle="round,pad=0.015", facecolor=CARD_BG, edgecolor=LINE,
-            linewidth=1, transform=fig.transFigure, zorder=0,
+            (x, card_y), card_w, card_h,
+            boxstyle="round,pad=0.02", facecolor=CARD_BG,
+            edgecolor=CARD_SHADOW, linewidth=1.5,
+            transform=fig.transFigure, zorder=0,
         )
         fig.patches.append(rect)
-        # 文字直接用 fig.text（避免 axes 覆盖问题）
-        cx = x0 + 0.19  # 卡片中心 x
-        fig.text(cx, y0 + 0.17, label, fontsize=12, color=MUTED, ha="center", va="top")
-        fig.text(cx, y0 + 0.10, value, fontsize=30, fontweight="bold", color=color, ha="center", va="center")
-        if sub:
-            fig.text(cx, y0 + 0.03, sub, fontsize=9, color=MUTED, ha="center", va="bottom")
+        fig.text(x + card_w/2, card_y + card_h - 0.02, label,
+                 fontsize=9, color=MUTED, ha="center", va="top")
+        fig.text(x + card_w/2, card_y + card_h/2 - 0.01, value,
+                 fontsize=20, fontweight="bold", color=color, ha="center", va="center")
 
-    # ---- NAV 迷你图 (y=0.12~0.32) ----
-    ax_chart = fig.add_axes([0.1, 0.12, 0.80, 0.20])
+    # ====== NAV 迷你图 ======
+    ax_chart = fig.add_axes([0.06, 0.28, 0.88, 0.26])
     nav_ratio = nav / nav.iloc[0]
-    ax_chart.fill_between(nav.index, nav_ratio, 1, alpha=0.12, color=GREEN)
-    ax_chart.plot(nav.index, nav_ratio, color=ACCENT, linewidth=1.8)
-    ax_chart.axhline(y=1, color=LINE, linewidth=1, linestyle="--")
+    # 渐变填充：盈利区绿色，亏损区浅灰
+    ax_chart.fill_between(nav.index, nav_ratio, 1,
+                          where=nav_ratio >= 1,
+                          alpha=0.15, color=GREEN)
+    ax_chart.fill_between(nav.index, nav_ratio, 1,
+                          where=nav_ratio < 1,
+                          alpha=0.08, color=RED)
+    ax_chart.plot(nav.index, nav_ratio, color=ACCENT, linewidth=2.2)
+    ax_chart.axhline(y=1, color=MUTED, linewidth=0.8, linestyle="--", alpha=0.5)
     ax_chart.set_facecolor(BG)
-    for s in ["top","right"]: ax_chart.spines[s].set_visible(False)
-    ax_chart.spines["left"].set_color(LINE); ax_chart.spines["bottom"].set_color(LINE)
-    ax_chart.tick_params(colors=MUTED, labelsize=8)
-    ax_chart.set_ylabel("NAV", color=MUTED, fontsize=9)
-    ax_chart.yaxis.set_major_formatter(plt.FuncFormatter(lambda x,_: f"{x:.1f}x"))
+    for s in ["top", "right"]: ax_chart.spines[s].set_visible(False)
+    ax_chart.spines["left"].set_color(MUTED); ax_chart.spines["left"].set_alpha(0.3)
+    ax_chart.spines["bottom"].set_color(MUTED); ax_chart.spines["bottom"].set_alpha(0.3)
+    ax_chart.tick_params(colors=MUTED, labelsize=7)
+    ax_chart.set_ylabel("", color=MUTED, fontsize=8)
+    # 隐藏y轴刻度，用标注代替
+    ax_chart.yaxis.set_visible(False)
+    # 起始和结束标注
+    start_val = nav_ratio.iloc[0]
+    end_val = nav_ratio.iloc[-1]
+    ax_chart.annotate(f"{start_val:.1f}x", xy=(nav.index[0], start_val),
+                      xytext=(-5, -12), textcoords="offset points",
+                      fontsize=8, color=MUTED, ha="right")
+    ax_chart.annotate(f"{end_val:.1f}x", xy=(nav.index[-1], end_val),
+                      xytext=(5, 5), textcoords="offset points",
+                      fontsize=8, color=hero_color, ha="left", fontweight="bold")
 
-    # ---- 底部信息 (y=0.03~0.12) ----
-    ax_f = fig.add_axes([0.1, 0.03, 0.80, 0.09])
-    ax_f.axis("off")
-    n_days = metrics.get("n_days", 0); yrs = n_days/252
-    ax_f.text(0, 0.55, f"Quant · {n_days} trading days (~{yrs:.1f}yr) · {benchmark_label}",
-              fontsize=9, color=MUTED)
-    ax_f.text(0, 0.05, "Generated by quant — for reference only, not investment advice",
-              fontsize=7, color=MUTED, alpha=0.5)
+    # ====== 底部信息栏 ======
+    bar_y = 0.12
+    rect = mpatches.FancyBboxPatch(
+        (0.06, bar_y), 0.88, 0.10,
+        boxstyle="round,pad=0.02", facecolor=DARK, edgecolor="none",
+        transform=fig.transFigure, zorder=0,
+    )
+    fig.patches.append(rect)
+    fig.text(0.5, bar_y + 0.06, f"{n_days} trading days  ·  ~{yrs:.1f} years",
+             fontsize=10, color="#d1d5db", ha="center", va="center")
+    fig.text(0.5, bar_y + 0.025, "Generated by quant — for reference only",
+             fontsize=7, color="#9ca3af", ha="center", va="center")
 
     Path(save_path).parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(save_path, dpi=dpi, facecolor=BG, edgecolor="none", pad_inches=0.3)
