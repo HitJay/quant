@@ -26,7 +26,8 @@ def report_html(
     from plotly.subplots import make_subplots
 
     # ---- 数据准备 ----
-    nav_pct = (nav / nav.iloc[0] - 1) * 100   # 百分比收益
+    nav_ratio = nav / nav.iloc[0]               # 净值倍数（始终>0），用于log轴
+    nav_pct = (nav_ratio - 1) * 100             # 百分比，用于表格
     peak = nav.expanding().max()
     dd = (nav - peak) / peak * 100
 
@@ -51,20 +52,23 @@ def report_html(
         ],
     )
 
-    # 1. 净值曲线（百分比）
+    # 1. 净值曲线（log刻度，百分比标签）
     fig.add_trace(
-        go.Scatter(x=nav.index, y=nav_pct, mode="lines", name="Strategy",
+        go.Scatter(x=nav.index, y=nav_ratio, mode="lines", name="Strategy",
                    line=dict(color="#1f77b4", width=2),
-                   hovertemplate="%{y:+.1f}%"),
+                   hovertemplate="%{customdata:+.1f}%",
+                   customdata=nav_pct),
         row=1, col=1,
     )
     if benchmark is not None:
         bench_norm = benchmark.reindex(nav.index).ffill()
-        bench_pct = (bench_norm / bench_norm.iloc[0] - 1) * 100
+        bench_ratio = bench_norm / bench_norm.iloc[0]
+        bench_pct = (bench_ratio - 1) * 100
         fig.add_trace(
-            go.Scatter(x=bench_norm.index, y=bench_pct, mode="lines",
+            go.Scatter(x=bench_norm.index, y=bench_ratio, mode="lines",
                        name=benchmark_label, line=dict(color="gray", width=1.5, dash="dash"),
-                       hovertemplate="%{y:+.1f}%"),
+                       hovertemplate="%{customdata:+.1f}%",
+                       customdata=bench_pct),
             row=1, col=1,
         )
 
@@ -163,7 +167,13 @@ def report_html(
         hovermode="x unified",
     )
     fig.update_xaxes(title_text="Date", row=1, col=1)
-    fig.update_yaxes(title_text="Return %", row=1, col=1, ticksuffix="%")
+    # log刻度 + 百分比标签
+    tick_vals = [0.5, 1, 2, 5, 10, 20]
+    tick_labels = ["-50%", "0%", "+100%", "+400%", "+900%", "+1900%"]
+    fig.update_yaxes(
+        title_text="Return", row=1, col=1, type="log",
+        tickvals=tick_vals, ticktext=tick_labels,
+    )
     fig.update_xaxes(title_text="Date", row=2, col=1)
     fig.update_yaxes(title_text="%", row=2, col=1)
 
