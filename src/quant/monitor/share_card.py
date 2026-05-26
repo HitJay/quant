@@ -39,16 +39,16 @@ def share_card(
 
     # ====== 顶部：标题 + Hero ======
     fig.text(0.5, 0.97, strategy_name, fontsize=24, fontweight="bold", color=DARK, ha="center", va="top")
-    fig.text(0.5, 0.915, period, fontsize=11, color=MUTED, ha="center", va="top")
+    fig.text(0.5, 0.93, period, fontsize=11, color=MUTED, ha="center", va="top")
 
     hero_color = GREEN if tot_ret > 0 else RED
-    fig.text(0.5, 0.84, f"{tot_ret*100:+.1f}%", fontsize=54, fontweight="bold",
+    fig.text(0.5, 0.86, f"{tot_ret*100:+.1f}%", fontsize=54, fontweight="bold",
              color=hero_color, ha="center", va="center")
-    fig.text(0.5, 0.785, "Total Return", fontsize=12, color=MUTED, ha="center", va="center")
+    fig.text(0.5, 0.81, "Total Return", fontsize=12, color=MUTED, ha="center", va="center")
     if bench_ann is not None:
         delta = ann_ret - bench_ann
         sign = "+" if delta >= 0 else ""
-        fig.text(0.5, 0.75, f"Ann. {ann_ret*100:+.1f}%  vs  {benchmark_label} {bench_ann*100:+.1f}%",
+        fig.text(0.5, 0.78, f"Ann. {ann_ret*100:+.1f}%  vs  {benchmark_label} {bench_ann*100:+.1f}%",
                  fontsize=10, color=MUTED, ha="center", va="center")
 
     # ====== 三列 KPI ======
