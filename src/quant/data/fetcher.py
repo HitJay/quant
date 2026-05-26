@@ -3,6 +3,7 @@
 import akshare as ak
 import pandas as pd
 import logging
+from quant.data.cache import Cache
 
 logger = logging.getLogger(__name__)
 
@@ -90,4 +91,17 @@ class ETFDataFetcher:
             df.set_index("date", inplace=True)
 
         df.sort_index(inplace=True)
+        return df
+
+    def fetch_or_cache(
+        self, symbol: str, start: str, end: str, cache: "Cache | None" = None, force: bool = False
+    ) -> pd.DataFrame:
+        """获取数据，优先命中缓存"""
+        if cache is not None and not force:
+            cached = cache.load("etf", symbol)
+            if cached is not None:
+                return cached
+        df = self.fetch(symbol, start, end)
+        if cache is not None:
+            cache.save(df, "etf", symbol)
         return df
