@@ -24,14 +24,14 @@ def share_card(
 
     fig = plt.figure(figsize=(6, 8), facecolor=BG)
 
-    # ---- 标题 (y=0.93~0.99) ----
-    ax_t = fig.add_axes([0.1, 0.93, 0.80, 0.06])
+    # ---- 标题 (y=0.90~0.98) ----
+    ax_t = fig.add_axes([0.1, 0.90, 0.80, 0.08])
     ax_t.axis("off")
-    ax_t.text(0, 0.6, strategy_name, fontsize=24, fontweight="bold", color=DARK, va="center")
-    ax_t.text(0, -0.1, period, fontsize=12, color=MUTED, va="top")
+    ax_t.text(0, 0.65, strategy_name, fontsize=24, fontweight="bold", color=DARK, va="center")
+    ax_t.text(0, 0.15, period, fontsize=11, color=MUTED, va="center")
 
     # ---- 装饰线 ----
-    fig.add_axes([0.1, 0.91, 0.80, 0.001]).axhline(y=0, color=ACCENT, linewidth=2)
+    fig.add_axes([0.1, 0.87, 0.80, 0.001]).axhline(y=0, color=ACCENT, linewidth=2)
 
     # ---- KPI 2x2 网格 ----
     ann_ret = metrics.get("annual_return", 0)
@@ -48,7 +48,7 @@ def share_card(
         ("Total Return", f"{tot_ret*100:+.1f}%", GREEN if tot_ret>0 else RED,
          f"{metrics.get('win_rate',0)*100:.0f}% winning months"),
     ]
-    positions = [(0.66, 0.10), (0.66, 0.52), (0.40, 0.10), (0.40, 0.52)]  # (y0, x0)
+    positions = [(0.63, 0.10), (0.63, 0.52), (0.37, 0.10), (0.37, 0.52)]  # (y0, x0)
 
     for (y0, x0), (label, value, color, sub) in zip(positions, cards):
         rect = mpatches.FancyBboxPatch(
@@ -64,8 +64,8 @@ def share_card(
         if sub:
             ax.text(0, 0.02, sub, fontsize=9, color=MUTED, va="bottom")
 
-    # ---- NAV 迷你图 (y=0.15~0.35) ----
-    ax_chart = fig.add_axes([0.1, 0.15, 0.80, 0.20])
+    # ---- NAV 迷你图 (y=0.12~0.32) ----
+    ax_chart = fig.add_axes([0.1, 0.12, 0.80, 0.20])
     nav_ratio = nav / nav.iloc[0]
     ax_chart.fill_between(nav.index, nav_ratio, 1, alpha=0.12, color=GREEN)
     ax_chart.plot(nav.index, nav_ratio, color=ACCENT, linewidth=1.8)
@@ -87,6 +87,6 @@ def share_card(
               fontsize=7, color=MUTED, alpha=0.5)
 
     Path(save_path).parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(save_path, dpi=dpi, bbox_inches="tight", facecolor=BG, edgecolor="none")
+    fig.savefig(save_path, dpi=dpi, facecolor=BG, edgecolor="none", pad_inches=0.3)
     plt.close(fig)
     return save_path
