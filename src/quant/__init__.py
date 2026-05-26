@@ -1,1 +1,1 @@
-# quant — Quantitative trading framework
+# quant — quantitative trading framework
