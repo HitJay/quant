@@ -52,7 +52,7 @@ def share_card(
                  fontsize=10, color=MUTED, ha="center", va="center")
 
     # ====== 三列 KPI ======
-    card_y = 0.67
+    card_y = 0.65
     card_h = 0.08
     card_w = 0.28
     xs = [0.06, 0.38, 0.70]
@@ -77,7 +77,7 @@ def share_card(
 
     # ====== NAV 大图 ======
     nav_ratio = nav / nav.iloc[0]
-    ax_chart = fig.add_axes([0.08, 0.24, 0.84, 0.37])
+    ax_chart = fig.add_axes([0.08, 0.22, 0.84, 0.37])
     ax_chart.fill_between(nav.index, nav_ratio, 1, where=nav_ratio >= 1,
                           alpha=0.12, color=GREEN)
     ax_chart.fill_between(nav.index, nav_ratio, 1, where=nav_ratio < 1,
