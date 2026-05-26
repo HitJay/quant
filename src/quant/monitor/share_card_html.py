@@ -112,7 +112,12 @@ def _nav_chart_b64(nav, benchmark, benchmark_label, theme, dpi):
         ax.plot(br.index, br, color=muted, linewidth=1.2, linestyle="dashed", alpha=0.7, label=benchmark_label)
     ax.axhline(y=1, color=muted, linewidth=0.6, linestyle="--", alpha=0.3)
     ax.set_facecolor(bg)
-    ax.legend(loc="upper left", fontsize=7, framealpha=0.5, edgecolor=card_bg, facecolor=card_bg)
+    leg = ax.legend(loc="upper left", fontsize=7, framealpha=0.6,
+                    edgecolor="#30363d" if theme=="dark" else card_bg,
+                    facecolor=card_bg)
+    if theme == "dark":
+        for t in leg.get_texts():
+            t.set_color("#c9d1d9")
     for s in ["top","right"]: ax.spines[s].set_visible(False)
     ax.spines["left"].set_color(muted); ax.spines["left"].set_alpha(0.3)
     ax.spines["bottom"].set_color(muted); ax.spines["bottom"].set_alpha(0.3)
