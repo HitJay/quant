@@ -202,15 +202,17 @@ def report_html(
         ),
     ), row=4, col=3)
 
-    # ---- Row 4: 滚动1年收益 ----
+    # ---- Row 4: 滚动1年收益 (比值+log刻度) ----
+    roll_ratio = (rolling_1y / 100) + 1   # +300% → 4.0, -50% → 0.5
     fig.add_trace(go.Scatter(
-        x=rolling_1y.index, y=rolling_1y, mode="lines", name="Rolling 1Y Return",
+        x=rolling_1y.index, y=roll_ratio, mode="lines", name="Rolling 1Y Return",
         fill="tozeroy", fillcolor=f"rgba(88,166,255,0.08)",
         line=dict(color=C["blue"], width=1.2),
-        hovertemplate="%{y:+.1f}%<extra></extra>",
+        hovertemplate="%{customdata:+.1f}%<extra></extra>",
+        customdata=rolling_1y,
     ), row=5, col=1)
     fig.add_shape(type="line", x0=rolling_1y.index[0], x1=rolling_1y.index[-1],
-                  y0=0, y1=0, line=dict(dash="solid", color=C["border"]), row=5, col=1)
+                  y0=1, y1=1, line=dict(dash="solid", color=C["border"]), row=5, col=1)
 
     # ---- 全局样式 ----
     fig.update_layout(
@@ -252,8 +254,11 @@ def report_html(
     fig.add_shape(type="line", x0=-0.5, x1=len(years_str)-0.5, y0=0, y1=0,
                   line=dict(dash="solid", color=C["border"]), row=3, col=3)
 
-    # 滚动收益
-    fig.update_yaxes(title_text="Rolling 1Y %", ticksuffix="%", row=5, col=1)
+    # 滚动收益 (log + 百分比标签)
+    roll_tick_vals = [0.3, 0.5, 1, 2, 5]
+    roll_tick_labels = ["-70%", "-50%", "0%", "+100%", "+400%"]
+    fig.update_yaxes(title_text="Rolling 1Y", type="log", row=5, col=1,
+                     tickvals=roll_tick_vals, ticktext=roll_tick_labels)
     fig.update_xaxes(title_text="", row=5, col=1)
 
     # 保存
