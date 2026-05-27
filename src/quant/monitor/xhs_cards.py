@@ -409,7 +409,8 @@ def _card_table(metrics, bench_nav, benchmark_label, title, save_path):
         b_shp = _calc_sharpe(bench_nav)
         b_tot = bench_nav.iloc[-1] / bench_nav.iloc[0] - 1
         b_wr = _calc_win_rate(bench_nav)
-        bench = {"ann": b_ann, "mdd": b_mdd, "shp": b_shp, "tot": b_tot, "wr": b_wr}
+        b_cal = b_ann / b_mdd if b_mdd > 0 else 0
+        bench = {"ann": b_ann, "mdd": b_mdd, "shp": b_shp, "tot": b_tot, "wr": b_wr, "cal": b_cal}
     
     # 策略数据
     s_ann = metrics.get("annual_return", 0)
@@ -434,8 +435,8 @@ def _card_table(metrics, bench_nav, benchmark_label, title, save_path):
          C["blue"],
          s_shp, bench.get("shp",0) if bench else None),
         ("CALMAR RATIO", f"{s_cal:.2f}" if s_cal else "-",
-         None, C["blue"],
-         s_cal if s_cal else 0, None),
+         f"{bench.get('cal',0):.2f}" if bench else None, C["blue"],
+         s_cal if s_cal else 0, bench.get("cal",0) if bench else None),
         ("MONTHLY WIN RATE", f"{s_wr*100:.0f}%",
          f"{bench.get('wr',0)*100:.0f}%" if bench else None,
          C["green"],
