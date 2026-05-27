@@ -45,10 +45,10 @@ html_full = f"""<!DOCTYPE html>
 @page {{
     size: A4;
     margin: 2cm;
-    @bottom-center {{
-        content: "第 " counter(page) " 页";
-        font-size: 9pt;
-        color: #999;
+    @bottom-right {{
+        content: counter(page) "/" counter(pages);
+        font-size: 10pt;
+        color: #666;
         font-family: 'SansSC', sans-serif;
     }}
 }}

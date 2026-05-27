@@ -105,6 +105,9 @@ ax1.annotate(f"+{total_g:.0f}%", xy=(gold_n.index[-1], gold_n.iloc[-1]),
              arrowprops=dict(arrowstyle="->", color="#ffd700", lw=1.2))
 
 ax1.set_yscale("log")
+# 自动设置Y轴范围，上限留10%余量
+y_max = max(nav_n.max(), gold_n.max()) * 1.1
+ax1.set_ylim(bottom=0.8, top=y_max)
 ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f"{y:.1f}x"))
 ax1.set_ylabel("NAV", color="white", fontsize=12)
 ax1.tick_params(axis="both", colors="#ccc", labelsize=9)
