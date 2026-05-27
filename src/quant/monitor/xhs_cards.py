@@ -390,7 +390,7 @@ def _card_rolling(rolling_1y, title, save_path):
 
 
 def _card_table(metrics, bench_nav, benchmark_label, title, save_path):
-    """Card 6: Visual performance comparison (not a plain table)"""
+    """Card 6: Visual performance comparison with horizontal bars"""
     fig, ax = _setup_fig()
     ax.set_position([0.05, 0.05, 0.9, 0.85])
     ax.axis("off")
@@ -419,7 +419,7 @@ def _card_table(metrics, bench_nav, benchmark_label, title, save_path):
     s_wr = metrics.get("win_rate", 0)
     s_tot = metrics.get("total_return", 0)
     
-    # 每行一个KPI，大字+对比条
+    # 每行数据：(label, strategy_text, benchmark_text, color, strategy_value, benchmark_value)
     rows_data = [
         ("ANNUAL RETURN", f"{s_ann*100:+.1f}%",
          f"{bench.get('ann',0)*100:+.1f}%" if bench else None,
@@ -452,39 +452,44 @@ def _card_table(metrics, bench_nav, benchmark_label, title, save_path):
     for i, (label, s_text, b_text, color, s_val, b_val) in enumerate(rows_data):
         y = y_start - i * row_h
         
-        # 标签
-        ax.text(0.3, y + 0.5, label, fontsize=9, color=C["muted"],
-                fontweight="bold", fontfamily="monospace", va="center")
+        # 标签（固定x=0.3，左对齐）
+        ax.text(0.3, y + 0.45, label, fontsize=9, color=C["muted"],
+                fontweight="bold", fontfamily="monospace", va="center", ha="left")
         
-        # 策略大字数值
-        ax.text(0.3, y, s_text, fontsize=24, color=color,
-                fontweight="bold", fontfamily="monospace", va="center")
+        # 策略数值（固定x=3.2，右对齐）
+        ax.text(3.2, y + 0.45, s_text, fontsize=18, color=color,
+                fontweight="bold", fontfamily="monospace", va="center", ha="right")
         
-        # 对比条
+        # 对比条区域（从x=3.8开始，固定宽度5.0）
         if b_text is not None and b_val is not None:
-            bar_y = y - 0.5
-            bar_h = 0.3
+            bar_left = 3.8
+            bar_width = 5.0
+            bar_h = 0.28
             max_abs = max(abs(s_val), abs(b_val), 1)
             
-            # 策略条
-            s_w = abs(s_val) / max_abs * 4.5
-            ax.barh(bar_y, s_w, height=bar_h, left=5, color=color, alpha=0.8, zorder=5)
-            ax.text(5 + s_w + 0.15, bar_y, "STRAT", fontsize=7,
-                    color=color, fontweight="bold", va="center")
+            # 策略条（y+0.15）
+            s_w = abs(s_val) / max_abs * bar_width
+            ax.barh(y + 0.15, s_w, height=bar_h, left=bar_left, 
+                    color=color, alpha=0.85, zorder=5)
             
-            # 基准条
-            b_color = C["muted"]
-            b_w = abs(b_val) / max_abs * 4.5
-            ax.barh(bar_y - 0.35, b_w, height=bar_h, left=5,
-                    color=b_color, alpha=0.4, zorder=5)
-            ax.text(5 + b_w + 0.15, bar_y - 0.35, benchmark_label[:8], fontsize=7,
-                    color=b_color, va="center")
+            # 基准条（y-0.15）
+            b_w = abs(b_val) / max_abs * bar_width
+            ax.barh(y - 0.15, b_w, height=bar_h, left=bar_left,
+                    color=C["muted"], alpha=0.45, zorder=5)
+            
+            # 标签（在条形右侧）
+            ax.text(bar_left + s_w + 0.1, y + 0.15, "STRAT", fontsize=7,
+                    color=color, fontweight="bold", va="center", ha="left")
+            ax.text(bar_left + b_w + 0.1, y - 0.15, benchmark_label[:10], fontsize=7,
+                    color=C["muted"], va="center", ha="left")
     
     # Trading days 放在底部
     n_days = metrics.get("n_days", 0)
     yrs = n_days / 252
-    ax.text(5, 0.3, f"{n_days} trading days · ~{yrs:.1f} years · for reference only",
-            ha="center", fontsize=8, color=C["muted"], va="center")
+    ax.text(5, 0.3, f"{n_days} trading days · ~{yrs:.1f} years",
+            ha="center", fontsize=9, color=C["muted"], va="center")
+    ax.text(5, -0.1, "for reference only · past performance ≠ future results",
+            ha="center", fontsize=7, color=C["muted"], va="center", style="italic")
     
     out = save_path / "06_table.png"
     fig.savefig(str(out), dpi=DPI, facecolor=C["bg"], bbox_inches="tight", pad_inches=0.15)
