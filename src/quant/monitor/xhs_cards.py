@@ -37,6 +37,7 @@ def generate_xhs_cards(
     benchmark_label: str = "Benchmark",
     title: str = "Strategy",
     save_dir: str = "./output/xhs_cards",
+    subtitle: str = "",
 ) -> list[str]:
     """生成多张小红书卡片，返回文件路径列表"""
     
@@ -58,6 +59,7 @@ def generate_xhs_cards(
     save_path.mkdir(parents=True, exist_ok=True)
     
     cards = []
+    cards.append(_card_cover(title, subtitle, metrics, nav_ratio, save_path))
     cards.append(_card_kpi_nav(nav_ratio, nav_pct, metrics, bench_ratio,
                                 benchmark_label, title, save_path))
     cards.append(_card_drawdown(dd, metrics, title, save_path))
@@ -84,6 +86,80 @@ def _style_ax(ax):
         ax.spines[s].set_linewidth(0.8)
     ax.tick_params(colors=C["muted"], labelsize=9)
     ax.grid(True, color=C["border"], linewidth=0.3, alpha=0.5)
+
+
+def _card_cover(title, subtitle, metrics, nav_ratio, save_path):
+    """Card 0: Cover / Hero card for Xiaohongshu feed"""
+    fig, ax = _setup_fig()
+    ax.set_position([0, 0, 1, 1])
+    ax.axis("off")
+    
+    # 背景渐变效果（用多层矩形模拟）
+    for i in range(20):
+        alpha = 0.03 + i * 0.005
+        y = 1 - i * 0.05
+        ax.axhspan(y - 0.05, y, color=C["blue"], alpha=alpha, zorder=0)
+    
+    # 策略标题（大字）
+    ax.text(0.5, 0.82, title,
+            ha="center", va="center", fontsize=42, fontweight="bold",
+            color=C["text"], transform=ax.transAxes, zorder=10)
+    
+    # 副标题（如果有）
+    if subtitle:
+        ax.text(0.5, 0.76, subtitle,
+                ha="center", va="center", fontsize=16, color=C["muted"],
+                transform=ax.transAxes, zorder=10)
+    
+    # 核心KPI：总收益（超大字）
+    tot_ret = metrics.get("total_return", 0)
+    ret_color = C["green"] if tot_ret > 0 else C["red"]
+    ax.text(0.5, 0.60, f"{tot_ret*100:+.1f}%",
+            ha="center", va="center", fontsize=72, fontweight="bold",
+            color=ret_color, fontfamily="monospace", transform=ax.transAxes, zorder=10)
+    
+    ax.text(0.5, 0.52, "TOTAL RETURN",
+            ha="center", va="center", fontsize=18, color=C["muted"],
+            fontweight="bold", transform=ax.transAxes, zorder=10)
+    
+    # 次级KPI：年化 + 夏普
+    ann_ret = metrics.get("annual_return", 0)
+    shp_val = metrics.get("sharpe", 0)
+    
+    ax.text(0.30, 0.40, f"Ann. {ann_ret*100:+.1f}%",
+            ha="center", va="center", fontsize=28, fontweight="bold",
+            color=C["green"] if ann_ret > 0 else C["red"],
+            fontfamily="monospace", transform=ax.transAxes, zorder=10)
+    ax.text(0.30, 0.36, "ANNUAL RETURN",
+            ha="center", va="center", fontsize=11, color=C["muted"],
+            fontweight="bold", transform=ax.transAxes, zorder=10)
+    
+    ax.text(0.70, 0.40, f"{shp_val:.2f}",
+            ha="center", va="center", fontsize=28, fontweight="bold",
+            color=C["blue"], fontfamily="monospace", transform=ax.transAxes, zorder=10)
+    ax.text(0.70, 0.36, "SHARPE RATIO",
+            ha="center", va="center", fontsize=11, color=C["muted"],
+            fontweight="bold", transform=ax.transAxes, zorder=10)
+    
+    # 底部NAV迷你曲线
+    ax_nav = fig.add_axes([0.1, 0.05, 0.8, 0.22])
+    ax_nav.set_facecolor(C["bg"])
+    ax_nav.plot(nav_ratio.index, nav_ratio, color=C["blue"], linewidth=2.5, zorder=5)
+    ax_nav.fill_between(nav_ratio.index, nav_ratio, nav_ratio.iloc[0],
+                        where=nav_ratio >= nav_ratio.iloc[0], alpha=0.15, color=C["green"])
+    ax_nav.fill_between(nav_ratio.index, nav_ratio, nav_ratio.iloc[0],
+                        where=nav_ratio < nav_ratio.iloc[0], alpha=0.1, color=C["red"])
+    
+    # 清理坐标轴
+    for s in ax_nav.spines.values():
+        s.set_visible(False)
+    ax_nav.set_xticks([])
+    ax_nav.set_yticks([])
+    
+    out = save_path / "00_cover.png"
+    fig.savefig(str(out), dpi=DPI, facecolor=C["bg"], bbox_inches="tight", pad_inches=0)
+    plt.close(fig)
+    return str(out)
 
 
 def _card_kpi_nav(nav_ratio, nav_pct, metrics, bench_ratio,
