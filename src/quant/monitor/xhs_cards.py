@@ -78,6 +78,12 @@ def _setup_fig():
     return fig, ax
 
 
+def _add_page_number(fig, page: int, total: int = 7):
+    """Add page number at bottom-right corner"""
+    fig.text(0.93, 0.02, f"{page}/{total}", ha="right", va="bottom",
+             fontsize=10, color=C["muted"], fontfamily="monospace", alpha=0.7)
+
+
 def _style_ax(ax):
     for s in ["top", "right"]:
         ax.spines[s].set_visible(False)
@@ -157,6 +163,7 @@ def _card_cover(title, subtitle, metrics, nav_ratio, save_path):
     ax_nav.set_yticks([])
     
     out = save_path / "00_cover.png"
+    _add_page_number(fig, 1)
     fig.savefig(str(out), dpi=DPI, facecolor=C["bg"], bbox_inches="tight", pad_inches=0)
     plt.close(fig)
     return str(out)
@@ -222,6 +229,7 @@ def _card_kpi_nav(nav_ratio, nav_pct, metrics, bench_ratio,
         t.set_color(C["text"])
     
     out = save_path / "01_kpi_nav.png"
+    _add_page_number(fig, 2)
     fig.savefig(str(out), dpi=DPI, facecolor=C["bg"], bbox_inches="tight", pad_inches=0.15)
     plt.close(fig)
     return str(out)
@@ -251,6 +259,7 @@ def _card_drawdown(dd, metrics, title, save_path):
     _style_ax(ax)
     
     out = save_path / "02_drawdown.png"
+    _add_page_number(fig, 3)
     fig.savefig(str(out), dpi=DPI, facecolor=C["bg"], bbox_inches="tight", pad_inches=0.15)
     plt.close(fig)
     return str(out)
@@ -311,6 +320,7 @@ def _card_annual(annual_ret, bench_nav, benchmark_label, title, save_path):
         t.set_color(C["text"])
     
     out = save_path / "03_annual.png"
+    _add_page_number(fig, 4)
     fig.savefig(str(out), dpi=DPI, facecolor=C["bg"], bbox_inches="tight", pad_inches=0.15)
     plt.close(fig)
     return str(out)
@@ -353,6 +363,7 @@ def _card_heatmap(monthly_matrix, title, save_path):
                         fontsize=8, color=color, fontweight="bold")
     
     out = save_path / "04_heatmap.png"
+    _add_page_number(fig, 5)
     fig.savefig(str(out), dpi=DPI, facecolor=C["bg"], bbox_inches="tight", pad_inches=0.15)
     plt.close(fig)
     return str(out)
@@ -384,6 +395,7 @@ def _card_rolling(rolling_1y, title, save_path):
     _style_ax(ax)
     
     out = save_path / "05_rolling.png"
+    _add_page_number(fig, 6)
     fig.savefig(str(out), dpi=DPI, facecolor=C["bg"], bbox_inches="tight", pad_inches=0.15)
     plt.close(fig)
     return str(out)
@@ -491,6 +503,7 @@ def _card_table(metrics, bench_nav, benchmark_label, title, save_path):
             ha="center", fontsize=7, color=C["muted"], va="center", style="italic")
     
     out = save_path / "06_table.png"
+    _add_page_number(fig, 7)
     fig.savefig(str(out), dpi=DPI, facecolor=C["bg"], bbox_inches="tight", pad_inches=0.15)
     plt.close(fig)
     return str(out)
