@@ -390,7 +390,7 @@ def _card_rolling(rolling_1y, title, save_path):
 
 
 def _card_table(metrics, bench_nav, benchmark_label, title, save_path):
-    """Card 6: Visual performance comparison with horizontal bars"""
+    """Card 6: Visual performance comparison with aligned bars"""
     fig, ax = _setup_fig()
     ax.set_position([0.05, 0.05, 0.9, 0.85])
     ax.axis("off")
@@ -452,38 +452,36 @@ def _card_table(metrics, bench_nav, benchmark_label, title, save_path):
     for i, (label, s_text, b_text, color, s_val, b_val) in enumerate(rows_data):
         y = y_start - i * row_h
         
-        # 标签（固定x=0.3，左对齐）
-        ax.text(0.3, y + 0.45, label, fontsize=9, color=C["muted"],
+        # 标签（固定x=0.3，上方）
+        ax.text(0.3, y + 0.5, label, fontsize=9, color=C["muted"],
                 fontweight="bold", fontfamily="monospace", va="center", ha="left")
         
-        # 策略数值（固定x=3.2，右对齐）
-        ax.text(3.2, y + 0.45, s_text, fontsize=18, color=color,
-                fontweight="bold", fontfamily="monospace", va="center", ha="right")
+        # 策略数值（固定x=0.3，下方，大字体）
+        ax.text(0.3, y, s_text, fontsize=24, color=color,
+                fontweight="bold", fontfamily="monospace", va="center", ha="left")
         
-        # 对比条区域（从x=3.8开始，固定宽度5.0）
+        # 对比条（垂直居中于y，从x=4.5开始）
         if b_text is not None and b_val is not None:
-            bar_left = 3.8
-            bar_width = 5.0
-            bar_h = 0.28
+            bar_left = 4.5
+            bar_width = 4.8
+            bar_h = 0.3
             max_abs = max(abs(s_val), abs(b_val), 1)
             
-            # 策略条（y+0.15）
+            # 策略条（y + 0.2，上方）
             s_w = abs(s_val) / max_abs * bar_width
-            ax.barh(y + 0.15, s_w, height=bar_h, left=bar_left, 
+            ax.barh(y + 0.2, s_w, height=bar_h, left=bar_left,
                     color=color, alpha=0.85, zorder=5)
-            
-            # 基准条（y-0.15）
-            b_w = abs(b_val) / max_abs * bar_width
-            ax.barh(y - 0.15, b_w, height=bar_h, left=bar_left,
-                    color=C["muted"], alpha=0.45, zorder=5)
-            
-            # 标签（在条形右侧）
-            ax.text(bar_left + s_w + 0.1, y + 0.15, "STRAT", fontsize=7,
+            ax.text(bar_left + s_w + 0.15, y + 0.2, "STRAT", fontsize=7,
                     color=color, fontweight="bold", va="center", ha="left")
-            ax.text(bar_left + b_w + 0.1, y - 0.15, benchmark_label[:10], fontsize=7,
+            
+            # 基准条（y - 0.2，下方）
+            b_w = abs(b_val) / max_abs * bar_width
+            ax.barh(y - 0.2, b_w, height=bar_h, left=bar_left,
+                    color=C["muted"], alpha=0.45, zorder=5)
+            ax.text(bar_left + b_w + 0.15, y - 0.2, benchmark_label[:10], fontsize=7,
                     color=C["muted"], va="center", ha="left")
     
-    # Trading days 放在底部
+    # Trading days
     n_days = metrics.get("n_days", 0)
     yrs = n_days / 252
     ax.text(5, 0.3, f"{n_days} trading days · ~{yrs:.1f} years",
