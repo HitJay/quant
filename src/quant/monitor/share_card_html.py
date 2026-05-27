@@ -94,6 +94,81 @@ def share_card_html(
     return str(path)
 
 
+def _adaptive_yticks(nav_ratio, br):
+    """根据数据范围自适应选择log刻度Y轴ticks和标签
+    
+    Returns: (y_lo, y_hi, y_ticks, y_labels)
+    """
+    # 收集所有数据点，确定范围
+    all_vals = [nav_ratio.min(), nav_ratio.max()]
+    if br is not None:
+        all_vals.extend([br.min(), br.max()])
+    
+    data_min = min(v for v in all_vals if v > 0)
+    data_max = max(all_vals)
+    
+    # 候选tick值（log scale上"好看"的位置）
+    candidates = [
+        0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+        1,
+        1.1, 1.2, 1.3, 1.5, 1.7, 2, 2.5, 3, 4, 5, 6, 7, 8, 10,
+        12, 15, 20, 25, 30, 40, 50, 60, 70, 80, 100,
+    ]
+    
+    # 给数据范围留padding
+    pad_lo = data_min * 0.85
+    pad_hi = data_max * 1.15 if data_max > 1 else max(data_max * 1.15, 1.1)
+    pad_lo = max(0.05, pad_lo)
+    pad_hi = min(200, pad_hi)
+    
+    # 筛选落在范围内的候选ticks
+    in_range = [c for c in candidates if pad_lo <= c <= pad_hi]
+    
+    # 确保1.0（0%线）始终包含
+    if 1.0 not in in_range and pad_lo <= 1.0 <= pad_hi:
+        in_range.append(1.0)
+        in_range.sort()
+    
+    # 如果ticks太多(>7)，稀疏化
+    if len(in_range) > 7:
+        # 优先保留"整数倍"位置
+        priority = [0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.5, 2, 2.5, 3, 5, 7, 10, 15, 20, 30, 50, 70, 100]
+        in_range = [c for c in in_range if c in priority][:7]
+    
+    # 至少3个ticks
+    if len(in_range) < 3:
+        # 从candidates中找最近的边界值
+        nice = sorted(candidates)
+        lo = max([c for c in nice if c <= pad_lo] or [nice[0]])
+        hi = min([c for c in nice if c >= pad_hi] or [nice[-1]])
+        # 确保至少有lo, mid, hi三个
+        mid_candidates = [c for c in nice if lo < c < hi]
+        if mid_candidates:
+            mid = mid_candidates[len(mid_candidates) // 2]
+        else:
+            mid = 1.0 if lo < 1.0 < hi else (lo + hi) / 2
+        in_range = sorted(set([lo, mid, hi]))
+    
+    # ylim稍微超出ticks范围
+    y_lo = min(in_range) * 0.9
+    y_hi = max(in_range) * 1.1
+    
+    # 生成百分比标签
+    labels = []
+    for v in in_range:
+        pct = (v - 1) * 100
+        if abs(pct) < 0.5:
+            labels.append("0%")
+        elif abs(pct) >= 1000:
+            labels.append(f"{pct:+.0f}%")
+        elif abs(pct) >= 10:
+            labels.append(f"{pct:+.0f}%")
+        else:
+            labels.append(f"{pct:+.0f}%")
+    
+    return y_lo, y_hi, in_range, labels
+
+
 def _nav_chart_b64(nav, benchmark, benchmark_label, theme, dpi):
     """生成NAV迷你图并返回base64"""
     if theme == "dark":
@@ -103,6 +178,7 @@ def _nav_chart_b64(nav, benchmark, benchmark_label, theme, dpi):
 
     fig, ax = plt.subplots(figsize=(5, 2), facecolor=bg)
     nav_ratio = nav / nav.iloc[0]
+    br = None
     ax.fill_between(nav.index, nav_ratio, 1, where=nav_ratio>=1, alpha=0.15, color=green)
     ax.fill_between(nav.index, nav_ratio, 1, where=nav_ratio<1, alpha=0.08, color=red)
     ax.plot(nav.index, nav_ratio, color=accent, linewidth=2, label="Strategy")
@@ -123,8 +199,10 @@ def _nav_chart_b64(nav, benchmark, benchmark_label, theme, dpi):
     ax.spines["bottom"].set_color(muted); ax.spines["bottom"].set_alpha(0.3)
     ax.tick_params(colors=muted, labelsize=6)
     ax.set_yscale("log")
-    ax.set_yticks([0.3,0.5,1,2,5,10,20,50])
-    ax.set_yticklabels(["-70%","-50%","0%","+100%","+400%","+900%","+1900%","+4900%"], fontsize=6, color=muted)
+    y_lo, y_hi, y_ticks, y_labels = _adaptive_yticks(nav_ratio, br)
+    ax.set_ylim(y_lo, y_hi)
+    ax.set_yticks(y_ticks)
+    ax.set_yticklabels(y_labels, fontsize=6, color=muted)
     plt.tight_layout(pad=0.3)
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=dpi, facecolor=bg, edgecolor="none", pad_inches=0.1)
