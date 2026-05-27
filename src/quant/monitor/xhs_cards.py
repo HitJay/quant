@@ -390,76 +390,101 @@ def _card_rolling(rolling_1y, title, save_path):
 
 
 def _card_table(metrics, bench_nav, benchmark_label, title, save_path):
-    """Card 6: 绩效对比表"""
+    """Card 6: Visual performance comparison (not a plain table)"""
     fig, ax = _setup_fig()
-    ax.set_position([0.08, 0.08, 0.84, 0.78])
+    ax.set_position([0.05, 0.05, 0.9, 0.85])
     ax.axis("off")
+    ax.set_xlim(0, 10)
+    ax.set_ylim(0, 14)
     
+    # Title
     fig.text(0.5, 0.97, title, ha="center", fontsize=20, color=C["text"], fontweight="bold")
     fig.text(0.5, 0.94, "Performance Summary", ha="center", fontsize=14, color=C["muted"])
     
-    rows = [
-        ("Annual Return", f"{metrics.get('annual_return',0)*100:+.1f}%"),
-        ("Max Drawdown", f"{metrics.get('max_drawdown',0)*100:.1f}%"),
-        ("Sharpe Ratio", f"{metrics.get('sharpe',0):.2f}"),
-        ("Calmar Ratio", f"{metrics.get('calmar',0):.2f}" if metrics.get('calmar') else "-"),
-        ("Win Rate", f"{metrics.get('win_rate',0)*100:.1f}%"),
-        ("Total Return", f"{metrics.get('total_return',0)*100:+.1f}%"),
-        ("Trading Days", f"{metrics.get('n_days',0)}"),
-    ]
-    
-    # 基准列
-    bench_rows = None
+    # 计算基准数据
+    bench = {}
     if bench_nav is not None:
         b_ann = _calc_annual_return(bench_nav)
         b_mdd = _calc_max_dd(bench_nav)
         b_shp = _calc_sharpe(bench_nav)
         b_tot = bench_nav.iloc[-1] / bench_nav.iloc[0] - 1
         b_wr = _calc_win_rate(bench_nav)
-        bench_rows = [
-            f"{b_ann*100:+.1f}%", f"{b_mdd*100:.1f}%", f"{b_shp:.2f}",
-            f"{b_ann/b_mdd:.2f}" if b_mdd > 0 else "-",
-            f"{b_wr*100:.1f}%", f"{b_tot*100:+.1f}%", str(len(bench_nav)),
-        ]
+        bench = {"ann": b_ann, "mdd": b_mdd, "shp": b_shp, "tot": b_tot, "wr": b_wr}
     
-    # 表头
-    ncols = 3 if bench_rows else 2
-    col_labels = ["Metric", "Strategy"]
-    if bench_rows:
-        col_labels.append(benchmark_label)
+    # 策略数据
+    s_ann = metrics.get("annual_return", 0)
+    s_mdd = metrics.get("max_drawdown", 0)
+    s_shp = metrics.get("sharpe", 0)
+    s_cal = metrics.get("calmar", 0)
+    s_wr = metrics.get("win_rate", 0)
+    s_tot = metrics.get("total_return", 0)
     
-    cell_data = []
-    for i, (label, strat_val) in enumerate(rows):
-        row = [label, strat_val]
-        if bench_rows:
-            row.append(bench_rows[i])
-        cell_data.append(row)
+    # 每行一个KPI，大字+对比条
+    rows_data = [
+        ("ANNUAL RETURN", f"{s_ann*100:+.1f}%",
+         f"{bench.get('ann',0)*100:+.1f}%" if bench else None,
+         C["green"] if s_ann > 0 else C["red"],
+         s_ann*100, bench.get("ann",0)*100 if bench else None),
+        ("MAX DRAWDOWN", f"{s_mdd*100:.1f}%",
+         f"{bench.get('mdd',0)*100:.1f}%" if bench else None,
+         C["red"],
+         -s_mdd*100, -bench.get("mdd",0)*100 if bench else None),
+        ("SHARPE RATIO", f"{s_shp:.2f}",
+         f"{bench.get('shp',0):.2f}" if bench else None,
+         C["blue"],
+         s_shp, bench.get("shp",0) if bench else None),
+        ("CALMAR RATIO", f"{s_cal:.2f}" if s_cal else "-",
+         None, C["blue"],
+         s_cal if s_cal else 0, None),
+        ("MONTHLY WIN RATE", f"{s_wr*100:.0f}%",
+         f"{bench.get('wr',0)*100:.0f}%" if bench else None,
+         C["green"],
+         s_wr*100, bench.get("wr",0)*100 if bench else None),
+        ("TOTAL RETURN", f"{s_tot*100:+.1f}%",
+         f"{bench.get('tot',0)*100:+.1f}%" if bench else None,
+         C["green"] if s_tot > 0 else C["red"],
+         s_tot*100, bench.get("tot",0)*100 if bench else None),
+    ]
     
-    table = ax.table(
-        cellText=cell_data,
-        colLabels=col_labels,
-        loc="center",
-        cellLoc="left",
-        colWidths=[0.35, 0.3, 0.3] if bench_rows else [0.5, 0.4],
-    )
+    y_start = 12.5
+    row_h = 1.8
     
-    table.auto_set_font_size(False)
-    table.set_fontsize(11)
-    table.scale(1, 2.0)
+    for i, (label, s_text, b_text, color, s_val, b_val) in enumerate(rows_data):
+        y = y_start - i * row_h
+        
+        # 标签
+        ax.text(0.3, y + 0.5, label, fontsize=9, color=C["muted"],
+                fontweight="bold", fontfamily="monospace", va="center")
+        
+        # 策略大字数值
+        ax.text(0.3, y, s_text, fontsize=24, color=color,
+                fontweight="bold", fontfamily="monospace", va="center")
+        
+        # 对比条
+        if b_text is not None and b_val is not None:
+            bar_y = y - 0.5
+            bar_h = 0.3
+            max_abs = max(abs(s_val), abs(b_val), 1)
+            
+            # 策略条
+            s_w = abs(s_val) / max_abs * 4.5
+            ax.barh(bar_y, s_w, height=bar_h, left=5, color=color, alpha=0.8, zorder=5)
+            ax.text(5 + s_w + 0.15, bar_y, "STRAT", fontsize=7,
+                    color=color, fontweight="bold", va="center")
+            
+            # 基准条
+            b_color = C["muted"]
+            b_w = abs(b_val) / max_abs * 4.5
+            ax.barh(bar_y - 0.35, b_w, height=bar_h, left=5,
+                    color=b_color, alpha=0.4, zorder=5)
+            ax.text(5 + b_w + 0.15, bar_y - 0.35, benchmark_label[:8], fontsize=7,
+                    color=b_color, va="center")
     
-    # 样式
-    for (r, c), cell in table.get_celld().items():
-        cell.set_edgecolor(C["border"])
-        cell.set_linewidth(0.8)
-        if r == 0:
-            cell.set_facecolor(C["card"])
-            cell.set_text_props(color=C["text"], fontweight="bold", fontsize=12)
-        else:
-            cell.set_facecolor(C["bg"])
-            cell.set_text_props(color=C["text"])
-            # 第一列加粗
-            if c == 0:
-                cell.set_text_props(color=C["muted"], fontweight="bold")
+    # Trading days 放在底部
+    n_days = metrics.get("n_days", 0)
+    yrs = n_days / 252
+    ax.text(5, 0.3, f"{n_days} trading days · ~{yrs:.1f} years · for reference only",
+            ha="center", fontsize=8, color=C["muted"], va="center")
     
     out = save_path / "06_table.png"
     fig.savefig(str(out), dpi=DPI, facecolor=C["bg"], bbox_inches="tight", pad_inches=0.15)
