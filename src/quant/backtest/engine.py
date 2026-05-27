@@ -54,9 +54,14 @@ class BacktestEngine:
             if i == 0 or date.month != dates[i - 1].month:
                 signal = strategy.rebalance(date, symbols, prices.loc[:date])
                 current_weights = signal.weights
+                # 将信号中出现的新标的加入 all_symbols 和 positions
+                for s in current_weights:
+                    if s not in all_symbols and s != self.config.cash_symbol:
+                        all_symbols.append(s)
+                        positions[s] = 0.0
 
-            # 获取当前价格
-            current_prices = {s: prices.loc[date, s] for s in symbols}
+            # 获取当前价格（包括策略信号中引用的所有标的）
+            current_prices = {s: prices.loc[date, s] for s in prices.columns}
             current_prices[self.config.cash_symbol] = 1.0
 
             # 计算总市值
