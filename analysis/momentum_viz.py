@@ -428,9 +428,6 @@ def card_worst_nav(results):
     for label in ax.get_yticklabels():
         label.set_color("#cccccc")
     
-    fig.text(0.5, 0.02, "关注我不迷路", ha="center", fontsize=10,
-             color=GOLD, transform=fig.transFigure, fontproperties=FP_BOLD)
-    
     plt.tight_layout(rect=[0, 0, 1, 0.84])
     savefig(fig, "03_worst_nav.png")
 
@@ -699,6 +696,9 @@ def card_summary_table(results):
         ax.text(0.92, y, f"{r['sharpe']:.2f}", ha="center", va="top",
                 fontsize=11, color=ORANGE, transform=ax.transAxes)
         y -= 0.08
+    
+    ax.text(0.5, 0.03, "关注我不迷路", ha="center", va="center",
+            fontsize=12, color=GOLD, transform=ax.transAxes, fontproperties=FP_BOLD)
     
     savefig(fig, "07_table.png")
 
