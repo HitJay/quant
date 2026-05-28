@@ -231,6 +231,80 @@ def card_cover(results):
     savefig(fig, "00_cover.png")
 
 
+def card_intro():
+    """00b_intro: 科普页 — 右侧交易 vs 左侧交易"""
+    fig, ax = plt.subplots(figsize=(6, 8))
+    fig.patch.set_facecolor(BG)
+    ax.set_facecolor(BG)
+    ax.axis("off")
+    
+    ax.text(0.5, 0.94, "什么是右侧交易 vs 左侧交易？", ha="center", va="top",
+            fontsize=18, fontweight="bold", color="white", transform=ax.transAxes,
+            fontproperties=FP_BOLD)
+    
+    ax.plot([0.1, 0.9], [0.90, 0.90], color=GOLD, linewidth=1.5, transform=ax.transAxes)
+    
+    # --- 右侧交易区块 ---
+    ax.text(0.08, 0.85, "右侧交易", ha="left", va="top",
+            fontsize=20, fontweight="bold", color="#f0b866", transform=ax.transAxes,
+            fontproperties=FP_BOLD)
+    ax.text(0.52, 0.86, "顺势 · 追涨杀跌", ha="left", va="top",
+            fontsize=12, color=GRAY, transform=ax.transAxes, fontproperties=FP_REG)
+    
+    right_items = [
+        ("核心理念", "涨的时候买，跌的时候卖"),
+        ("别称", "动量策略、趋势跟随、追涨杀跌"),
+        ("操作方法", "买近期涨得最好的，卖掉涨不动的"),
+        ("适合场景", "强趋势市场，如商品牛市"),
+    ]
+    y = 0.79
+    for label, desc in right_items:
+        ax.text(0.10, y, label, ha="left", va="top",
+                fontsize=9, color="#f0b866", transform=ax.transAxes, fontproperties=FP_BOLD)
+        ax.text(0.10, y-0.03, desc, ha="left", va="top",
+                fontsize=9, color="white", transform=ax.transAxes, fontproperties=FP_REG)
+        y -= 0.07
+    
+    ax.plot([0.05, 0.95], [y-0.005, y-0.005], color="#333366", linewidth=1, transform=ax.transAxes)
+    y -= 0.04
+    
+    # --- 左侧交易区块 ---
+    ax.text(0.08, y, "左侧交易", ha="left", va="top",
+            fontsize=20, fontweight="bold", color="#7fa5c4", transform=ax.transAxes,
+            fontproperties=FP_BOLD)
+    ax.text(0.52, y+0.01, "逆势 · 抄底逃顶", ha="left", va="top",
+            fontsize=12, color=GRAY, transform=ax.transAxes, fontproperties=FP_REG)
+    
+    left_items = [
+        ("核心理念", "跌的时候买，涨的时候卖"),
+        ("别称", "反转策略、逆势交易、低吸高抛、价值投资"),
+        ("操作方法", "买近期跌得最惨的，卖掉涨太快的"),
+        ("适合场景", "震荡市场，如宽基指数均值回归"),
+    ]
+    y -= 0.06
+    for label, desc in left_items:
+        ax.text(0.10, y, label, ha="left", va="top",
+                fontsize=9, color="#7fa5c4", transform=ax.transAxes, fontproperties=FP_BOLD)
+        ax.text(0.10, y-0.03, desc, ha="left", va="top",
+                fontsize=9, color="white", transform=ax.transAxes, fontproperties=FP_REG)
+        y -= 0.07
+    
+    y -= 0.02
+    ax.plot([0.05, 0.95], [y, y], color="#333366", linewidth=1, transform=ax.transAxes)
+    y -= 0.04
+    
+    # --- 一句话总结 ---
+    ax.text(0.5, y, "右侧看趋势，左侧看价值", ha="center", va="top",
+            fontsize=16, fontweight="bold", color=GOLD, transform=ax.transAxes,
+            fontproperties=FP_BOLD)
+    ax.text(0.5, y-0.04, "不同市场、不同周期，优劣截然不同", ha="center", va="top",
+            fontsize=11, color=GRAY, transform=ax.transAxes, fontproperties=FP_REG)
+    ax.text(0.5, y-0.08, "下面用 36 组量化回测告诉你答案 ↓", ha="center", va="top",
+            fontsize=11, color="#f0b866", transform=ax.transAxes, fontproperties=FP_BOLD)
+    
+    savefig(fig, "00b_intro.png")
+
+
 def card_heatmap(results):
     """01_heatmap: 热力图 — 窗口×市场年化收益（重新设计）"""
     fig = plt.figure(figsize=(6, 8))
@@ -803,6 +877,7 @@ def main():
     
     print("\n生成卡片...")
     card_cover(results)
+    card_intro()
     card_heatmap(results)
     card_best_nav(results)
     card_worst_nav(results)
