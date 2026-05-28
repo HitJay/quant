@@ -220,7 +220,7 @@ def card_cover(results):
             fontproperties=FP_REG)
     
     # 底部悬念
-    ax.text(0.5, 0.18, "▶ 翻到第2张揭晓答案", ha="center", va="top",
+    ax.text(0.5, 0.18, "专业AI量化研究员告诉你答案", ha="center", va="top",
             fontsize=14, color=GOLD, transform=ax.transAxes,
             fontproperties=FP_BOLD)
     
