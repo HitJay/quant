@@ -620,10 +620,18 @@ def card_conclusion(results):
                 fontsize=9, color=GRAY, transform=ax.transAxes, fontproperties=FP_REG)
         y -= 0.19
     
-    ax.text(0.5, 0.06, "数据：ETF日线价格 · 月度调仓 · 初始资金100万",
+    # 给散户的建议
+    ax.text(0.5, 0.12, "散户建议：短期追涨杀跌是陷阱，", ha="center", va="top",
+            fontsize=10, color="#f0b866", transform=ax.transAxes,
+            fontproperties=FP_BOLD)
+    ax.text(0.5, 0.08, "商品和宽基的中长期策略更稳健", ha="center", va="top",
+            fontsize=10, color="#f0b866", transform=ax.transAxes,
+            fontproperties=FP_BOLD)
+    
+    ax.text(0.5, 0.04, "数据：ETF日线价格 · 月度调仓 · 初始资金100万",
             ha="center", fontsize=8, color="#555555", transform=ax.transAxes,
             fontproperties=FP_REG)
-    ax.text(0.5, 0.02, "免责声明：历史业绩不代表未来表现",
+    ax.text(0.5, 0.01, "免责声明：历史业绩不代表未来表现",
             ha="center", fontsize=8, color="#555555", transform=ax.transAxes,
             fontproperties=FP_REG, style="italic")
     
