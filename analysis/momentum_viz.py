@@ -81,9 +81,9 @@ END_DATE = "2026-05-28"
 OUTPUT_DIR = Path("./output/momentum-experiment")
 XHS_DIR = OUTPUT_DIR / "xhs_cards"
 
-# 颜色
-GREEN = "#4ecca3"
-RED = "#e74c3c"
+# 颜色（A股惯例：红涨绿跌）
+GREEN = "#e74c3c"  # A股红色=涨，但变量名GREEN用于"盈利"语义
+RED = "#4ecca3"    # A股绿色=跌，但变量名RED用于"亏损"语义
 ORANGE = "#f39c12"
 GRAY = "#7f8c8d"
 GOLD = "#ffd700"
@@ -260,7 +260,7 @@ def card_heatmap(results):
             wi = WINDOWS.index(r["window"])
             matrix[ui, wi] = r["annual_return"] * 100
         
-        im = ax.imshow(matrix, cmap="RdYlGn", aspect="auto", vmin=-15, vmax=20)
+        im = ax.imshow(matrix, cmap="RdYlGn_r", aspect="auto", vmin=-15, vmax=20)
         
         ax.set_xticks(range(len(WINDOWS)))
         ax.set_xticklabels([f"{w}日" for w in WINDOWS], fontsize=9, fontproperties=FP_REG)
@@ -626,10 +626,10 @@ table {{ border-collapse: collapse; width: 100%; margin: 20px 0; }}
 th, td {{ padding: 8px 12px; text-align: right; border-bottom: 1px solid #2a2a4a; }}
 th {{ background: #16213e; color: #ffd700; }}
 tr:hover {{ background: #1a1a3e; }}
-.positive {{ color: #4ecca3; }}
-.negative {{ color: #e74c3c; }}
+.positive {{ color: #e74c3c; }}
+.negative {{ color: #4ecca3; }}
 .tag {{ display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; }}
-.tag-mom {{ background: #1a4a2a; color: #4ecca3; }}
+.tag-mom {{ background: #4a1a1a; color: #e74c3c; }}
 .tag-rev {{ background: #4a2a1a; color: #f39c12; }}
 </style>
 </head>
