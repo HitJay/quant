@@ -518,7 +518,7 @@ def card_worst_nav(results):
         label.set_color("#cccccc")
     
     plt.tight_layout(rect=[0, 0, 1, 0.84])
-    savefig_with_page(fig, "03_worst_nav.png", 9)
+    savefig_with_page(fig, "03_worst_nav.png", 5)
 
 
 def card_annual(results):
@@ -594,7 +594,7 @@ def card_annual(results):
         label.set_color("#cccccc")
     
     plt.tight_layout(rect=[0, 0, 1, 0.88])
-    savefig_with_page(fig, "04_annual.png", 5)
+    savefig_with_page(fig, "04_annual.png", 6)
 
 
 def card_momentum_vs_reversal(results):
@@ -670,7 +670,7 @@ def card_momentum_vs_reversal(results):
              ha="center", fontsize=8, color=GRAY, fontproperties=FP_REG)
     
     plt.tight_layout(rect=[0, 0.05, 1, 0.88])
-    savefig_with_page(fig, "05_momentum_vs_reversal.png", 6)
+    savefig_with_page(fig, "05_momentum_vs_reversal.png", 7)
 
 
 def card_conclusion(results):
@@ -724,7 +724,7 @@ def card_conclusion(results):
             ha="center", fontsize=8, color="#555555", transform=ax.transAxes,
             fontproperties=FP_REG, style="italic")
     
-    savefig_with_page(fig, "06_conclusion.png", 7)
+    savefig_with_page(fig, "06_conclusion.png", 8)
 
 
 def card_summary_table(results):
@@ -789,7 +789,7 @@ def card_summary_table(results):
     ax.text(0.5, 0.03, "关注我不迷路", ha="center", va="center",
             fontsize=12, color=GOLD, transform=ax.transAxes, fontproperties=FP_BOLD)
     
-    savefig_with_page(fig, "07_table.png", 8)
+    savefig_with_page(fig, "07_table.png", 9)
 
 
 # ============================================================
