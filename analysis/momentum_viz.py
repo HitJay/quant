@@ -181,6 +181,21 @@ def run_experiments(prices):
 # 卡片生成函数
 # ============================================================
 
+def add_page_number(fig, page, total=9):
+    """在右下角添加页码"""
+    fig.text(0.95, 0.01, f"{page}/{total}", ha="right", va="bottom",
+             fontsize=8, color="#555555", fontproperties=FP_REG)
+
+
+def savefig_with_page(fig, name, page, total=9):
+    """保存图片并加页码"""
+    add_page_number(fig, page, total)
+    XHS_DIR.mkdir(parents=True, exist_ok=True)
+    path = XHS_DIR / name
+    fig.savefig(str(path), dpi=180, bbox_inches="tight", facecolor=BG)
+    plt.close(fig)
+    print(f"  ✓ {path}")
+
 def savefig(fig, name):
     XHS_DIR.mkdir(parents=True, exist_ok=True)
     path = XHS_DIR / name
@@ -228,7 +243,7 @@ def card_cover(results):
             ha="center", va="top", fontsize=10, color="#555555", transform=ax.transAxes,
             fontproperties=FP_REG)
     
-    savefig(fig, "00_cover.png")
+    savefig_with_page(fig, "00_cover.png", 1)
 
 
 def card_intro():
@@ -302,7 +317,7 @@ def card_intro():
     ax.text(0.5, y-0.08, "下面用 36 组量化回测告诉你答案 ↓", ha="center", va="top",
             fontsize=11, color="#f0b866", transform=ax.transAxes, fontproperties=FP_BOLD)
     
-    savefig(fig, "00b_intro.png")
+    savefig_with_page(fig, "00b_intro.png", 2)
 
 
 def card_heatmap(results):
@@ -409,7 +424,7 @@ def card_heatmap(results):
                    ha="center", va="center", fontsize=9, color=GRAY, 
                    transform=ax_footer.transAxes, fontproperties=FP_REG)
     
-    savefig(fig, "01_heatmap.png")
+    savefig_with_page(fig, "01_heatmap.png", 3)
 
 
 def card_best_nav(results):
@@ -458,7 +473,7 @@ def card_best_nav(results):
         label.set_color("#cccccc")
     
     plt.tight_layout(rect=[0, 0, 1, 0.84])
-    savefig(fig, "02_best_nav.png")
+    savefig_with_page(fig, "02_best_nav.png", 4)
 
 
 def card_worst_nav(results):
@@ -503,7 +518,7 @@ def card_worst_nav(results):
         label.set_color("#cccccc")
     
     plt.tight_layout(rect=[0, 0, 1, 0.84])
-    savefig(fig, "03_worst_nav.png")
+    savefig_with_page(fig, "03_worst_nav.png", 9)
 
 
 def card_annual(results):
@@ -579,7 +594,7 @@ def card_annual(results):
         label.set_color("#cccccc")
     
     plt.tight_layout(rect=[0, 0, 1, 0.88])
-    savefig(fig, "04_annual.png")
+    savefig_with_page(fig, "04_annual.png", 5)
 
 
 def card_momentum_vs_reversal(results):
@@ -655,7 +670,7 @@ def card_momentum_vs_reversal(results):
              ha="center", fontsize=8, color=GRAY, fontproperties=FP_REG)
     
     plt.tight_layout(rect=[0, 0.05, 1, 0.88])
-    savefig(fig, "05_momentum_vs_reversal.png")
+    savefig_with_page(fig, "05_momentum_vs_reversal.png", 6)
 
 
 def card_conclusion(results):
@@ -709,7 +724,7 @@ def card_conclusion(results):
             ha="center", fontsize=8, color="#555555", transform=ax.transAxes,
             fontproperties=FP_REG, style="italic")
     
-    savefig(fig, "06_conclusion.png")
+    savefig_with_page(fig, "06_conclusion.png", 7)
 
 
 def card_summary_table(results):
@@ -774,7 +789,7 @@ def card_summary_table(results):
     ax.text(0.5, 0.03, "关注我不迷路", ha="center", va="center",
             fontsize=12, color=GOLD, transform=ax.transAxes, fontproperties=FP_BOLD)
     
-    savefig(fig, "07_table.png")
+    savefig_with_page(fig, "07_table.png", 8)
 
 
 # ============================================================
