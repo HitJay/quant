@@ -180,7 +180,11 @@ def savefig(fig, name):
 
 
 def card_cover(results):
-    """00_cover: Big title + best strategy highlight"""
+    """00_cover: Big title + best strategy highlight (Chinese version)"""
+    from matplotlib.font_manager import FontProperties
+    fp_bold = FontProperties(fname=str(Path.home() / ".local/share/fonts/NotoSansSC-Bold.otf"))
+    fp_reg = FontProperties(fname=str(Path.home() / ".local/share/fonts/NotoSansSC-Regular.otf"))
+    
     # Find best momentum and best reverse
     mom_results = [r for r in results if not r["reverse"]]
     rev_results = [r for r in results if r["reverse"]]
@@ -192,39 +196,44 @@ def card_cover(results):
     ax.set_facecolor(BG)
     ax.axis("off")
     
-    # Title
-    ax.text(0.5, 0.88, "Momentum Chasing in A-Shares", ha="center", va="top",
-            fontsize=22, fontweight="bold", color="white", transform=ax.transAxes)
-    ax.text(0.5, 0.82, "Does It Actually Work?", ha="center", va="top",
-            fontsize=16, color=GRAY, transform=ax.transAxes)
+    # Title (Chinese)
+    ax.text(0.5, 0.88, "追涨杀跌能赚钱吗？", ha="center", va="top",
+            fontsize=26, fontweight="bold", color="white", transform=ax.transAxes,
+            fontproperties=fp_bold)
+    ax.text(0.5, 0.81, "8年数据 × 25种组合 × 量化回测", ha="center", va="top",
+            fontsize=14, color=GRAY, transform=ax.transAxes,
+            fontproperties=fp_reg)
     
     # Divider
-    ax.plot([0.15, 0.85], [0.77, 0.77], color=GOLD, linewidth=2, transform=ax.transAxes)
+    ax.plot([0.15, 0.85], [0.76, 0.76], color=GOLD, linewidth=2, transform=ax.transAxes)
     
-    # Best momentum
-    ax.text(0.5, 0.70, "BEST MOMENTUM", ha="center", va="top",
-            fontsize=12, color=GREEN, transform=ax.transAxes, fontweight="bold")
-    ax.text(0.5, 0.62, f"{best_mom['uni_name']}", ha="center", va="top",
+    # Best momentum (Chinese labels)
+    ax.text(0.5, 0.70, "最佳动量策略（追涨）", ha="center", va="top",
+            fontsize=13, color=GREEN, transform=ax.transAxes, fontproperties=fp_bold)
+    ax.text(0.5, 0.63, f"{best_mom['uni_name']}", ha="center", va="top",
             fontsize=14, color="white", transform=ax.transAxes)
     ax.text(0.5, 0.52, f"+{best_mom['annual_return']:.1%}", ha="center", va="top",
-            fontsize=42, color=GREEN, transform=ax.transAxes, fontweight="bold")
-    ax.text(0.5, 0.43, f"Ann. Return · {best_mom['window']}d Window · Sharpe {best_mom['sharpe']:.2f}",
-            ha="center", va="top", fontsize=11, color=GRAY, transform=ax.transAxes)
+            fontsize=44, color=GREEN, transform=ax.transAxes, fontproperties=fp_bold)
+    ax.text(0.5, 0.43, f"年化收益 · {best_mom['window']}日窗口 · Sharpe {best_mom['sharpe']:.2f}",
+            ha="center", va="top", fontsize=11, color=GRAY, transform=ax.transAxes,
+            fontproperties=fp_reg)
     
     # Divider
     ax.plot([0.25, 0.75], [0.38, 0.38], color="#333366", linewidth=1, transform=ax.transAxes)
     
-    # Best reverse
-    ax.text(0.5, 0.33, "BEST CONTRARIAN", ha="center", va="top",
-            fontsize=12, color=ORANGE, transform=ax.transAxes, fontweight="bold")
-    ax.text(0.5, 0.26, f"+{best_rev['annual_return']:.1%} Ann.", ha="center", va="top",
-            fontsize=28, color=ORANGE, transform=ax.transAxes, fontweight="bold")
-    ax.text(0.5, 0.18, f"{best_rev['uni_name']} · {best_rev['window']}d Window",
-            ha="center", va="top", fontsize=11, color=GRAY, transform=ax.transAxes)
+    # Best reverse (Chinese labels)
+    ax.text(0.5, 0.33, "最佳反转策略（抄底）", ha="center", va="top",
+            fontsize=13, color=ORANGE, transform=ax.transAxes, fontproperties=fp_bold)
+    ax.text(0.5, 0.26, f"+{best_rev['annual_return']:.1%} 年化", ha="center", va="top",
+            fontsize=28, color=ORANGE, transform=ax.transAxes, fontproperties=fp_bold)
+    ax.text(0.5, 0.18, f"{best_rev['uni_name']} · {best_rev['window']}日窗口",
+            ha="center", va="top", fontsize=11, color=GRAY, transform=ax.transAxes,
+            fontproperties=fp_reg)
     
-    # Footer
-    ax.text(0.5, 0.06, f"25 Strategy Combos · {START_DATE[:4]}-{END_DATE[:4]} · Monthly Rebalance",
-            ha="center", va="top", fontsize=10, color="#666666", transform=ax.transAxes)
+    # Footer (Chinese)
+    ax.text(0.5, 0.06, f"25种策略组合 · {START_DATE[:4]}-{END_DATE[:4]} · 月度调仓",
+            ha="center", va="top", fontsize=10, color="#666666", transform=ax.transAxes,
+            fontproperties=fp_reg)
     
     savefig(fig, "00_cover.png")
 
