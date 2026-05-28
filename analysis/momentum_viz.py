@@ -509,16 +509,20 @@ def card_annual(results):
 
 
 def card_momentum_vs_reversal(results):
-    """05_momentum_vs_reversal: 动量vs反转分组对比"""
-    fig, axes = plt.subplots(1, 3, figsize=(6, 8))
+    """05_momentum_vs_reversal: 右侧vs左侧分组对比 — 3行竖排"""
+    fig, axes = plt.subplots(3, 1, figsize=(6, 8))
     fig.patch.set_facecolor(BG)
-    fig.suptitle("右侧 vs 左侧", fontsize=16, fontweight="bold", color="white", y=0.95,
+    fig.suptitle("右侧 vs 左侧", fontsize=16, fontweight="bold", color="white", y=0.96,
                  fontproperties=FP_BOLD)
-    fig.text(0.5, 0.91, "各市场 × 各窗口年化收益对比", ha="center", fontsize=10, color=GRAY,
+    fig.text(0.5, 0.93, "各市场 × 各窗口年化收益对比", ha="center", fontsize=10, color=GRAY,
              fontproperties=FP_REG)
     
+    # 优雅配色 — 和图4同系列
+    RIGHT_CLR = "#f0b866"   # 暖琥珀 = 右侧(顺势)
+    LEFT_CLR = "#7fa5c4"    # 冷靛蓝 = 左侧(逆势)
+    
     universes = ["broad", "sector", "commodity"]
-    uni_labels = ["宽基", "行业", "商品"]
+    uni_labels = ["宽基 (沪深300+中证500)", "行业 (6只ETF)", "商品 (黄金+豆粕+能源)"]
     
     for idx, (uni, label) in enumerate(zip(universes, uni_labels)):
         ax = axes[idx]
@@ -534,29 +538,49 @@ def card_momentum_vs_reversal(results):
         
         x = np.arange(len(WINDOWS))
         width = 0.35
-        ax.bar(x - width/2, mom_vals, width, color=GREEN, alpha=0.85, label="右侧(顺势)")
-        ax.bar(x + width/2, rev_vals, width, color=PURPLE, alpha=0.85, label="左侧(逆势)")
+        
+        bars_r = ax.bar(x - width/2, mom_vals, width, color=RIGHT_CLR, alpha=0.92,
+                        edgecolor="#1a1a2e", linewidth=0.5)
+        bars_l = ax.bar(x + width/2, rev_vals, width, color=LEFT_CLR, alpha=0.92,
+                        edgecolor="#1a1a2e", linewidth=0.5)
+        
+        # 标注数值（只标最大最小值，避免拥挤）
+        max_i = np.argmax(mom_vals)
+        min_i = np.argmin(rev_vals) if min(rev_vals) < 0 else np.argmin(rev_vals)
+        for bars, vals in [(bars_r, mom_vals), (bars_l, rev_vals)]:
+            for i, (bar, val) in enumerate(zip(bars, vals)):
+                # 标注绝对值最大的柱子
+                if i == max_i or i == min_i or abs(val) > 8:
+                    ax.text(bar.get_x() + bar.get_width()/2,
+                            bar.get_height() + (1.2 if val >= 0 else -1.2),
+                            f"{val:+.1f}", ha="center",
+                            va="bottom" if val >= 0 else "top",
+                            fontsize=7, color="white", fontweight="bold")
         
         ax.axhline(y=0, color="#333366", linewidth=0.5)
         ax.set_xticks(x)
-        ax.set_xticklabels([f"{w}日" for w in WINDOWS], fontsize=8, rotation=45,
+        ax.set_xticklabels([f"{w}日" for w in WINDOWS], fontsize=8,
                            fontproperties=FP_REG)
-        ax.set_title(label, fontsize=12, fontweight="bold", color="white", fontproperties=FP_BOLD)
-        ax.grid(True, axis="y", alpha=0.3)
-        
-        for lbl in ax.get_xticklabels():
-            lbl.set_color("#cccccc")
-        for lbl in ax.get_yticklabels():
-            lbl.set_color("#cccccc")
+        ax.set_ylabel("%", fontsize=8, color="#999999", fontproperties=FP_REG)
+        ax.set_title(label, fontsize=11, fontweight="bold", color="white",
+                     fontproperties=FP_BOLD, loc="left", pad=4)
+        ax.grid(True, axis="y", alpha=0.2)
+        ax.tick_params(axis="both", labelsize=7, colors="#999999")
         
         if idx == 0:
-            ax.legend(loc="upper left", facecolor="#3a3a5c", labelcolor="white", 
-                      framealpha=1, fontsize=8, prop=FP_REG)
+            from matplotlib.patches import Patch
+            legend_handles = [
+                Patch(facecolor=RIGHT_CLR, edgecolor="#1a1a2e", label="右侧(顺势)"),
+                Patch(facecolor=LEFT_CLR, edgecolor="#1a1a2e", label="左侧(逆势)"),
+            ]
+            ax.legend(loc="upper right", handles=legend_handles,
+                      facecolor="#3a3a5c", labelcolor="white",
+                      framealpha=1, fontsize=7, prop=FP_REG)
     
-    fig.text(0.5, 0.02, "红色=右侧(顺势) · 紫色=左侧(逆势) · Y轴=年化收益%",
+    fig.text(0.5, 0.02, "Y轴=年化收益% · 数值只标注显著值",
              ha="center", fontsize=8, color=GRAY, fontproperties=FP_REG)
     
-    plt.tight_layout(rect=[0, 0.05, 1, 0.88])
+    plt.tight_layout(rect=[0, 0.05, 1, 0.90])
     savefig(fig, "05_momentum_vs_reversal.png")
 
 
