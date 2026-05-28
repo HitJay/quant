@@ -24,6 +24,11 @@ import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 from matplotlib.lines import Line2D
 
+import matplotlib.patheffects as pe
+from matplotlib.patches import Rectangle
+from matplotlib.colors import Normalize
+import matplotlib.cm as cm
+
 # 加载中文字体
 FP_BOLD = FontProperties(fname=str(Path.home() / ".local/share/fonts/NotoSansSC-Bold.otf"))
 FP_REG = FontProperties(fname=str(Path.home() / ".local/share/fonts/NotoSansSC-Regular.otf"))
@@ -156,7 +161,7 @@ def run_experiments(prices):
                     "bench_label": uni_cfg["bench_label"],
                     "window": window,
                     "reverse": reverse,
-                    "label": f"{'反转' if reverse else '动量'}_{window}日",
+                    "label": f"{'左侧' if reverse else '右侧'}_{window}日",
                     "annual_return": ann,
                     "max_drawdown": dd,
                     "sharpe": sh,
@@ -197,17 +202,17 @@ def card_cover(results):
     ax.axis("off")
     
     # 标题
-    ax.text(0.5, 0.88, "追涨杀跌能赚钱吗？", ha="center", va="top",
-            fontsize=26, fontweight="bold", color="white", transform=ax.transAxes,
+    ax.text(0.5, 0.88, "右侧交易 vs 左侧交易，谁更赚钱？", ha="center", va="top",
+            fontsize=24, fontweight="bold", color="white", transform=ax.transAxes,
             fontproperties=FP_BOLD)
-    ax.text(0.5, 0.81, "8年数据 × 25种组合 × 量化回测", ha="center", va="top",
+    ax.text(0.5, 0.81, "8年数据 × 36种组合 × 量化回测", ha="center", va="top",
             fontsize=14, color=GRAY, transform=ax.transAxes,
             fontproperties=FP_REG)
     
     ax.plot([0.15, 0.85], [0.76, 0.76], color=GOLD, linewidth=2, transform=ax.transAxes)
     
-    # 最佳动量
-    ax.text(0.5, 0.70, "最佳动量策略（追涨）", ha="center", va="top",
+    # 最佳右侧
+    ax.text(0.5, 0.70, "最佳右侧交易（顺势·涨买跌卖）", ha="center", va="top",
             fontsize=13, color=GREEN, transform=ax.transAxes, fontproperties=FP_BOLD)
     ax.text(0.5, 0.63, f"{best_mom['uni_name']}", ha="center", va="top",
             fontsize=14, color="white", transform=ax.transAxes, fontproperties=FP_REG)
@@ -220,7 +225,7 @@ def card_cover(results):
     ax.plot([0.25, 0.75], [0.38, 0.38], color="#333366", linewidth=1, transform=ax.transAxes)
     
     # 最佳反转
-    ax.text(0.5, 0.33, "最佳反转策略（抄底）", ha="center", va="top",
+    ax.text(0.5, 0.33, "最佳左侧交易（逆势·跌买涨卖）", ha="center", va="top",
             fontsize=13, color=PURPLE, transform=ax.transAxes, fontproperties=FP_BOLD)
     ax.text(0.5, 0.26, f"+{best_rev['annual_return']:.1%} 年化", ha="center", va="top",
             fontsize=28, color=PURPLE, transform=ax.transAxes, fontproperties=FP_BOLD)
@@ -245,12 +250,12 @@ def card_heatmap(results):
     ax_intro.set_facecolor(BG)
     ax_intro.axis("off")
     
-    ax_intro.text(0.5, 0.95, "量化回测：追涨杀跌能赚钱吗？", ha="center", va="top",
-                  fontsize=16, fontweight="bold", color="white", transform=ax_intro.transAxes,
+    ax_intro.text(0.5, 0.95, "量化回测：右侧 vs 左侧交易，谁更赚钱？", ha="center", va="top",
+                  fontsize=15, fontweight="bold", color="white", transform=ax_intro.transAxes,
                   fontproperties=FP_BOLD)
-    ax_intro.text(0.5, 0.65, "动量策略 = 追涨（买涨得最好的）", ha="center", va="top",
+    ax_intro.text(0.5, 0.65, "右侧交易 = 顺势（涨时买入，跌时卖出）", ha="center", va="top",
                   fontsize=11, color=GREEN, transform=ax_intro.transAxes, fontproperties=FP_REG)
-    ax_intro.text(0.5, 0.40, "反转策略 = 杀跌（买跌得最多的）", ha="center", va="top",
+    ax_intro.text(0.5, 0.40, "左侧交易 = 逆势（跌时买入，涨时卖出）", ha="center", va="top",
                   fontsize=11, color=PURPLE, transform=ax_intro.transAxes, fontproperties=FP_REG)
     ax_intro.text(0.5, 0.10, "↓ 25种组合 × 8年数据 ↓", ha="center", va="top",
                   fontsize=10, color=GRAY, transform=ax_intro.transAxes, fontproperties=FP_REG)
@@ -275,7 +280,7 @@ def card_heatmap(results):
             r = [x for x in results if x["universe"] == uni and x["window"] == w and not x["reverse"]]
             mom_vals.append(r[0]["annual_return"] * 100 if r else np.nan)
         rows.append(mom_vals)
-        row_labels.append(f"{label}\n动量(追涨)")
+        row_labels.append(f"{label}\n右侧(顺势)")
         
         # 反转行
         rev_vals = []
@@ -283,11 +288,25 @@ def card_heatmap(results):
             r = [x for x in results if x["universe"] == uni and x["window"] == w and x["reverse"]]
             rev_vals.append(r[0]["annual_return"] * 100 if r else np.nan)
         rows.append(rev_vals)
-        row_labels.append(f"{label}\n反转(抄底)")
+        row_labels.append(f"{label}\n左侧(逆势)")
     
     matrix = np.array(rows)
     
-    im = ax_heat.imshow(matrix, cmap="RdYlGn_r", aspect="auto", vmin=-15, vmax=20)
+    # 使用自定义色块而非imshow，确保对比度
+    norm = Normalize(vmin=-15, vmax=20)
+    cmap = cm.get_cmap("RdYlGn_r")
+    
+    # 绘制色块
+    for i in range(len(rows)):
+        for j in range(len(WINDOWS)):
+            val = matrix[i, j]
+            if not np.isnan(val):
+                color = cmap(norm(val))
+                rect = Rectangle((j-0.5, i-0.5), 1, 1, facecolor=color, edgecolor="#2a2a4a", linewidth=1)
+                ax_heat.add_patch(rect)
+    
+    ax_heat.set_xlim(-0.5, len(WINDOWS)-0.5)
+    ax_heat.set_ylim(len(rows)-0.5, -0.5)
     
     ax_heat.set_xticks(range(len(WINDOWS)))
     ax_heat.set_xticklabels([f"{w}日" for w in WINDOWS], fontsize=9, fontproperties=FP_REG)
@@ -297,14 +316,16 @@ def card_heatmap(results):
     ax_heat.set_yticks(range(len(row_labels)))
     ax_heat.set_yticklabels(row_labels, fontsize=8, fontproperties=FP_REG, linespacing=1.2)
     
-    # 添加数值标注
+    # 添加数值标注 - 使用深色背景块+白字提高对比度
     for i in range(len(rows)):
         for j in range(len(WINDOWS)):
             val = matrix[i, j]
             if not np.isnan(val):
-                color = "white" if abs(val) < 8 else "black"
+                # 总是用白字+描边，确保清晰可读
                 ax_heat.text(j, i, f"{val:+.1f}%", ha="center", va="center",
-                            fontsize=9, fontweight="bold", color=color, fontproperties=FP_REG)
+                            fontsize=10, fontweight="bold", color="white",
+                            path_effects=[pe.withStroke(linewidth=2, foreground="black")],
+                            fontproperties=FP_BOLD)
     
     # 添加分隔线
     for i in range(2, 6, 2):
@@ -483,7 +504,7 @@ def card_momentum_vs_reversal(results):
     """05_momentum_vs_reversal: 动量vs反转分组对比"""
     fig, axes = plt.subplots(1, 3, figsize=(6, 8))
     fig.patch.set_facecolor(BG)
-    fig.suptitle("动量 vs 反转", fontsize=16, fontweight="bold", color="white", y=0.95,
+    fig.suptitle("右侧 vs 左侧", fontsize=16, fontweight="bold", color="white", y=0.95,
                  fontproperties=FP_BOLD)
     fig.text(0.5, 0.91, "各市场 × 各窗口年化收益对比", ha="center", fontsize=10, color=GRAY,
              fontproperties=FP_REG)
@@ -505,8 +526,8 @@ def card_momentum_vs_reversal(results):
         
         x = np.arange(len(WINDOWS))
         width = 0.35
-        ax.bar(x - width/2, mom_vals, width, color=GREEN, alpha=0.85, label="动量")
-        ax.bar(x + width/2, rev_vals, width, color=PURPLE, alpha=0.85, label="反转")
+        ax.bar(x - width/2, mom_vals, width, color=GREEN, alpha=0.85, label="右侧(顺势)")
+        ax.bar(x + width/2, rev_vals, width, color=PURPLE, alpha=0.85, label="左侧(逆势)")
         
         ax.axhline(y=0, color="#333366", linewidth=0.5)
         ax.set_xticks(x)
@@ -524,7 +545,7 @@ def card_momentum_vs_reversal(results):
             ax.legend(loc="upper left", facecolor="#3a3a5c", labelcolor="white", 
                       framealpha=1, fontsize=8, prop=FP_REG)
     
-    fig.text(0.5, 0.02, "红色=动量(追涨) · 紫色=反转(抄底) · Y轴=年化收益%",
+    fig.text(0.5, 0.02, "红色=右侧(顺势) · 紫色=左侧(逆势) · Y轴=年化收益%",
              ha="center", fontsize=8, color=GRAY, fontproperties=FP_REG)
     
     plt.tight_layout(rect=[0, 0.05, 1, 0.88])
@@ -545,11 +566,11 @@ def card_conclusion(results):
     ax.plot([0.1, 0.9], [0.90, 0.90], color=GOLD, linewidth=2, transform=ax.transAxes)
     
     findings = [
-        ("1", "短期动量(5-20日)\n在A股是绞肉机",
+        ("1", "短期右侧(5-20日)\n在A股是绞肉机",
          "行业ETF尤其明显：年化最高-14.6%", RED),
-        ("2", "中期动量(60-120日)\n只在商品市场有效",
+        ("2", "中期右侧(60-120日)\n只在商品市场有效",
          "黄金/豆粕/能源：年化+19.5%，Sharpe 0.88", GREEN),
-        ("3", "反转策略（抄底）\n在宽基市场有效",
+        ("3", "左侧策略（逆势）\n在宽基市场有效",
          "沪深300+中证500：年化+6.6%，回撤小", PURPLE),
         ("4", "黄金法则：\n时间尺度决定一切",
          "同样的策略，换个窗口，结果完全相反", GOLD),
@@ -654,7 +675,7 @@ def generate_html_report(results):
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>追涨杀跌实验报告</title>
+<title>右侧vs左侧交易实验报告</title>
 <style>
 body {{ background: #0f0f1a; color: #eee; font-family: 'Microsoft YaHei', 'Noto Sans SC', sans-serif; margin: 20px; }}
 h1 {{ color: #ffd700; }}
@@ -671,7 +692,7 @@ tr:hover {{ background: #1a1a3e; }}
 </style>
 </head>
 <body>
-<h1>追涨杀跌在A股 — 完整回测结果</h1>
+<h1>右侧vs左侧交易在A股 — 完整回测结果</h1>
 <p>回测区间：{START_DATE} 至 {END_DATE} · 月度调仓 · {len(results)} 种策略组合</p>
 """)
     
@@ -682,7 +703,7 @@ tr:hover {{ background: #1a1a3e; }}
     
     for i, r in enumerate(sorted_r):
         tag_class = "tag-rev" if r["reverse"] else "tag-mom"
-        tag_text = "反转" if r["reverse"] else "动量"
+        tag_text = "左侧" if r["reverse"] else "右侧"
         ann_class = "positive" if r["annual_return"] > 0 else "negative"
         alpha_class = "positive" if r["alpha"] > 0 else "negative"
         
@@ -708,9 +729,9 @@ tr:hover {{ background: #1a1a3e; }}
 <ul>
 <li><strong>最佳策略：</strong>{best['label']}，{best['uni_name']} — 年化 {best['annual_return']:+.2%}，Sharpe {best['sharpe']:.2f}</li>
 <li><strong>最差策略：</strong>{worst['label']}，{worst['uni_name']} — 年化 {worst['annual_return']:+.2%}，最大回撤 -{worst['max_drawdown']:.2%}</li>
-<li><strong>宽基市场：</strong>短期动量亏钱，反转策略有效</li>
-<li><strong>行业ETF：</strong>短期动量灾难（5日年化-14.6%），5日反转反而+7.2%</li>
-<li><strong>商品市场：</strong>中长期动量表现良好（60-120日窗口）</li>
+<li><strong>宽基市场：</strong>短期右侧亏钱，左侧策略有效</li>
+<li><strong>行业ETF：</strong>短期右侧灾难（5日年化-14.6%），5日左侧反而+7.2%</li>
+<li><strong>商品市场：</strong>中长期右侧表现良好（60-120日窗口）</li>
 </ul>
 """)
     
@@ -727,7 +748,7 @@ tr:hover {{ background: #1a1a3e; }}
 
 def main():
     print("=" * 60)
-    print("动量实验 — 可视化生成")
+    print("右侧vs左侧交易实验 — 可视化生成")
     print("=" * 60)
     
     print("\n加载数据...")
