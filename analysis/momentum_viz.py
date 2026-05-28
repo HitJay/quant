@@ -456,25 +456,42 @@ def card_annual(results):
     fig.patch.set_facecolor(BG)
     ax.set_facecolor(CARD_BG)
     
+    # 优雅配色：策略用暖琥珀/冷靛蓝区分盈亏，基准用银灰
+    STRAT_POS = "#f0b866"   # 暖琥珀 (盈利年)
+    STRAT_NEG = "#7fa5c4"   # 冷靛蓝 (亏损年)
+    BENCH_CLR = "#6b7b8d"   # 银灰 (基准)
+    
     x = np.arange(len(years))
     width = 0.35
     
+    # 策略柱：正年用琥珀，负年用靛蓝
+    strat_colors = [STRAT_POS if v >= 0 else STRAT_NEG for v in strat_annual]
     bars1 = ax.bar(x - width/2, [v*100 for v in strat_annual], width, 
-                   color=GREEN, alpha=0.85, label=best["label"])
+                   color=strat_colors, alpha=0.92, label=best["label"],
+                   edgecolor="#1a1a2e", linewidth=0.5)
     bars2 = ax.bar(x + width/2, [v*100 for v in bench_annual], width, 
-                   color=GRAY, alpha=0.7, label=best["bench_label"])
+                   color=BENCH_CLR, alpha=0.75, label=best["bench_label"],
+                   edgecolor="#1a1a2e", linewidth=0.5)
     
     for bar, val in zip(bars1, strat_annual):
+        c = STRAT_POS if val >= 0 else STRAT_NEG
         ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + (1 if val >= 0 else -3),
                 f"{val:+.1%}", ha="center", va="bottom" if val >= 0 else "top",
-                fontsize=8, color=GREEN, fontweight="bold")
+                fontsize=8, color=c, fontweight="bold")
     
     ax.set_xticks(x)
     ax.set_xticklabels(years, fontsize=9)
     ax.set_ylabel("年度收益 (%)", color="#cccccc", fontproperties=FP_REG)
     ax.axhline(y=0, color="#333366", linewidth=0.5)
-    ax.legend(loc="upper left", facecolor="#3a3a5c", labelcolor="white", framealpha=1,
-              prop=FP_REG)
+    # 自定义图例：区分盈利/亏损年
+    from matplotlib.patches import Patch
+    legend_handles = [
+        Patch(facecolor=STRAT_POS, edgecolor="#1a1a2e", label=f"{best['label']} (盈利年)"),
+        Patch(facecolor=STRAT_NEG, edgecolor="#1a1a2e", label=f"{best['label']} (亏损年)"),
+        Patch(facecolor=BENCH_CLR, edgecolor="#1a1a2e", label=best["bench_label"]),
+    ]
+    ax.legend(loc="upper left", handles=legend_handles, facecolor="#3a3a5c", 
+              labelcolor="white", framealpha=1, prop=FP_REG, fontsize=7)
     ax.grid(True, axis="y", alpha=0.3)
     
     fig.suptitle(f"分年度收益：{best['label']}", fontsize=16, fontweight="bold", color="white", y=0.95,
