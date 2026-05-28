@@ -203,11 +203,11 @@ def card_cover(results):
             fontsize=28, fontweight="bold", color="white", transform=ax.transAxes,
             fontproperties=FP_BOLD)
     ax.text(0.5, 0.80, "哪种策略在A股能赚钱？", ha="center", va="top",
-            fontsize=18, color=GOLD, transform=ax.transAxes,
+            fontsize=18, color="#d0d0d0", transform=ax.transAxes,
             fontproperties=FP_BOLD)
     ax.text(0.5, 0.73, "最强策略年化收益多少？", ha="center", va="top",
-            fontsize=14, color=GOLD, transform=ax.transAxes,
-            fontproperties=FP_BOLD)
+            fontsize=14, color="#888888", transform=ax.transAxes,
+            fontproperties=FP_REG)
     
     ax.plot([0.2, 0.8], [0.68, 0.68], color=GOLD, linewidth=2, transform=ax.transAxes)
     
@@ -219,13 +219,13 @@ def card_cover(results):
             fontsize=18, color=GRAY, transform=ax.transAxes,
             fontproperties=FP_REG)
     
-    # 底部悬念
+    # 底部悬念 — 暖琥珀，和图4图5同一色系
     ax.text(0.5, 0.18, "专业AI量化研究员告诉你答案", ha="center", va="top",
-            fontsize=14, color=GOLD, transform=ax.transAxes,
+            fontsize=14, color="#f0b866", transform=ax.transAxes,
             fontproperties=FP_BOLD)
     
     ax.text(0.5, 0.08, f"{START_DATE[:4]}-{END_DATE[:4]} · 月度调仓",
-            ha="center", va="top", fontsize=10, color="#666666", transform=ax.transAxes,
+            ha="center", va="top", fontsize=10, color="#555555", transform=ax.transAxes,
             fontproperties=FP_REG)
     
     savefig(fig, "00_cover.png")
