@@ -199,8 +199,8 @@ def card_cover(results):
     ax.axis("off")
     
     # 标题 - 制造悬念
-    ax.text(0.5, 0.88, "追涨 or 买跌", ha="center", va="top",
-            fontsize=28, fontweight="bold", color="white", transform=ax.transAxes,
+    ax.text(0.5, 0.88, "追涨杀跌 vs 抄底逃顶", ha="center", va="top",
+            fontsize=26, fontweight="bold", color="white", transform=ax.transAxes,
             fontproperties=FP_BOLD)
     ax.text(0.5, 0.80, "哪种策略在A股能赚钱？", ha="center", va="top",
             fontsize=18, color="#d0d0d0", transform=ax.transAxes,
