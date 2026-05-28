@@ -512,9 +512,9 @@ def card_momentum_vs_reversal(results):
     """05_momentum_vs_reversal: 右侧vs左侧分组对比 — 3行竖排"""
     fig, axes = plt.subplots(3, 1, figsize=(6, 8))
     fig.patch.set_facecolor(BG)
-    fig.suptitle("右侧 vs 左侧", fontsize=16, fontweight="bold", color="white", y=0.97,
+    fig.suptitle("右侧 vs 左侧", fontsize=16, fontweight="bold", color="white", y=0.985,
                  fontproperties=FP_BOLD)
-    fig.text(0.5, 0.935, "各市场 × 各窗口年化收益对比", ha="center", fontsize=10, color=GRAY,
+    fig.text(0.5, 0.93, "各市场 × 各窗口年化收益对比", ha="center", fontsize=10, color=GRAY,
              fontproperties=FP_REG)
     
     # 优雅配色 — 和图4同系列
@@ -580,7 +580,7 @@ def card_momentum_vs_reversal(results):
     fig.text(0.5, 0.02, "Y轴=年化收益% · 数值只标注显著值",
              ha="center", fontsize=8, color=GRAY, fontproperties=FP_REG)
     
-    plt.tight_layout(rect=[0, 0.05, 1, 0.90])
+    plt.tight_layout(rect=[0, 0.05, 1, 0.88])
     savefig(fig, "05_momentum_vs_reversal.png")
 
 
