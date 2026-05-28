@@ -647,9 +647,10 @@ def card_momentum_vs_reversal(results):
                 Patch(facecolor=RIGHT_CLR, edgecolor="#1a1a2e", label="右侧(顺势)"),
                 Patch(facecolor=LEFT_CLR, edgecolor="#1a1a2e", label="左侧(逆势)"),
             ]
-            ax.legend(loc="upper right", handles=legend_handles,
+            ax.legend(loc="upper center", handles=legend_handles,
                       facecolor="#3a3a5c", labelcolor="white",
-                      framealpha=1, fontsize=7, prop=FP_REG)
+                      framealpha=1, fontsize=7, prop=FP_REG, ncol=2,
+                      bbox_to_anchor=(0.5, 1.15))
     
     fig.text(0.5, 0.02, "Y轴=年化收益% · 数值只标注显著值",
              ha="center", fontsize=8, color=GRAY, fontproperties=FP_REG)
