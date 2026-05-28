@@ -190,50 +190,41 @@ def savefig(fig, name):
 
 
 def card_cover(results):
-    """00_cover: 封面卡片 — 中文版"""
-    mom_results = [r for r in results if not r["reverse"]]
-    rev_results = [r for r in results if r["reverse"]]
-    best_mom = max(mom_results, key=lambda r: r["annual_return"])
-    best_rev = max(rev_results, key=lambda r: r["annual_return"])
+    """00_cover: 封面卡片 — 悬念版，只展示最高年化"""
+    best = max(results, key=lambda r: r["annual_return"])
     
     fig, ax = plt.subplots(figsize=(6, 8))
     fig.patch.set_facecolor(BG)
     ax.set_facecolor(BG)
     ax.axis("off")
     
-    # 标题
-    ax.text(0.5, 0.88, "右侧交易 vs 左侧交易，谁更赚钱？", ha="center", va="top",
-            fontsize=24, fontweight="bold", color="white", transform=ax.transAxes,
+    # 标题 - 制造悬念
+    ax.text(0.5, 0.88, "右侧 vs 左侧交易", ha="center", va="top",
+            fontsize=28, fontweight="bold", color="white", transform=ax.transAxes,
             fontproperties=FP_BOLD)
-    ax.text(0.5, 0.81, "8年数据 × 36种组合 × 量化回测", ha="center", va="top",
-            fontsize=14, color=GRAY, transform=ax.transAxes,
+    ax.text(0.5, 0.80, "36种组合 × 8年回测", ha="center", va="top",
+            fontsize=16, color=GRAY, transform=ax.transAxes,
+            fontproperties=FP_REG)
+    ax.text(0.5, 0.73, "最强策略年化收益多少？", ha="center", va="top",
+            fontsize=14, color=GOLD, transform=ax.transAxes,
+            fontproperties=FP_BOLD)
+    
+    ax.plot([0.2, 0.8], [0.68, 0.68], color=GOLD, linewidth=2, transform=ax.transAxes)
+    
+    # 只展示最高年化，不透露策略类型
+    ax.text(0.5, 0.52, f"+{best['annual_return']:.1%}", ha="center", va="top",
+            fontsize=72, color=GREEN, transform=ax.transAxes, fontproperties=FP_BOLD)
+    
+    ax.text(0.5, 0.35, "年化收益率", ha="center", va="top",
+            fontsize=18, color=GRAY, transform=ax.transAxes,
             fontproperties=FP_REG)
     
-    ax.plot([0.15, 0.85], [0.76, 0.76], color=GOLD, linewidth=2, transform=ax.transAxes)
+    # 底部悬念
+    ax.text(0.5, 0.18, "▶ 翻到第2张揭晓答案", ha="center", va="top",
+            fontsize=14, color=GOLD, transform=ax.transAxes,
+            fontproperties=FP_BOLD)
     
-    # 最佳右侧
-    ax.text(0.5, 0.70, "最佳右侧交易（顺势·涨买跌卖）", ha="center", va="top",
-            fontsize=13, color=GREEN, transform=ax.transAxes, fontproperties=FP_BOLD)
-    ax.text(0.5, 0.63, f"{best_mom['uni_name']}", ha="center", va="top",
-            fontsize=14, color="white", transform=ax.transAxes, fontproperties=FP_REG)
-    ax.text(0.5, 0.52, f"+{best_mom['annual_return']:.1%}", ha="center", va="top",
-            fontsize=44, color=GREEN, transform=ax.transAxes, fontproperties=FP_BOLD)
-    ax.text(0.5, 0.43, f"年化收益 · {best_mom['window']}日窗口 · Sharpe {best_mom['sharpe']:.2f}",
-            ha="center", va="top", fontsize=11, color=GRAY, transform=ax.transAxes,
-            fontproperties=FP_REG)
-    
-    ax.plot([0.25, 0.75], [0.38, 0.38], color="#333366", linewidth=1, transform=ax.transAxes)
-    
-    # 最佳反转
-    ax.text(0.5, 0.33, "最佳左侧交易（逆势·跌买涨卖）", ha="center", va="top",
-            fontsize=13, color=PURPLE, transform=ax.transAxes, fontproperties=FP_BOLD)
-    ax.text(0.5, 0.26, f"+{best_rev['annual_return']:.1%} 年化", ha="center", va="top",
-            fontsize=28, color=PURPLE, transform=ax.transAxes, fontproperties=FP_BOLD)
-    ax.text(0.5, 0.18, f"{best_rev['uni_name']} · {best_rev['window']}日窗口",
-            ha="center", va="top", fontsize=11, color=GRAY, transform=ax.transAxes,
-            fontproperties=FP_REG)
-    
-    ax.text(0.5, 0.06, f"25种策略组合 · {START_DATE[:4]}-{END_DATE[:4]} · 月度调仓",
+    ax.text(0.5, 0.08, f"{START_DATE[:4]}-{END_DATE[:4]} · 月度调仓",
             ha="center", va="top", fontsize=10, color="#666666", transform=ax.transAxes,
             fontproperties=FP_REG)
     
