@@ -249,7 +249,7 @@ def card_intro():
             fontsize=20, fontweight="bold", color="#f0b866", transform=ax.transAxes,
             fontproperties=FP_BOLD)
     ax.text(0.52, 0.86, "顺势 · 追涨杀跌", ha="left", va="top",
-            fontsize=12, color=GRAY, transform=ax.transAxes, fontproperties=FP_REG)
+            fontsize=16, color="#f0b866", transform=ax.transAxes, fontproperties=FP_BOLD)
     
     right_items = [
         ("核心理念", "涨的时候买，跌的时候卖"),
@@ -273,7 +273,7 @@ def card_intro():
             fontsize=20, fontweight="bold", color="#7fa5c4", transform=ax.transAxes,
             fontproperties=FP_BOLD)
     ax.text(0.52, y+0.01, "逆势 · 抄底逃顶", ha="left", va="top",
-            fontsize=12, color=GRAY, transform=ax.transAxes, fontproperties=FP_REG)
+            fontsize=16, color="#7fa5c4", transform=ax.transAxes, fontproperties=FP_BOLD)
     
     left_items = [
         ("核心理念", "跌的时候买，涨的时候卖"),
