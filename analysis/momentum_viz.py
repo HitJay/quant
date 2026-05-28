@@ -82,9 +82,10 @@ OUTPUT_DIR = Path("./output/momentum-experiment")
 XHS_DIR = OUTPUT_DIR / "xhs_cards"
 
 # 颜色（A股惯例：红涨绿跌）
-GREEN = "#e74c3c"  # A股红色=涨，但变量名GREEN用于"盈利"语义
-RED = "#4ecca3"    # A股绿色=跌，但变量名RED用于"亏损"语义
-ORANGE = "#f39c12"
+GREEN = "#e74c3c"  # A股红色=涨
+RED = "#4ecca3"    # A股绿色=跌
+ORANGE = "#f39c12" # 警告/强调
+PURPLE = "#9b59b6" # 反转策略专用
 GRAY = "#7f8c8d"
 GOLD = "#ffd700"
 BG = "#1a1a2e"
@@ -220,9 +221,9 @@ def card_cover(results):
     
     # 最佳反转
     ax.text(0.5, 0.33, "最佳反转策略（抄底）", ha="center", va="top",
-            fontsize=13, color=ORANGE, transform=ax.transAxes, fontproperties=FP_BOLD)
+            fontsize=13, color=PURPLE, transform=ax.transAxes, fontproperties=FP_BOLD)
     ax.text(0.5, 0.26, f"+{best_rev['annual_return']:.1%} 年化", ha="center", va="top",
-            fontsize=28, color=ORANGE, transform=ax.transAxes, fontproperties=FP_BOLD)
+            fontsize=28, color=PURPLE, transform=ax.transAxes, fontproperties=FP_BOLD)
     ax.text(0.5, 0.18, f"{best_rev['uni_name']} · {best_rev['window']}日窗口",
             ha="center", va="top", fontsize=11, color=GRAY, transform=ax.transAxes,
             fontproperties=FP_REG)
@@ -469,7 +470,7 @@ def card_momentum_vs_reversal(results):
         x = np.arange(len(WINDOWS))
         width = 0.35
         ax.bar(x - width/2, mom_vals, width, color=GREEN, alpha=0.85, label="动量")
-        ax.bar(x + width/2, rev_vals, width, color=ORANGE, alpha=0.85, label="反转")
+        ax.bar(x + width/2, rev_vals, width, color=PURPLE, alpha=0.85, label="反转")
         
         ax.axhline(y=0, color="#333366", linewidth=0.5)
         ax.set_xticks(x)
@@ -487,7 +488,7 @@ def card_momentum_vs_reversal(results):
             ax.legend(loc="upper left", facecolor="#3a3a5c", labelcolor="white", 
                       framealpha=1, fontsize=8, prop=FP_REG)
     
-    fig.text(0.5, 0.02, "绿色=动量(追涨) · 橙色=反转(抄底) · Y轴=年化收益%",
+    fig.text(0.5, 0.02, "红色=动量(追涨) · 紫色=反转(抄底) · Y轴=年化收益%",
              ha="center", fontsize=8, color=GRAY, fontproperties=FP_REG)
     
     plt.tight_layout(rect=[0, 0.05, 1, 0.88])
@@ -513,7 +514,7 @@ def card_conclusion(results):
         ("2", "中期动量(60-120日)\n只在商品市场有效",
          "黄金/豆粕/能源：年化+19.5%，Sharpe 0.88", GREEN),
         ("3", "反转策略（抄底）\n在宽基市场有效",
-         "沪深300+中证500：年化+6.6%，回撤小", ORANGE),
+         "沪深300+中证500：年化+6.6%，回撤小", PURPLE),
         ("4", "黄金法则：\n时间尺度决定一切",
          "同样的策略，换个窗口，结果完全相反", GOLD),
     ]
@@ -630,7 +631,7 @@ tr:hover {{ background: #1a1a3e; }}
 .negative {{ color: #4ecca3; }}
 .tag {{ display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; }}
 .tag-mom {{ background: #4a1a1a; color: #e74c3c; }}
-.tag-rev {{ background: #4a2a1a; color: #f39c12; }}
+.tag-rev {{ background: #2a1a3a; color: #9b59b6; }}
 </style>
 </head>
 <body>
