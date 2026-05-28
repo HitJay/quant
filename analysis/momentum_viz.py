@@ -199,12 +199,12 @@ def card_cover(results):
     ax.axis("off")
     
     # 标题 - 制造悬念
-    ax.text(0.5, 0.88, "右侧 vs 左侧交易", ha="center", va="top",
+    ax.text(0.5, 0.88, "追涨 or 买跌", ha="center", va="top",
             fontsize=28, fontweight="bold", color="white", transform=ax.transAxes,
             fontproperties=FP_BOLD)
-    ax.text(0.5, 0.80, "36种组合 × 8年回测", ha="center", va="top",
-            fontsize=16, color=GRAY, transform=ax.transAxes,
-            fontproperties=FP_REG)
+    ax.text(0.5, 0.80, "哪种策略在A股能赚钱？", ha="center", va="top",
+            fontsize=18, color=GOLD, transform=ax.transAxes,
+            fontproperties=FP_BOLD)
     ax.text(0.5, 0.73, "最强策略年化收益多少？", ha="center", va="top",
             fontsize=14, color=GOLD, transform=ax.transAxes,
             fontproperties=FP_BOLD)
