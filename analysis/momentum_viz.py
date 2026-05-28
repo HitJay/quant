@@ -1,12 +1,12 @@
 """
-Momentum Experiment — Visualization & XHS Cards Generator
-==========================================================
-Re-runs experiments and generates:
-  - Heatmap (annual return by window × universe)
-  - Best/Worst NAV curves
-  - 7 XHS cards for Xiaohongshu carousel
+动量实验 — 可视化 & 小红书卡片生成器
+========================================
+生成内容：
+  - 热力图（年化收益 × 窗口 × 市场）
+  - 最佳/最差策略净值曲线
+  - 8张小红书卡片
 
-Usage:
+用法：
     cd /mnt/d/vscode/quant
     unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
     python3 analysis/momentum_viz.py
@@ -24,7 +24,11 @@ import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 from matplotlib.lines import Line2D
 
-# Dark theme globals
+# 加载中文字体
+FP_BOLD = FontProperties(fname=str(Path.home() / ".local/share/fonts/NotoSansSC-Bold.otf"))
+FP_REG = FontProperties(fname=str(Path.home() / ".local/share/fonts/NotoSansSC-Regular.otf"))
+
+# 暗色主题
 plt.rcParams.update({
     "figure.facecolor": "#1a1a2e",
     "axes.facecolor": "#16213e",
@@ -48,26 +52,26 @@ from quant.backtest.metrics import annual_return, max_drawdown, sharpe, win_rate
 from quant.universe.config import UniverseConfig
 
 # ============================================================
-# Config
+# 配置
 # ============================================================
 UNIVERSES = {
     "broad": {
-        "name": "Broad (CSI300+CSI500)",
+        "name": "宽基 (沪深300+中证500)",
         "codes": ["510300", "510500"],
         "bench": "510300",
-        "bench_label": "CSI300 B&H",
+        "bench_label": "沪深300 买入持有",
     },
     "sector": {
-        "name": "Sector (6 ETFs)",
+        "name": "行业 (6只ETF)",
         "codes": ["515030", "512010", "159928", "512880", "512660", "516160"],
         "bench": "510300",
-        "bench_label": "CSI300 B&H",
+        "bench_label": "沪深300 买入持有",
     },
     "commodity": {
-        "name": "Commodity (4 ETFs)",
+        "name": "商品 (4只ETF)",
         "codes": ["518880", "159985", "159981", "510990"],
         "bench": "518880",
-        "bench_label": "Gold B&H",
+        "bench_label": "黄金 买入持有",
     },
 }
 
@@ -77,7 +81,7 @@ END_DATE = "2026-05-28"
 OUTPUT_DIR = Path("./output/momentum-experiment")
 XHS_DIR = OUTPUT_DIR / "xhs_cards"
 
-# Colors
+# 颜色
 GREEN = "#4ecca3"
 RED = "#e74c3c"
 ORANGE = "#f39c12"
@@ -88,7 +92,7 @@ CARD_BG = "#16213e"
 
 
 def load_all_data():
-    """Load price data for all universes"""
+    """加载所有市场的价格数据"""
     cache = Cache("./data/cache")
     fetcher = ETFDataFetcher()
     
@@ -106,7 +110,7 @@ def load_all_data():
 
 
 def run_experiments(prices):
-    """Run all experiments, return results list with NAV series"""
+    """运行所有实验，返回含净值序列的结果列表"""
     results = []
     engine = BacktestEngine()
     
@@ -130,7 +134,7 @@ def run_experiments(prices):
                     continue
                 
                 bench = bench_price.reindex(nav.index).ffill().dropna()
-                # Align
+                # 对齐
                 common = nav.index.intersection(bench.index)
                 nav = nav.loc[common]
                 bench = bench.loc[common]
@@ -151,7 +155,7 @@ def run_experiments(prices):
                     "bench_label": uni_cfg["bench_label"],
                     "window": window,
                     "reverse": reverse,
-                    "label": f"{'Rev' if reverse else 'Mom'}_{window}d",
+                    "label": f"{'反转' if reverse else '动量'}_{window}日",
                     "annual_return": ann,
                     "max_drawdown": dd,
                     "sharpe": sh,
@@ -168,7 +172,7 @@ def run_experiments(prices):
 
 
 # ============================================================
-# Card generators
+# 卡片生成函数
 # ============================================================
 
 def savefig(fig, name):
@@ -180,12 +184,7 @@ def savefig(fig, name):
 
 
 def card_cover(results):
-    """00_cover: Big title + best strategy highlight (Chinese version)"""
-    from matplotlib.font_manager import FontProperties
-    fp_bold = FontProperties(fname=str(Path.home() / ".local/share/fonts/NotoSansSC-Bold.otf"))
-    fp_reg = FontProperties(fname=str(Path.home() / ".local/share/fonts/NotoSansSC-Regular.otf"))
-    
-    # Find best momentum and best reverse
+    """00_cover: 封面卡片 — 中文版"""
     mom_results = [r for r in results if not r["reverse"]]
     rev_results = [r for r in results if r["reverse"]]
     best_mom = max(mom_results, key=lambda r: r["annual_return"])
@@ -196,84 +195,80 @@ def card_cover(results):
     ax.set_facecolor(BG)
     ax.axis("off")
     
-    # Title (Chinese)
+    # 标题
     ax.text(0.5, 0.88, "追涨杀跌能赚钱吗？", ha="center", va="top",
             fontsize=26, fontweight="bold", color="white", transform=ax.transAxes,
-            fontproperties=fp_bold)
+            fontproperties=FP_BOLD)
     ax.text(0.5, 0.81, "8年数据 × 25种组合 × 量化回测", ha="center", va="top",
             fontsize=14, color=GRAY, transform=ax.transAxes,
-            fontproperties=fp_reg)
+            fontproperties=FP_REG)
     
-    # Divider
     ax.plot([0.15, 0.85], [0.76, 0.76], color=GOLD, linewidth=2, transform=ax.transAxes)
     
-    # Best momentum (Chinese labels)
+    # 最佳动量
     ax.text(0.5, 0.70, "最佳动量策略（追涨）", ha="center", va="top",
-            fontsize=13, color=GREEN, transform=ax.transAxes, fontproperties=fp_bold)
+            fontsize=13, color=GREEN, transform=ax.transAxes, fontproperties=FP_BOLD)
     ax.text(0.5, 0.63, f"{best_mom['uni_name']}", ha="center", va="top",
-            fontsize=14, color="white", transform=ax.transAxes)
+            fontsize=14, color="white", transform=ax.transAxes, fontproperties=FP_REG)
     ax.text(0.5, 0.52, f"+{best_mom['annual_return']:.1%}", ha="center", va="top",
-            fontsize=44, color=GREEN, transform=ax.transAxes, fontproperties=fp_bold)
+            fontsize=44, color=GREEN, transform=ax.transAxes, fontproperties=FP_BOLD)
     ax.text(0.5, 0.43, f"年化收益 · {best_mom['window']}日窗口 · Sharpe {best_mom['sharpe']:.2f}",
             ha="center", va="top", fontsize=11, color=GRAY, transform=ax.transAxes,
-            fontproperties=fp_reg)
+            fontproperties=FP_REG)
     
-    # Divider
     ax.plot([0.25, 0.75], [0.38, 0.38], color="#333366", linewidth=1, transform=ax.transAxes)
     
-    # Best reverse (Chinese labels)
+    # 最佳反转
     ax.text(0.5, 0.33, "最佳反转策略（抄底）", ha="center", va="top",
-            fontsize=13, color=ORANGE, transform=ax.transAxes, fontproperties=fp_bold)
+            fontsize=13, color=ORANGE, transform=ax.transAxes, fontproperties=FP_BOLD)
     ax.text(0.5, 0.26, f"+{best_rev['annual_return']:.1%} 年化", ha="center", va="top",
-            fontsize=28, color=ORANGE, transform=ax.transAxes, fontproperties=fp_bold)
+            fontsize=28, color=ORANGE, transform=ax.transAxes, fontproperties=FP_BOLD)
     ax.text(0.5, 0.18, f"{best_rev['uni_name']} · {best_rev['window']}日窗口",
             ha="center", va="top", fontsize=11, color=GRAY, transform=ax.transAxes,
-            fontproperties=fp_reg)
+            fontproperties=FP_REG)
     
-    # Footer (Chinese)
     ax.text(0.5, 0.06, f"25种策略组合 · {START_DATE[:4]}-{END_DATE[:4]} · 月度调仓",
             ha="center", va="top", fontsize=10, color="#666666", transform=ax.transAxes,
-            fontproperties=fp_reg)
+            fontproperties=FP_REG)
     
     savefig(fig, "00_cover.png")
 
 
 def card_heatmap(results):
-    """01_heatmap: Window × Universe → Annual Return heatmap"""
+    """01_heatmap: 热力图 — 窗口×市场年化收益"""
     fig, axes = plt.subplots(1, 2, figsize=(6, 8))
     fig.patch.set_facecolor(BG)
-    fig.suptitle("Annual Return Heatmap", fontsize=18, fontweight="bold", color="white", y=0.95)
-    fig.text(0.5, 0.91, "Momentum (Chase Winners) vs Contrarian (Buy Losers)", 
-             ha="center", fontsize=10, color=GRAY)
+    fig.suptitle("年化收益热力图", fontsize=18, fontweight="bold", color="white", y=0.95,
+                 fontproperties=FP_BOLD)
+    fig.text(0.5, 0.91, "动量（追涨） vs 反转（抄底）", 
+             ha="center", fontsize=10, color=GRAY, fontproperties=FP_REG)
     
-    for idx, (reverse, title, color_lo, color_hi) in enumerate([
-        (False, "Momentum\n(Chase Winners)", "#c0392b", GREEN),
-        (True, "Contrarian\n(Buy Losers)", RED, ORANGE),
+    for idx, (reverse, title) in enumerate([
+        (False, "动量\n（追涨）"),
+        (True, "反转\n（抄底）"),
     ]):
         ax = axes[idx]
         ax.set_facecolor(BG)
         
         filtered = [r for r in results if r["reverse"] == reverse]
         universes = ["broad", "sector", "commodity"]
-        uni_labels = ["Broad", "Sector", "Commodity"]
+        uni_labels = ["宽基", "行业", "商品"]
         
-        # Build matrix
         matrix = np.full((len(universes), len(WINDOWS)), np.nan)
         for r in filtered:
             ui = universes.index(r["universe"])
             wi = WINDOWS.index(r["window"])
-            matrix[ui, wi] = r["annual_return"] * 100  # percent
+            matrix[ui, wi] = r["annual_return"] * 100
         
-        # Plot
         im = ax.imshow(matrix, cmap="RdYlGn", aspect="auto", vmin=-15, vmax=20)
         
         ax.set_xticks(range(len(WINDOWS)))
-        ax.set_xticklabels([f"{w}d" for w in WINDOWS], fontsize=9)
+        ax.set_xticklabels([f"{w}日" for w in WINDOWS], fontsize=9, fontproperties=FP_REG)
         ax.set_yticks(range(len(universes)))
-        ax.set_yticklabels(uni_labels, fontsize=10)
-        ax.set_title(title, fontsize=12, fontweight="bold", color="white", pad=10)
+        ax.set_yticklabels(uni_labels, fontsize=10, fontproperties=FP_REG)
+        ax.set_title(title, fontsize=12, fontweight="bold", color="white", pad=10,
+                     fontproperties=FP_BOLD)
         
-        # Add text annotations
         for i in range(len(universes)):
             for j in range(len(WINDOWS)):
                 val = matrix[i, j]
@@ -282,61 +277,56 @@ def card_heatmap(results):
                     ax.text(j, i, f"{val:+.1f}%", ha="center", va="center",
                             fontsize=10, fontweight="bold", color=color)
         
-        # Tick colors
         for label in ax.get_xticklabels():
             label.set_color("#cccccc")
         for label in ax.get_yticklabels():
             label.set_color("#cccccc")
     
-    fig.text(0.5, 0.02, "Green = Profit · Red = Loss · Window = Lookback Period (Trading Days)",
-             ha="center", fontsize=9, color=GRAY)
+    fig.text(0.5, 0.02, "绿色=盈利 · 红色=亏损 · 窗口=回溯周期（交易日）",
+             ha="center", fontsize=9, color=GRAY, fontproperties=FP_REG)
     
     plt.tight_layout(rect=[0, 0.05, 1, 0.88])
     savefig(fig, "01_heatmap.png")
 
 
 def card_best_nav(results):
-    """02_best_nav: Best strategy NAV curve vs benchmark"""
+    """02_best_nav: 最佳策略净值曲线"""
     best = max(results, key=lambda r: r["annual_return"])
     
     fig, ax = plt.subplots(figsize=(6, 8))
     fig.patch.set_facecolor(BG)
     ax.set_facecolor(CARD_BG)
     
-    # NAV ratio
     nav_ratio = best["nav"] / best["nav"].iloc[0]
     bench_ratio = best["bench"] / best["bench"].iloc[0]
     nav_pct = (nav_ratio - 1) * 100
     bench_pct = (bench_ratio - 1) * 100
     
-    ax.plot(nav_pct.index, nav_pct.values, color=GREEN, linewidth=2, label=f"{best['label']}")
-    ax.plot(bench_pct.index, bench_pct.values, color=GRAY, linewidth=1.5, alpha=0.7, label=best["bench_label"])
+    ax.plot(nav_pct.index, nav_pct.values, color=GREEN, linewidth=2, label=best["label"])
+    ax.plot(bench_pct.index, bench_pct.values, color=GRAY, linewidth=1.5, alpha=0.7, 
+            label=best["bench_label"])
     ax.axhline(y=0, color="#333366", linewidth=0.5)
     ax.fill_between(nav_pct.index, 0, nav_pct.values, alpha=0.1, color=GREEN)
     
-    # Log scale Y
-    nav_ratio_for_log = nav_ratio.copy()
-    bench_ratio_for_log = bench_ratio.copy()
-    # Use secondary axis approach - just plot in % with log-ish ticks
     ax.set_yscale("symlog", linthresh=20)
     
-    # Title
-    fig.suptitle(f"Best Strategy: {best['label']}", fontsize=16, fontweight="bold", color="white", y=0.95)
+    fig.suptitle(f"最佳策略：{best['label']}", fontsize=16, fontweight="bold", color="white", y=0.95,
+                 fontproperties=FP_BOLD)
     fig.text(0.5, 0.91, f"{best['uni_name']} · {START_DATE[:4]}-{END_DATE[:4]}",
-             ha="center", fontsize=11, color=GRAY)
+             ha="center", fontsize=11, color=GRAY, fontproperties=FP_REG)
     
-    # KPIs
     kpi_y = 0.86
-    fig.text(0.2, kpi_y, f"Ann: +{best['annual_return']:.1%}", ha="center", fontsize=13, 
-             fontweight="bold", color=GREEN)
-    fig.text(0.5, kpi_y, f"DD: -{best['max_drawdown']:.1%}", ha="center", fontsize=13,
-             fontweight="bold", color=RED)
+    fig.text(0.2, kpi_y, f"年化: +{best['annual_return']:.1%}", ha="center", fontsize=13, 
+             fontweight="bold", color=GREEN, fontproperties=FP_BOLD)
+    fig.text(0.5, kpi_y, f"回撤: -{best['max_drawdown']:.1%}", ha="center", fontsize=13,
+             fontweight="bold", color=RED, fontproperties=FP_BOLD)
     fig.text(0.8, kpi_y, f"Sharpe: {best['sharpe']:.2f}", ha="center", fontsize=13,
-             fontweight="bold", color=GOLD)
+             fontweight="bold", color=GOLD, fontproperties=FP_BOLD)
     
-    ax.set_ylabel("Return (%)", color="#cccccc")
-    ax.set_xlabel("Year", color="#cccccc")
-    ax.legend(loc="upper left", facecolor="#3a3a5c", labelcolor="white", framealpha=1)
+    ax.set_ylabel("收益率 (%)", color="#cccccc", fontproperties=FP_REG)
+    ax.set_xlabel("年份", color="#cccccc", fontproperties=FP_REG)
+    ax.legend(loc="upper left", facecolor="#3a3a5c", labelcolor="white", framealpha=1,
+              prop=FP_REG)
     ax.grid(True, alpha=0.3)
     
     for label in ax.get_xticklabels():
@@ -349,7 +339,7 @@ def card_best_nav(results):
 
 
 def card_worst_nav(results):
-    """03_worst_nav: Worst strategy NAV curve — the trap"""
+    """03_worst_nav: 最差策略净值曲线 — 踩坑展示"""
     worst = min(results, key=lambda r: r["annual_return"])
     
     fig, ax = plt.subplots(figsize=(6, 8))
@@ -359,26 +349,29 @@ def card_worst_nav(results):
     nav_pct = (worst["nav"] / worst["nav"].iloc[0] - 1) * 100
     bench_pct = (worst["bench"] / worst["bench"].iloc[0] - 1) * 100
     
-    ax.plot(nav_pct.index, nav_pct.values, color=RED, linewidth=2, label=f"{worst['label']}")
-    ax.plot(bench_pct.index, bench_pct.values, color=GRAY, linewidth=1.5, alpha=0.7, label=worst["bench_label"])
+    ax.plot(nav_pct.index, nav_pct.values, color=RED, linewidth=2, label=worst["label"])
+    ax.plot(bench_pct.index, bench_pct.values, color=GRAY, linewidth=1.5, alpha=0.7, 
+            label=worst["bench_label"])
     ax.axhline(y=0, color="#333366", linewidth=0.5)
     ax.fill_between(nav_pct.index, 0, nav_pct.values, alpha=0.1, color=RED)
     
-    fig.suptitle(f"Worst Strategy: {worst['label']}", fontsize=16, fontweight="bold", color=RED, y=0.95)
-    fig.text(0.5, 0.91, f"{worst['uni_name']} · This Is the Trap!",
-             ha="center", fontsize=11, color=GRAY)
+    fig.suptitle(f"最差策略：{worst['label']}", fontsize=16, fontweight="bold", color=RED, y=0.95,
+                 fontproperties=FP_BOLD)
+    fig.text(0.5, 0.91, f"{worst['uni_name']} · 这就是坑！",
+             ha="center", fontsize=11, color=GRAY, fontproperties=FP_REG)
     
     kpi_y = 0.86
-    fig.text(0.2, kpi_y, f"Ann: {worst['annual_return']:.1%}", ha="center", fontsize=13,
-             fontweight="bold", color=RED)
-    fig.text(0.5, kpi_y, f"DD: -{worst['max_drawdown']:.1%}", ha="center", fontsize=13,
-             fontweight="bold", color=RED)
+    fig.text(0.2, kpi_y, f"年化: {worst['annual_return']:.1%}", ha="center", fontsize=13,
+             fontweight="bold", color=RED, fontproperties=FP_BOLD)
+    fig.text(0.5, kpi_y, f"回撤: -{worst['max_drawdown']:.1%}", ha="center", fontsize=13,
+             fontweight="bold", color=RED, fontproperties=FP_BOLD)
     fig.text(0.8, kpi_y, f"Sharpe: {worst['sharpe']:.2f}", ha="center", fontsize=13,
-             fontweight="bold", color=ORANGE)
+             fontweight="bold", color=ORANGE, fontproperties=FP_BOLD)
     
-    ax.set_ylabel("Return (%)", color="#cccccc")
-    ax.set_xlabel("Year", color="#cccccc")
-    ax.legend(loc="lower left", facecolor="#3a3a5c", labelcolor="white", framealpha=1)
+    ax.set_ylabel("收益率 (%)", color="#cccccc", fontproperties=FP_REG)
+    ax.set_xlabel("年份", color="#cccccc", fontproperties=FP_REG)
+    ax.legend(loc="lower left", facecolor="#3a3a5c", labelcolor="white", framealpha=1,
+              prop=FP_REG)
     ax.grid(True, alpha=0.3)
     
     for label in ax.get_xticklabels():
@@ -391,12 +384,11 @@ def card_worst_nav(results):
 
 
 def card_annual(results):
-    """04_annual: Best strategy annual returns bar chart"""
+    """04_annual: 最佳策略分年度收益"""
     best = max(results, key=lambda r: r["annual_return"])
     nav = best["nav"]
     bench = best["bench"]
     
-    # Calculate annual returns
     years = sorted(set(nav.index.year))
     strat_annual = []
     bench_annual = []
@@ -418,10 +410,11 @@ def card_annual(results):
     x = np.arange(len(years))
     width = 0.35
     
-    bars1 = ax.bar(x - width/2, [v*100 for v in strat_annual], width, color=GREEN, alpha=0.85, label=best["label"])
-    bars2 = ax.bar(x + width/2, [v*100 for v in bench_annual], width, color=GRAY, alpha=0.7, label=best["bench_label"])
+    bars1 = ax.bar(x - width/2, [v*100 for v in strat_annual], width, 
+                   color=GREEN, alpha=0.85, label=best["label"])
+    bars2 = ax.bar(x + width/2, [v*100 for v in bench_annual], width, 
+                   color=GRAY, alpha=0.7, label=best["bench_label"])
     
-    # Value labels
     for bar, val in zip(bars1, strat_annual):
         ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + (1 if val >= 0 else -3),
                 f"{val:+.1%}", ha="center", va="bottom" if val >= 0 else "top",
@@ -429,14 +422,16 @@ def card_annual(results):
     
     ax.set_xticks(x)
     ax.set_xticklabels(years, fontsize=9)
-    ax.set_ylabel("Annual Return (%)", color="#cccccc")
+    ax.set_ylabel("年度收益 (%)", color="#cccccc", fontproperties=FP_REG)
     ax.axhline(y=0, color="#333366", linewidth=0.5)
-    ax.legend(loc="upper left", facecolor="#3a3a5c", labelcolor="white", framealpha=1)
+    ax.legend(loc="upper left", facecolor="#3a3a5c", labelcolor="white", framealpha=1,
+              prop=FP_REG)
     ax.grid(True, axis="y", alpha=0.3)
     
-    fig.suptitle(f"Annual Returns: {best['label']}", fontsize=16, fontweight="bold", color="white", y=0.95)
-    fig.text(0.5, 0.91, f"{best['uni_name']} · Year by Year",
-             ha="center", fontsize=11, color=GRAY)
+    fig.suptitle(f"分年度收益：{best['label']}", fontsize=16, fontweight="bold", color="white", y=0.95,
+                 fontproperties=FP_BOLD)
+    fig.text(0.5, 0.91, f"{best['uni_name']} · 逐年对比",
+             ha="center", fontsize=11, color=GRAY, fontproperties=FP_REG)
     
     for label in ax.get_xticklabels():
         label.set_color("#cccccc")
@@ -448,14 +443,16 @@ def card_annual(results):
 
 
 def card_momentum_vs_reversal(results):
-    """05_momentum_vs_reversal: Grouped comparison across universes"""
+    """05_momentum_vs_reversal: 动量vs反转分组对比"""
     fig, axes = plt.subplots(1, 3, figsize=(6, 8))
     fig.patch.set_facecolor(BG)
-    fig.suptitle("Momentum vs Contrarian", fontsize=16, fontweight="bold", color="white", y=0.95)
-    fig.text(0.5, 0.91, "Annual Return by Universe & Window", ha="center", fontsize=10, color=GRAY)
+    fig.suptitle("动量 vs 反转", fontsize=16, fontweight="bold", color="white", y=0.95,
+                 fontproperties=FP_BOLD)
+    fig.text(0.5, 0.91, "各市场 × 各窗口年化收益对比", ha="center", fontsize=10, color=GRAY,
+             fontproperties=FP_REG)
     
     universes = ["broad", "sector", "commodity"]
-    uni_labels = ["Broad", "Sector", "Commodity"]
+    uni_labels = ["宽基", "行业", "商品"]
     
     for idx, (uni, label) in enumerate(zip(universes, uni_labels)):
         ax = axes[idx]
@@ -471,13 +468,14 @@ def card_momentum_vs_reversal(results):
         
         x = np.arange(len(WINDOWS))
         width = 0.35
-        ax.bar(x - width/2, mom_vals, width, color=GREEN, alpha=0.85, label="Mom")
-        ax.bar(x + width/2, rev_vals, width, color=ORANGE, alpha=0.85, label="Rev")
+        ax.bar(x - width/2, mom_vals, width, color=GREEN, alpha=0.85, label="动量")
+        ax.bar(x + width/2, rev_vals, width, color=ORANGE, alpha=0.85, label="反转")
         
         ax.axhline(y=0, color="#333366", linewidth=0.5)
         ax.set_xticks(x)
-        ax.set_xticklabels([f"{w}d" for w in WINDOWS], fontsize=8, rotation=45)
-        ax.set_title(label, fontsize=12, fontweight="bold", color="white")
+        ax.set_xticklabels([f"{w}日" for w in WINDOWS], fontsize=8, rotation=45,
+                           fontproperties=FP_REG)
+        ax.set_title(label, fontsize=12, fontweight="bold", color="white", fontproperties=FP_BOLD)
         ax.grid(True, axis="y", alpha=0.3)
         
         for lbl in ax.get_xticklabels():
@@ -487,62 +485,63 @@ def card_momentum_vs_reversal(results):
         
         if idx == 0:
             ax.legend(loc="upper left", facecolor="#3a3a5c", labelcolor="white", 
-                      framealpha=1, fontsize=8)
+                      framealpha=1, fontsize=8, prop=FP_REG)
     
-    fig.text(0.5, 0.02, "Green=Momentum · Orange=Contrarian · Y-axis=Annual Return %",
-             ha="center", fontsize=8, color=GRAY)
+    fig.text(0.5, 0.02, "绿色=动量(追涨) · 橙色=反转(抄底) · Y轴=年化收益%",
+             ha="center", fontsize=8, color=GRAY, fontproperties=FP_REG)
     
     plt.tight_layout(rect=[0, 0.05, 1, 0.88])
     savefig(fig, "05_momentum_vs_reversal.png")
 
 
 def card_conclusion(results):
-    """06_conclusion: Key findings summary card"""
+    """06_conclusion: 核心结论卡"""
     fig, ax = plt.subplots(figsize=(6, 8))
     fig.patch.set_facecolor(BG)
     ax.set_facecolor(BG)
     ax.axis("off")
     
-    # Title
-    ax.text(0.5, 0.95, "Key Findings", ha="center", va="top",
-            fontsize=22, fontweight="bold", color="white", transform=ax.transAxes)
+    ax.text(0.5, 0.95, "核心发现", ha="center", va="top",
+            fontsize=22, fontweight="bold", color="white", transform=ax.transAxes,
+            fontproperties=FP_BOLD)
     
     ax.plot([0.1, 0.9], [0.90, 0.90], color=GOLD, linewidth=2, transform=ax.transAxes)
     
     findings = [
-        ("1", "Short-term momentum (5-20d)\nis a MONEY DESTROYER in A-shares",
-         "Especially in Sector ETFs: up to -14.6% annualized", RED),
-        ("2", "Mid-term momentum (60-120d)\nworks in Commodities only",
-         "Gold/Soybean/Energy: +19.5% annualized, Sharpe 0.88", GREEN),
-        ("3", "Contrarian (buy losers)\nworks in Broad Market",
-         "CSI300+CSI500 reversal: +6.6% annual, low drawdown", ORANGE),
-        ("4", "The golden rule:\nTime horizon determines everything",
-         "Same strategy, different windows = opposite results", GOLD),
+        ("1", "短期动量(5-20日)\n在A股是绞肉机",
+         "行业ETF尤其明显：年化最高-14.6%", RED),
+        ("2", "中期动量(60-120日)\n只在商品市场有效",
+         "黄金/豆粕/能源：年化+19.5%，Sharpe 0.88", GREEN),
+        ("3", "反转策略（抄底）\n在宽基市场有效",
+         "沪深300+中证500：年化+6.6%，回撤小", ORANGE),
+        ("4", "黄金法则：\n时间尺度决定一切",
+         "同样的策略，换个窗口，结果完全相反", GOLD),
     ]
     
     y = 0.84
     for num, title, detail, color in findings:
         ax.text(0.08, y, num, ha="center", va="top",
-                fontsize=20, fontweight="bold", color=color, transform=ax.transAxes)
+                fontsize=20, fontweight="bold", color=color, transform=ax.transAxes,
+                fontproperties=FP_BOLD)
         ax.text(0.15, y, title, ha="left", va="top",
                 fontsize=12, fontweight="bold", color="white", transform=ax.transAxes,
-                linespacing=1.4)
+                linespacing=1.4, fontproperties=FP_BOLD)
         ax.text(0.15, y - 0.08, detail, ha="left", va="top",
-                fontsize=9, color=GRAY, transform=ax.transAxes)
+                fontsize=9, color=GRAY, transform=ax.transAxes, fontproperties=FP_REG)
         y -= 0.19
     
-    # Footer
-    ax.text(0.5, 0.06, "Data: ETF daily prices · Monthly rebalance · 100K initial capital",
-            ha="center", fontsize=8, color="#555555", transform=ax.transAxes)
-    ax.text(0.5, 0.02, "Disclaimer: Past performance does not guarantee future results",
-            ha="center", fontsize=8, color="#555555", transform=ax.transAxes, style="italic")
+    ax.text(0.5, 0.06, "数据：ETF日线价格 · 月度调仓 · 初始资金100万",
+            ha="center", fontsize=8, color="#555555", transform=ax.transAxes,
+            fontproperties=FP_REG)
+    ax.text(0.5, 0.02, "免责声明：历史业绩不代表未来表现",
+            ha="center", fontsize=8, color="#555555", transform=ax.transAxes,
+            fontproperties=FP_REG, style="italic")
     
     savefig(fig, "06_conclusion.png")
 
 
 def card_summary_table(results):
-    """07_table: Top 5 strategies ranked visual table"""
-    # Sort by annual return
+    """07_table: Top5 & Bottom3 排行榜"""
     sorted_r = sorted(results, key=lambda r: r["annual_return"], reverse=True)
     top5 = sorted_r[:5]
     bottom3 = sorted_r[-3:]
@@ -552,16 +551,17 @@ def card_summary_table(results):
     ax.set_facecolor(BG)
     ax.axis("off")
     
-    ax.text(0.5, 0.96, "Top 5 & Bottom 3 Strategies", ha="center", va="top",
-            fontsize=18, fontweight="bold", color="white", transform=ax.transAxes)
+    ax.text(0.5, 0.96, "策略排行榜：最佳 & 最差", ha="center", va="top",
+            fontsize=18, fontweight="bold", color="white", transform=ax.transAxes,
+            fontproperties=FP_BOLD)
     
     ax.plot([0.05, 0.95], [0.91, 0.91], color=GOLD, linewidth=1, transform=ax.transAxes)
     
-    # Headers
-    headers = [("Rank", 0.08), ("Strategy", 0.35), ("Ann.Ret", 0.60), ("Max DD", 0.76), ("Sharpe", 0.92)]
+    headers = [("排名", 0.08), ("策略", 0.35), ("年化", 0.60), ("回撤", 0.76), ("Sharpe", 0.92)]
     for label, x in headers:
         ax.text(x, 0.87, label, ha="center", va="top", fontsize=9, 
-                fontweight="bold", color=GRAY, transform=ax.transAxes)
+                fontweight="bold", color=GRAY, transform=ax.transAxes,
+                fontproperties=FP_BOLD)
     
     # Top 5
     y = 0.82
@@ -569,8 +569,9 @@ def card_summary_table(results):
         color = GREEN if r["annual_return"] > 0 else RED
         ax.text(0.08, y, f"#{i+1}", ha="center", va="top", fontsize=12,
                 fontweight="bold", color=GOLD, transform=ax.transAxes)
-        ax.text(0.35, y, f"{r['label']}\n{r['uni_name'].split('(')[0].strip()}", ha="center", va="top",
-                fontsize=10, color="white", transform=ax.transAxes)
+        ax.text(0.35, y, f"{r['label']}\n{r['uni_name'].split('(')[0].strip()}", 
+                ha="center", va="top", fontsize=10, color="white", transform=ax.transAxes,
+                fontproperties=FP_REG)
         ax.text(0.60, y, f"+{r['annual_return']:.1%}", ha="center", va="top",
                 fontsize=12, fontweight="bold", color=color, transform=ax.transAxes)
         ax.text(0.76, y, f"-{r['max_drawdown']:.1%}", ha="center", va="top",
@@ -579,7 +580,6 @@ def card_summary_table(results):
                 fontsize=11, color=GOLD, transform=ax.transAxes)
         y -= 0.08
     
-    # Separator
     y -= 0.02
     ax.plot([0.05, 0.95], [y+0.02, y+0.02], color="#333366", linewidth=1, transform=ax.transAxes)
     
@@ -588,8 +588,9 @@ def card_summary_table(results):
     for i, r in enumerate(bottom3):
         ax.text(0.08, y, f"#{len(sorted_r)-2+i}", ha="center", va="top", fontsize=12,
                 fontweight="bold", color=RED, transform=ax.transAxes)
-        ax.text(0.35, y, f"{r['label']}\n{r['uni_name'].split('(')[0].strip()}", ha="center", va="top",
-                fontsize=10, color="white", transform=ax.transAxes)
+        ax.text(0.35, y, f"{r['label']}\n{r['uni_name'].split('(')[0].strip()}", 
+                ha="center", va="top", fontsize=10, color="white", transform=ax.transAxes,
+                fontproperties=FP_REG)
         ax.text(0.60, y, f"{r['annual_return']:.1%}", ha="center", va="top",
                 fontsize=12, fontweight="bold", color=RED, transform=ax.transAxes)
         ax.text(0.76, y, f"-{r['max_drawdown']:.1%}", ha="center", va="top",
@@ -602,24 +603,23 @@ def card_summary_table(results):
 
 
 # ============================================================
-# HTML Report
+# HTML 报告
 # ============================================================
 
 def generate_html_report(results):
-    """Generate interactive HTML report with all NAV curves"""
+    """生成中文HTML交互报告"""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     
-    # Sort by annual return
     sorted_r = sorted(results, key=lambda r: r["annual_return"], reverse=True)
     
     html_parts = []
     html_parts.append(f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>Momentum Experiment Report</title>
+<title>追涨杀跌实验报告</title>
 <style>
-body {{ background: #0f0f1a; color: #eee; font-family: 'Segoe UI', sans-serif; margin: 20px; }}
+body {{ background: #0f0f1a; color: #eee; font-family: 'Microsoft YaHei', 'Noto Sans SC', sans-serif; margin: 20px; }}
 h1 {{ color: #ffd700; }}
 h2 {{ color: #4ecca3; border-bottom: 1px solid #333; padding-bottom: 5px; }}
 table {{ border-collapse: collapse; width: 100%; margin: 20px 0; }}
@@ -634,19 +634,18 @@ tr:hover {{ background: #1a1a3e; }}
 </style>
 </head>
 <body>
-<h1>Momentum Chasing in A-Shares — Full Results</h1>
-<p>Period: {START_DATE} to {END_DATE} · Monthly Rebalance · {len(results)} Strategy Combinations</p>
+<h1>追涨杀跌在A股 — 完整回测结果</h1>
+<p>回测区间：{START_DATE} 至 {END_DATE} · 月度调仓 · {len(results)} 种策略组合</p>
 """)
     
-    # Summary table
-    html_parts.append("<h2>All Strategies Ranked</h2>")
+    html_parts.append("<h2>全部策略排名</h2>")
     html_parts.append("""<table>
-<tr><th>#</th><th>Universe</th><th>Type</th><th>Window</th><th>Ann.Ret</th>
-<th>Total Ret</th><th>Max DD</th><th>Sharpe</th><th>Win Rate</th><th>Alpha</th></tr>""")
+<tr><th>#</th><th>市场</th><th>类型</th><th>窗口</th><th>年化收益</th>
+<th>总收益</th><th>最大回撤</th><th>Sharpe</th><th>胜率</th><th>Alpha</th></tr>""")
     
     for i, r in enumerate(sorted_r):
         tag_class = "tag-rev" if r["reverse"] else "tag-mom"
-        tag_text = "Contrarian" if r["reverse"] else "Momentum"
+        tag_text = "反转" if r["reverse"] else "动量"
         ann_class = "positive" if r["annual_return"] > 0 else "negative"
         alpha_class = "positive" if r["alpha"] > 0 else "negative"
         
@@ -654,7 +653,7 @@ tr:hover {{ background: #1a1a3e; }}
 <td>{i+1}</td>
 <td>{r['uni_name']}</td>
 <td><span class="tag {tag_class}">{tag_text}</span></td>
-<td>{r['window']}d</td>
+<td>{r['window']}日</td>
 <td class="{ann_class}">{r['annual_return']:+.2%}</td>
 <td class="{ann_class}">{r['total_return']:+.2%}</td>
 <td class="negative">-{r['max_drawdown']:.2%}</td>
@@ -665,17 +664,16 @@ tr:hover {{ background: #1a1a3e; }}
     
     html_parts.append("</table>")
     
-    # Key insights
     best = sorted_r[0]
     worst = sorted_r[-1]
     html_parts.append(f"""
-<h2>Key Insights</h2>
+<h2>核心发现</h2>
 <ul>
-<li><strong>Best Strategy:</strong> {best['label']} on {best['uni_name']} — Annual {best['annual_return']:+.2%}, Sharpe {best['sharpe']:.2f}</li>
-<li><strong>Worst Strategy:</strong> {worst['label']} on {worst['uni_name']} — Annual {worst['annual_return']:+.2%}, Max DD -{worst['max_drawdown']:.2%}</li>
-<li><strong>Broad Market:</strong> Short-term momentum loses money, contrarian works</li>
-<li><strong>Sector ETFs:</strong> Short-term momentum is devastating (-14.6% ann.), contrarian at 5d works (+7.2%)</li>
-<li><strong>Commodities:</strong> Mid/long-term momentum works well (60-120d window)</li>
+<li><strong>最佳策略：</strong>{best['label']}，{best['uni_name']} — 年化 {best['annual_return']:+.2%}，Sharpe {best['sharpe']:.2f}</li>
+<li><strong>最差策略：</strong>{worst['label']}，{worst['uni_name']} — 年化 {worst['annual_return']:+.2%}，最大回撤 -{worst['max_drawdown']:.2%}</li>
+<li><strong>宽基市场：</strong>短期动量亏钱，反转策略有效</li>
+<li><strong>行业ETF：</strong>短期动量灾难（5日年化-14.6%），5日反转反而+7.2%</li>
+<li><strong>商品市场：</strong>中长期动量表现良好（60-120日窗口）</li>
 </ul>
 """)
     
@@ -687,22 +685,22 @@ tr:hover {{ background: #1a1a3e; }}
 
 
 # ============================================================
-# Main
+# 主函数
 # ============================================================
 
 def main():
     print("=" * 60)
-    print("MOMENTUM EXPERIMENT — VISUALIZATION")
+    print("动量实验 — 可视化生成")
     print("=" * 60)
     
-    print("\nLoading data...")
+    print("\n加载数据...")
     prices = load_all_data()
     
-    print("\nRunning experiments...")
+    print("\n运行实验...")
     results = run_experiments(prices)
-    print(f"  {len(results)} experiments completed")
+    print(f"  {len(results)} 组实验完成")
     
-    print("\nGenerating cards...")
+    print("\n生成卡片...")
     card_cover(results)
     card_heatmap(results)
     card_best_nav(results)
@@ -712,12 +710,12 @@ def main():
     card_conclusion(results)
     card_summary_table(results)
     
-    print("\nGenerating HTML report...")
+    print("\n生成HTML报告...")
     generate_html_report(results)
     
-    print("\n✓ All done!")
-    print(f"  Cards: {XHS_DIR}/")
-    print(f"  Report: {OUTPUT_DIR}/report.html")
+    print("\n✓ 全部完成！")
+    print(f"  卡片目录: {XHS_DIR}/")
+    print(f"  报告文件: {OUTPUT_DIR}/report.html")
 
 
 if __name__ == "__main__":
