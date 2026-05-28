@@ -236,57 +236,93 @@ def card_cover(results):
 
 
 def card_heatmap(results):
-    """01_heatmap: 热力图 — 窗口×市场年化收益"""
-    fig, axes = plt.subplots(1, 2, figsize=(6, 8))
+    """01_heatmap: 热力图 — 窗口×市场年化收益（重新设计）"""
+    fig = plt.figure(figsize=(6, 8))
     fig.patch.set_facecolor(BG)
-    fig.suptitle("年化收益热力图", fontsize=18, fontweight="bold", color="white", y=0.95,
-                 fontproperties=FP_BOLD)
-    fig.text(0.5, 0.91, "动量（追涨） vs 反转（抄底）", 
-             ha="center", fontsize=10, color=GRAY, fontproperties=FP_REG)
     
-    for idx, (reverse, title) in enumerate([
-        (False, "动量\n（追涨）"),
-        (True, "反转\n（抄底）"),
-    ]):
-        ax = axes[idx]
-        ax.set_facecolor(BG)
-        
-        filtered = [r for r in results if r["reverse"] == reverse]
-        universes = ["broad", "sector", "commodity"]
-        uni_labels = ["宽基", "行业", "商品"]
-        
-        matrix = np.full((len(universes), len(WINDOWS)), np.nan)
-        for r in filtered:
-            ui = universes.index(r["universe"])
-            wi = WINDOWS.index(r["window"])
-            matrix[ui, wi] = r["annual_return"] * 100
-        
-        im = ax.imshow(matrix, cmap="RdYlGn_r", aspect="auto", vmin=-15, vmax=20)
-        
-        ax.set_xticks(range(len(WINDOWS)))
-        ax.set_xticklabels([f"{w}日" for w in WINDOWS], fontsize=9, fontproperties=FP_REG)
-        ax.set_yticks(range(len(universes)))
-        ax.set_yticklabels(uni_labels, fontsize=10, fontproperties=FP_REG)
-        ax.set_title(title, fontsize=12, fontweight="bold", color="white", pad=10,
-                     fontproperties=FP_BOLD)
-        
-        for i in range(len(universes)):
-            for j in range(len(WINDOWS)):
-                val = matrix[i, j]
-                if not np.isnan(val):
-                    color = "white" if abs(val) < 8 else "black"
-                    ax.text(j, i, f"{val:+.1f}%", ha="center", va="center",
-                            fontsize=10, fontweight="bold", color=color)
-        
-        for label in ax.get_xticklabels():
-            label.set_color("#cccccc")
-        for label in ax.get_yticklabels():
-            label.set_color("#cccccc")
+    # 顶部说明区
+    ax_intro = fig.add_axes([0.05, 0.85, 0.9, 0.12])
+    ax_intro.set_facecolor(BG)
+    ax_intro.axis("off")
     
-    fig.text(0.5, 0.02, "绿色=盈利 · 红色=亏损 · 窗口=回溯周期（交易日）",
-             ha="center", fontsize=9, color=GRAY, fontproperties=FP_REG)
+    ax_intro.text(0.5, 0.95, "量化回测：追涨杀跌能赚钱吗？", ha="center", va="top",
+                  fontsize=16, fontweight="bold", color="white", transform=ax_intro.transAxes,
+                  fontproperties=FP_BOLD)
+    ax_intro.text(0.5, 0.65, "动量策略 = 追涨（买涨得最好的）", ha="center", va="top",
+                  fontsize=11, color=GREEN, transform=ax_intro.transAxes, fontproperties=FP_REG)
+    ax_intro.text(0.5, 0.40, "反转策略 = 杀跌（买跌得最多的）", ha="center", va="top",
+                  fontsize=11, color=PURPLE, transform=ax_intro.transAxes, fontproperties=FP_REG)
+    ax_intro.text(0.5, 0.10, "↓ 25种组合 × 8年数据 ↓", ha="center", va="top",
+                  fontsize=10, color=GRAY, transform=ax_intro.transAxes, fontproperties=FP_REG)
     
-    plt.tight_layout(rect=[0, 0.05, 1, 0.88])
+    # 热力图区
+    ax_heat = fig.add_axes([0.08, 0.15, 0.84, 0.65])
+    ax_heat.set_facecolor(BG)
+    
+    # 合并动量和反转数据到一张表
+    universes = ["broad", "sector", "commodity"]
+    uni_labels = ["宽基\n沪深300+中证500", "行业\n6只ETF", "商品\n黄金+豆粕+能源"]
+    
+    # 构建矩阵：行=市场，列=窗口×策略
+    # 列顺序：动量5日, 动量10日, ..., 动量250日, 反转5日, ..., 反转250日
+    # 但这样太宽，改成：行=市场×策略，列=窗口
+    rows = []
+    row_labels = []
+    for uni, label in zip(universes, uni_labels):
+        # 动量行
+        mom_vals = []
+        for w in WINDOWS:
+            r = [x for x in results if x["universe"] == uni and x["window"] == w and not x["reverse"]]
+            mom_vals.append(r[0]["annual_return"] * 100 if r else np.nan)
+        rows.append(mom_vals)
+        row_labels.append(f"{label}\n动量(追涨)")
+        
+        # 反转行
+        rev_vals = []
+        for w in WINDOWS:
+            r = [x for x in results if x["universe"] == uni and x["window"] == w and x["reverse"]]
+            rev_vals.append(r[0]["annual_return"] * 100 if r else np.nan)
+        rows.append(rev_vals)
+        row_labels.append(f"{label}\n反转(抄底)")
+    
+    matrix = np.array(rows)
+    
+    im = ax_heat.imshow(matrix, cmap="RdYlGn_r", aspect="auto", vmin=-15, vmax=20)
+    
+    ax_heat.set_xticks(range(len(WINDOWS)))
+    ax_heat.set_xticklabels([f"{w}日" for w in WINDOWS], fontsize=9, fontproperties=FP_REG)
+    ax_heat.set_xlabel("回溯窗口（看过去多少天的涨幅）", fontsize=9, color=GRAY, 
+                        fontproperties=FP_REG, labelpad=10)
+    
+    ax_heat.set_yticks(range(len(row_labels)))
+    ax_heat.set_yticklabels(row_labels, fontsize=8, fontproperties=FP_REG, linespacing=1.2)
+    
+    # 添加数值标注
+    for i in range(len(rows)):
+        for j in range(len(WINDOWS)):
+            val = matrix[i, j]
+            if not np.isnan(val):
+                color = "white" if abs(val) < 8 else "black"
+                ax_heat.text(j, i, f"{val:+.1f}%", ha="center", va="center",
+                            fontsize=9, fontweight="bold", color=color, fontproperties=FP_REG)
+    
+    # 添加分隔线
+    for i in range(2, 6, 2):
+        ax_heat.axhline(y=i-0.5, color="#555555", linewidth=1)
+    
+    for label in ax_heat.get_xticklabels():
+        label.set_color("#cccccc")
+    for label in ax_heat.get_yticklabels():
+        label.set_color("#cccccc")
+    
+    # 底部说明
+    ax_footer = fig.add_axes([0.05, 0.02, 0.9, 0.10])
+    ax_footer.set_facecolor(BG)
+    ax_footer.axis("off")
+    ax_footer.text(0.5, 0.5, "红色=盈利 · 绿色=亏损 · 数值=年化收益率",
+                   ha="center", va="center", fontsize=9, color=GRAY, 
+                   transform=ax_footer.transAxes, fontproperties=FP_REG)
+    
     savefig(fig, "01_heatmap.png")
 
 
