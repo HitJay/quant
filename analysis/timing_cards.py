@@ -92,28 +92,28 @@ def card_1_cover():
     ax.set_facecolor(C["bg"])
     ax.axis("off")
 
-    # Title
-    ax.text(0.5, 0.90, "A股择时", ha="center", va="center",
-            fontsize=42, fontweight="bold", color=C["text"], transform=ax.transAxes)
-    ax.text(0.5, 0.84, "到底有没有用？", ha="center", va="center",
-            fontsize=36, fontweight="bold", color=C["gold"], transform=ax.transAxes)
+    # Title — bigger contrast
+    ax.text(0.5, 0.88, "A股择时", ha="center", va="center",
+            fontsize=48, fontweight="bold", color=C["text"], transform=ax.transAxes)
+    ax.text(0.5, 0.80, "到底有没有用？", ha="center", va="center",
+            fontsize=40, fontweight="bold", color=C["gold"], transform=ax.transAxes)
 
     # Subtitle
-    ax.text(0.5, 0.76, "16年真实数据回测 · 16种择时策略 · 样本内外验证",
-            ha="center", fontsize=13, color=C["muted"], transform=ax.transAxes)
+    ax.text(0.5, 0.72, "16年真实数据回测 · 16种择时策略 · 样本内外验证",
+            ha="center", fontsize=12, color=C["muted"], transform=ax.transAxes)
 
     # 分隔线
-    ax.plot([0.15, 0.85], [0.71, 0.71], color=C["border"], linewidth=1,
+    ax.plot([0.15, 0.85], [0.68, 0.68], color=C["border"], linewidth=1,
             transform=ax.transAxes, clip_on=False)
 
     # 核心数字 — 收益倍数对比
-    ax.text(0.5, 0.62, "+247%", ha="center",
-            fontsize=56, fontweight="bold", color=C["green"],
+    ax.text(0.5, 0.58, "+247%", ha="center",
+            fontsize=64, fontweight="bold", color=C["green"],
             fontfamily="monospace", transform=ax.transAxes)
-    ax.text(0.5, 0.54, "最佳择时策略16年累计收益 (买入持有仅+38%)",
-            ha="center", fontsize=14, color=C["muted"], transform=ax.transAxes)
+    ax.text(0.5, 0.50, "最佳择时策略16年累计收益 (买入持有仅+38%)",
+            ha="center", fontsize=13, color=C["muted"], transform=ax.transAxes)
 
-    # 3 KPIs
+    # 3 KPIs with background panels
     kpis = [
         ("最佳年化", "7.9%", C["green"]),
         ("回撤降低", "42%", C["blue"]),
@@ -121,18 +121,24 @@ def card_1_cover():
     ]
     for i, (label, val, color) in enumerate(kpis):
         x = 0.2 + i * 0.3
-        ax.text(x, 0.40, val, ha="center", fontsize=28, fontweight="bold",
+        # Panel background
+        rect = FancyBboxPatch((x - 0.10, 0.33), 0.20, 0.12,
+                              boxstyle="round,pad=0.01",
+                              facecolor=C["card"], edgecolor=C["border"],
+                              linewidth=0.8, transform=ax.transAxes, zorder=0)
+        ax.add_patch(rect)
+        ax.text(x, 0.41, val, ha="center", fontsize=30, fontweight="bold",
                 color=color, fontfamily="monospace", transform=ax.transAxes)
-        ax.text(x, 0.35, label, ha="center", fontsize=12, color=C["muted"],
+        ax.text(x, 0.35, label, ha="center", fontsize=11, color=C["muted"],
                 transform=ax.transAxes)
 
     # 底部hook
-    ax.text(0.5, 0.20, "结论可能和你想的不一样",
-            ha="center", fontsize=16, color=C["text"], transform=ax.transAxes)
+    ax.text(0.5, 0.22, "结论可能和你想的不一样",
+            ha="center", fontsize=17, color=C["text"], transform=ax.transAxes)
 
     # 标签
     tags = ["#量化研究", "#A股择时", "#沪深300", "#ETF策略"]
-    ax.text(0.5, 0.10, "  ".join(tags),
+    ax.text(0.5, 0.12, "  ".join(tags),
             ha="center", fontsize=11, color=C["blue"], transform=ax.transAxes)
 
     _page_number(fig, 1)
@@ -150,12 +156,12 @@ def card_2_intro():
     ax.set_facecolor(C["bg"])
     ax.axis("off")
 
-    ax.text(0.5, 0.92, "择时 = 决定什么时候满仓/空仓",
-            ha="center", fontsize=20, fontweight="bold", color=C["text"],
+    ax.text(0.5, 0.93, "择时 = 决定什么时候满仓/空仓",
+            ha="center", fontsize=24, fontweight="bold", color=C["text"],
             transform=ax.transAxes)
 
-    # 研究框架
-    y = 0.82
+    # 研究框架 — with card panels
+    y = 0.84
     sections = [
         ("[1] 技术面择时", "均线/双均线/动量/波动率/布林带", C["blue"]),
         ("[2] 估值面择时", "PE百分位/股债性价比(ERP)", C["green"]),
@@ -163,32 +169,42 @@ def card_2_intro():
         ("[4] 复合择时", "多信号投票/加权平均", C["purple"]),
     ]
     for label, desc, color in sections:
-        ax.text(0.08, y, label, fontsize=16, fontweight="bold",
-                color=color, transform=ax.transAxes)
-        ax.text(0.08, y - 0.04, desc, fontsize=12, color=C["muted"],
+        # Background panel
+        rect = FancyBboxPatch((0.05, y - 0.065), 0.90, 0.08,
+                              boxstyle="round,pad=0.008",
+                              facecolor=C["card"], edgecolor=color,
+                              linewidth=1.2, alpha=0.6,
+                              transform=ax.transAxes, zorder=0)
+        ax.add_patch(rect)
+        # Left color dot
+        ax.plot(0.08, y - 0.025, "o", color=color, markersize=8,
                 transform=ax.transAxes)
-        y -= 0.10
+        ax.text(0.12, y - 0.01, label, fontsize=15, fontweight="bold",
+                color=color, transform=ax.transAxes)
+        ax.text(0.12, y - 0.045, desc, fontsize=11, color=C["muted"],
+                transform=ax.transAxes)
+        y -= 0.105
 
     # 方法说明
     ax.plot([0.08, 0.92], [y + 0.02, y + 0.02], color=C["border"],
             transform=ax.transAxes, clip_on=False)
-    y -= 0.03
+    y -= 0.02
+
+    ax.text(0.08, y, "研究方法:", fontsize=14, fontweight="bold",
+            color=C["text"], transform=ax.transAxes)
+    y -= 0.05
 
     method_lines = [
-        "研究方法:",
-        "",
-        "• 标的: 沪深300指数 (2010~2026, 16年)",
-        "• 逻辑: 信号=1满仓股票, 信号=0转债券",
-        "• 频率: 日频信号, T+1执行",
-        "• 基准: 买入持有 vs 60/40固定配置",
-        "• 验证: 样本内(2010-2021) + 样本外(2022-2026)",
-        "",
+        "标的: 沪深300指数 (2010~2026, 16年)",
+        "逻辑: 信号=1满仓股票, 信号=0转债券",
+        "频率: 日频信号, T+1执行",
+        "基准: 买入持有 vs 60/40固定配置",
+        "验证: 样本内(2010-2021) + 样本外(2022-2026)",
         "共测试16种信号 × 不同参数",
     ]
     for i, line in enumerate(method_lines):
-        ax.text(0.08, y - i * 0.04, line, fontsize=12,
-                color=C["text"] if line.startswith("•") else C["muted"],
-                transform=ax.transAxes)
+        ax.text(0.10, y - i * 0.042, f"· {line}", fontsize=11,
+                color=C["text"], transform=ax.transAxes)
 
     _page_number(fig, 2)
     _disclaimer(fig)
@@ -207,9 +223,9 @@ def card_3_leaderboard():
     ax.axis("off")
 
     ax.text(0.5, 0.93, "择时信号排行榜", ha="center",
-            fontsize=24, fontweight="bold", color=C["text"], transform=ax.transAxes)
+            fontsize=26, fontweight="bold", color=C["text"], transform=ax.transAxes)
     ax.text(0.5, 0.89, "按Sharpe排序 · 全样本2010-2026", ha="center",
-            fontsize=12, color=C["muted"], transform=ax.transAxes)
+            fontsize=11, color=C["muted"], transform=ax.transAxes)
 
     full = results_df[results_df["period"] == "full"].sort_values("sharpe", ascending=False)
 
@@ -339,9 +355,9 @@ def card_5_oos():
     ax.axis("off")
 
     ax.text(0.5, 0.93, "样本外验证：谁没过拟合？", ha="center",
-            fontsize=22, fontweight="bold", color=C["text"], transform=ax.transAxes)
+            fontsize=24, fontweight="bold", color=C["text"], transform=ax.transAxes)
     ax.text(0.5, 0.88, "样本内(2010-2021) vs 样本外(2022-2026) Sharpe对比",
-            ha="center", fontsize=12, color=C["muted"], transform=ax.transAxes)
+            ha="center", fontsize=11, color=C["muted"], transform=ax.transAxes)
 
     in_s = results_df[results_df["period"] == "in_sample"].set_index("name")["sharpe"]
     out_s = results_df[results_df["period"] == "out_sample"].set_index("name")["sharpe"]
@@ -371,11 +387,15 @@ def card_5_oos():
     chart_ax.legend(loc="lower right", fontsize=10, framealpha=0.3,
                     labelcolor=C["text"], facecolor=C["card"], edgecolor=C["border"])
 
-    # 标注过拟合的
+    # 标注过拟合的 — larger, repositioned
     for i, (name, row) in enumerate(compare.iterrows()):
         if row["out"] < 0:
-            chart_ax.text(row["out"] - 0.05, i + h/2, "过拟合!",
-                         fontsize=8, color=C["red"], va="center")
+            chart_ax.annotate("过拟合", xy=(row["out"], i + h/2),
+                             xytext=(row["out"] - 0.15, i + h/2 + 0.3),
+                             fontsize=11, fontweight="bold", color=C["red"],
+                             va="center",
+                             arrowprops=dict(arrowstyle="->", color=C["red"],
+                                            lw=1.5))
 
     _page_number(fig, 5)
     _disclaimer(fig)
