@@ -38,3 +38,6 @@ Thumbs.db
 logs/
 output/
 *.png
+
+# Data cache (large parquet files)
+data/cache/
