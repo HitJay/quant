@@ -142,9 +142,7 @@ def pe_percentile_timing(pe_series: pd.Series, window: int = 2520, low_pct: floa
 
     window: 回溯窗口(默认10年≈2520交易日)
     """
-    pct_rank = pe_series.rolling(window=window, min_periods=252).apply(
-        lambda x: pd.Series(x).rank(pct=True).iloc[-1], raw=False
-    )
+    pct_rank = pe_series.rolling(window=window, min_periods=252).rank(pct=True)
 
     signal = pd.Series(index=pe_series.index, dtype=float)
     signal[pct_rank <= low_pct] = 1.0
@@ -195,9 +193,9 @@ def turnover_timing(volume: pd.Series, window: int = 250, high_pct: float = 0.9,
     """
     # 用对数成交量, 消除趋势
     log_vol = np.log(volume.replace(0, np.nan)).dropna()
-    pct_rank = log_vol.rolling(window=window, min_periods=60).apply(
-        lambda x: pd.Series(x).rank(pct=True).iloc[-1], raw=False
-    )
+
+    # 高效分位数计算: 用 rolling rank / window 近似百分位
+    pct_rank = log_vol.rolling(window=window, min_periods=60).rank(pct=True)
 
     signal = pd.Series(index=pct_rank.index, dtype=float)
     signal[pct_rank <= low_pct] = 1.0
