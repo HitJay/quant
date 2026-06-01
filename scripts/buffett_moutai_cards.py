@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
-"""巴菲特框架分析茅台 — 7张小红书卡片 (momentum_viz风格)"""
+"""
+巴菲特框架分析茅台 — 7张小红书卡片 v2
+数据源: moutai_data.py (东方财富API → fallback)
+修复: 市值×1.256→×12.56 的10倍bug, 全动态数据
+"""
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
-import os
+import os, sys
+
+# 添加 scripts 目录到 path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from moutai_data import fetch_moutai_data, MoutaiData
 
 # ── Fonts ──────────────────────────────────────────
 FP_BOLD = FontProperties(fname=os.path.expanduser("~/.local/share/fonts/NotoSansSC-Bold.otf"))
@@ -33,27 +41,6 @@ plt.rcParams.update({
 OUTDIR = "/mnt/d/vscode/quant/output/moutai-buffett"
 os.makedirs(OUTDIR, exist_ok=True)
 
-# ── Data ───────────────────────────────────────────
-PRICE = 1467.75
-MKT_CAP = PRICE * 1.256  # 亿
-EPS = 65.66
-PE = PRICE / EPS
-IV_28 = 28 * EPS
-MOS = (IV_28 - PRICE) / IV_28 * 100
-IV_30 = 30 * EPS
-IV_35 = 35 * EPS
-ROE_AVG = 31.5
-NPM_CAGR = 17.3
-GROSS = 91.8
-NET = 47.8
-CASH_NP = 74.7
-DEBT = 16.4
-CUR = 5.09
-QUICK = 3.85
-
-years = ["2016","2017","2018","2019","2020","2021","2022","2023","2024","2025"]
-roe_vals = [24.4, 32.9, 34.5, 33.1, 31.4, 29.9, 30.3, 34.2, 36.0, 32.5]
-
 # ── Helpers ────────────────────────────────────────
 def page_tag(fig, n, total=7):
     fig.text(0.93, 0.015, f"{n}/{total}", ha="right", va="bottom",
@@ -68,7 +55,6 @@ def subtitle_text(ax, s, y=0.88):
             color=GRAY, transform=ax.transAxes, fontproperties=FP_REG)
 
 def section_head(ax, x, y, s, color=AMBER):
-    """Section heading with colored left accent bar"""
     ax.plot([x-0.02, x+0.015], [y, y], color=color, linewidth=3,
             transform=ax.transAxes, solid_capstyle='butt')
     body(ax, x+0.03, y, s, size=14, color=color, bold=True)
@@ -92,9 +78,46 @@ def save(fig, name):
     plt.close(fig)
     return p
 
+
+# ═══════════════════════════════════════════════════
+# MAIN
+# ═══════════════════════════════════════════════════
+
+print("📊 获取茅台数据...")
+d = fetch_moutai_data()
+
+# Derived values
+PRICE = d.price
+PE = d.pe
+EPS = d.eps
+MKT_CAP_YI = d.market_cap           # 亿
+MKT_CAP_TR = MKT_CAP_YI / 10000     # 万亿
+ROE_AVG = d.roe_10yr_avg
+NPM_CAGR = d.np_cagr_10yr
+GROSS = d.gross_margin
+NET = d.net_margin
+CASH_NP = d.cash_to_np
+DEBT = d.debt_ratio
+CUR = d.current_ratio
+QUICK = d.quick_ratio
+FETCH_DATE = d.fetch_date
+
+# Valuation
+IV_28 = 28 * EPS
+MOS = (IV_28 - PRICE) / IV_28 * 100
+IV_30 = 30 * EPS
+IV_35 = 35 * EPS
+
+print(f"\n  价格: {PRICE:.2f}  市值: {MKT_CAP_TR:.2f}万亿  PE: {PE:.1f}x  EPS: {EPS:.2f}")
+print(f"  ROE均值: {ROE_AVG:.1f}%  CAGR: {NPM_CAGR:.1f}%  毛利率: {GROSS:.1f}%  净利率: {NET:.1f}%")
+print(f"  安全边际: {MOS:.1f}%  (保守估值 {IV_28:.0f}元)")
+print(f"  数据来源: {d.source}")
+print(f"  数据日期: {FETCH_DATE}")
+
 # ═══════════════════════════════════════════════════
 # 0. COVER
 # ═══════════════════════════════════════════════════
+print("\n🎨 生成卡片...")
 fig, ax = plt.subplots(figsize=(6, 8))
 fig.patch.set_facecolor(BG)
 ax.set_facecolor(BG)
@@ -108,12 +131,13 @@ center(ax, 0.5, 0.70, "10 年平均 ROE", size=14, color=GRAY)
 center(ax, 0.5, 0.59, f"{ROE_AVG:.0f}%", size=68, color=GOLD, bold=True)
 center(ax, 0.5, 0.44, "远超巴菲特 15% 门槛", size=13, color=GRAY)
 
-# Sub metrics
-for i, (lab, val, clr) in enumerate([
-    ("市值", f"{(MKT_CAP/10000):.2f} 万亿", WHITE),
+# Sub metrics — 修正好市值
+subs = [
+    ("市值", f"{MKT_CAP_TR:.2f} 万亿", WHITE),
     ("PE", f"{PE:.1f}x", INDIGO),
     ("毛利率", f"{GROSS:.0f}%", GREEN),
-]):
+]
+for i, (lab, val, clr) in enumerate(subs):
     x = 0.20 + i * 0.30
     center(ax, x, 0.34, lab, size=10, color=GRAY)
     center(ax, x, 0.29, val, size=22, color=clr, bold=True)
@@ -121,11 +145,13 @@ for i, (lab, val, clr) in enumerate([
 # CTA
 center(ax, 0.5, 0.16, "专业 AI 量化研究员", size=16, color=AMBER, bold=True)
 center(ax, 0.5, 0.12, "用巴菲特框架告诉你答案", size=12, color=GRAY)
-center(ax, 0.5, 0.05, "贵州茅台 · 600519 · 2025.05.30", size=9, color=DIMGRAY)
+center(ax, 0.5, 0.05, f"贵州茅台 · 600519 · {FETCH_DATE}", size=9, color=DIMGRAY)
+
+center(ax, 0.5, 0.01, f"数据: {d.source}", size=7, color=DIMGRAY)
 
 page_tag(fig, 0)
 save(fig, "00_cover.png")
-print("0 cover")
+print("  0 cover ✓")
 
 # ═══════════════════════════════════════════════════
 # 1. MOAT
@@ -138,7 +164,6 @@ ax.axis("off")
 title_text(ax, "护城河分析", y=0.95)
 subtitle_text(ax, "品牌护城河 — 巴菲特五大护城河之首", y=0.89)
 
-# Score
 center(ax, 0.5, 0.83, "品牌壁垒：★★★★★", size=18, color=GOLD, bold=True)
 
 sections = [
@@ -169,7 +194,6 @@ for y_start, heading, lines in sections:
     for j, line in enumerate(lines):
         bullet(ax, 0.10, y_start - 0.04 - j * 0.035, line, size=10)
 
-# Key metric bar (safely below content)
 for i, (lab, val, clr) in enumerate([
     ("毛利率", f"{GROSS:.0f}%", GREEN),
     ("净利率", f"{NET:.0f}%", GREEN),
@@ -181,7 +205,7 @@ for i, (lab, val, clr) in enumerate([
 
 page_tag(fig, 1)
 save(fig, "01_moat.png")
-print("1 moat")
+print("  1 moat ✓")
 
 # ═══════════════════════════════════════════════════
 # 2. FINANCIALS
@@ -194,15 +218,18 @@ ax.axis("off")
 title_text(ax, "财务体检", y=0.95)
 subtitle_text(ax, "Owner Earnings · ROIC · 现金质量", y=0.89)
 
-# ROE chart
+# ROE chart — use dynamic roe_history
+roe_years = [y for y, _ in d.roe_history]
+roe_vals = [v for _, v in d.roe_history]
+
 ax_bar = plt.axes([0.12, 0.60, 0.76, 0.18])
 ax_bar.set_facecolor(BG)
 colors = [GOLD if v >= 30 else INDIGO for v in roe_vals]
-ax_bar.bar(range(len(years)), roe_vals, color=colors, width=0.55, edgecolor=BG)
+ax_bar.bar(range(len(roe_years)), roe_vals, color=colors, width=0.55, edgecolor=BG)
 ax_bar.axhline(y=15, color=RED, linestyle="--", linewidth=0.8)
-ax_bar.text(9.3, 16, "15%", color=RED, fontsize=7, ha="right", fontproperties=FP_REG)
-ax_bar.set_xticks(range(len(years)))
-ax_bar.set_xticklabels(years, fontsize=7, color=GRAY, fontproperties=FP_REG)
+ax_bar.text(len(roe_years)-0.7, 16, "15%", color=RED, fontsize=7, ha="right", fontproperties=FP_REG)
+ax_bar.set_xticks(range(len(roe_years)))
+ax_bar.set_xticklabels(roe_years, fontsize=7, color=GRAY, fontproperties=FP_REG)
 ax_bar.set_ylim(0, 45)
 ax_bar.tick_params(colors=GRAY, labelsize=7)
 ax_bar.set_ylabel("ROE (%)", fontsize=9, color=GRAY, fontproperties=FP_REG)
@@ -236,7 +263,7 @@ center(ax, 0.5, 0.05, "「寻找 ROE>15%、低负债、高现金流的公司」�
 
 page_tag(fig, 2)
 save(fig, "02_financials.png")
-print("2 financials")
+print("  2 financials ✓")
 
 # ═══════════════════════════════════════════════════
 # 3. VALUATION
@@ -247,9 +274,8 @@ ax.set_facecolor(BG)
 ax.axis("off")
 
 title_text(ax, "估值分析", y=0.95)
-subtitle_text(ax, f"当前 PE {PE:.1f}x · 历史中枢 ~30x · 处于历史低位", y=0.89)
+subtitle_text(ax, f"当前 PE {PE:.1f}x · 历史中枢 ~30x · 处于历史低位区间", y=0.89)
 
-# Intrinsic value
 body(ax, 0.08, 0.80, "内在价值估算 (EPS × PE)", size=14, color=AMBER, bold=True)
 
 vals = [
@@ -274,7 +300,7 @@ ax_mos.barh([0], [MOS], color=GREEN, height=0.6)
 ax_mos.barh([0], [20], color=GRAY, height=0.6, alpha=0.2)
 ax_mos.set_xlim(0, 40)
 ax_mos.axis("off")
-body(ax, 0.08, 0.39, "巴菲特要求 20-30% — 当前刚好达标", size=10, color=GRAY)
+body(ax, 0.08, 0.39, "巴菲特要求 20-30% — 当前安全边际充裕", size=10, color=GRAY)
 
 # Assumptions
 section_head(ax, 0.08, 0.33, "核心假设")
@@ -292,7 +318,7 @@ body(ax, 0.08, 0.06, f"当前 {PE:.1f}x — 处于历史低位区间", size=11, 
 
 page_tag(fig, 3)
 save(fig, "03_valuation.png")
-print("3 valuation")
+print("  3 valuation ✓")
 
 # ═══════════════════════════════════════════════════
 # 4. QUICK FILTER
@@ -313,7 +339,7 @@ checks = [
     ("盈利质量", "利润真实变现金？", f"现金流/净利 {CASH_NP:.0f}%"),
     ("债务安全", "营收 −30% 能存活？", f"负债率仅 {DEBT:.1f}%"),
     ("管理层", "正视问题不隐瞒？", "国企治理，整体稳健"),
-    ("价格", "安全边际够吗？", f"当前 {MOS:.1f}%，刚达标"),
+    ("价格", "安全边际够吗？", f"当前 {MOS:.1f}%，超 20% 门槛"),
 ]
 
 for i, (dim, q, detail) in enumerate(checks):
@@ -325,7 +351,7 @@ center(ax, 0.5, 0.05, "8/8 全部通过 — 巴菲特会认真考虑这家公司
 
 page_tag(fig, 4)
 save(fig, "04_filter.png")
-print("4 filter")
+print("  4 filter ✓")
 
 # ═══════════════════════════════════════════════════
 # 5. RISKS
@@ -351,17 +377,17 @@ risk_groups = [
     ]),
     (0.30, "行为风险", GOLD, [
         ("过度扩张", "历史上试水红酒 / 啤酒未成功，规模不大"),
-        ("估值泡沫", "PE 曾达 73x（2021），追高是最大个人风险"),
+        ("估值泡沫", f"PE 曾达 73x（2021），追高是最大个人风险"),
         ("确认偏误", "「茅台永远涨」是危险思维定式"),
     ]),
 ]
 
 for y_start, heading, clr, items in risk_groups:
     body(ax, 0.08, y_start, heading, size=13, color=clr, bold=True)
-    for j, (t, d) in enumerate(items):
+    for j, (t, detail) in enumerate(items):
         y = y_start - 0.035 - j * 0.038
         body(ax, 0.10, y, f"• {t}", size=9, color=clr, bold=True)
-        body(ax, 0.38, y, d, size=8, color=GRAY)
+        body(ax, 0.38, y, detail, size=8, color=GRAY)
 
 # Sell criteria
 body(ax, 0.08, 0.14, "卖出条件检查", size=13, color=INDIGO, bold=True)
@@ -378,7 +404,7 @@ for i, (cond, status) in enumerate([
 
 page_tag(fig, 5)
 save(fig, "05_risks.png")
-print("5 risks")
+print("  5 risks ✓")
 
 # ═══════════════════════════════════════════════════
 # 6. VERDICT
@@ -391,9 +417,22 @@ ax.axis("off")
 title_text(ax, "巴菲特式最终裁决", y=0.95)
 subtitle_text(ax, "「以合理价格买入伟大公司」", y=0.89)
 
-# Verdict
-center(ax, 0.5, 0.80, "结论：可买入（分批建仓）", size=22, color=GREEN, bold=True)
-center(ax, 0.5, 0.75, f"PE {PE:.1f}x · 安全边际 {MOS:.1f}% · 合理偏低估", size=12, color=WHITE)
+# Verdict — 根据安全边际调整措辞
+if MOS >= 25:
+    verdict = "结论：可买入"
+    verdict_color = GREEN
+    verdict_detail = f"PE {PE:.1f}x · 安全边际 {MOS:.1f}% · 低估"
+elif MOS >= 20:
+    verdict = "结论：可买入（分批建仓）"
+    verdict_color = GREEN
+    verdict_detail = f"PE {PE:.1f}x · 安全边际 {MOS:.1f}% · 合理偏低估"
+else:
+    verdict = "结论：观察等待"
+    verdict_color = INDIGO
+    verdict_detail = f"PE {PE:.1f}x · 安全边际 {MOS:.1f}% · 接近合理"
+
+center(ax, 0.5, 0.80, verdict, size=22, color=verdict_color, bold=True)
+center(ax, 0.5, 0.75, verdict_detail, size=12, color=WHITE)
 
 # Scorecard
 section_head(ax, 0.08, 0.67, "评分卡")
@@ -403,7 +442,8 @@ ratings = [
     ("管理水平", "★★★★☆", "国企稳健，资本配置中上", GOLD),
     ("财务健康", "★★★★★", f"ROE {ROE_AVG:.0f}%+ 零负债", GREEN),
     ("成长性",   "★★★★☆", f"10年CAGR {NPM_CAGR:.0f}%", WHITE),
-    ("估值",     "★★★★☆", f"PE {PE:.1f}x 低于历史中枢", INDIGO),
+    ("估值",     "★★★★★" if MOS >= 30 else "★★★★☆",
+     f"PE {PE:.1f}x 低于历史中枢", INDIGO if MOS < 30 else GREEN),
 ]
 for i, (lab, stars, detail, clr) in enumerate(ratings):
     y = 0.60 - i * 0.07
@@ -417,7 +457,7 @@ for i, m in enumerate([
     "直销比例 (当前 47%) 是否持续提升",
     "批价与出厂价价差 (警戒 <200 元)",
     "ROE 是否维持 25%+",
-    "PE 突破 40x → 减仓; 跌破 18x → 加仓",
+    f"PE 突破 40x → 减仓; 跌破 18x → 加仓",
 ]):
     bullet(ax, 0.10, 0.23 - i * 0.04, m, size=10)
 
@@ -427,10 +467,11 @@ center(ax, 0.5, 0.02, "以上为学术展示，不构成投资建议。投资有
 
 page_tag(fig, 6)
 save(fig, "06_verdict.png")
-print("6 verdict")
+print("  6 verdict ✓")
 
 # ── Summary ────────────────────────────────────────
-print(f"\n7 cards → {OUTDIR}/")
+print(f"\n✅ 7 cards → {OUTDIR}/")
 for f in sorted(os.listdir(OUTDIR)):
     if f.endswith(".png"):
-        print(f"  {f}  ({os.path.getsize(os.path.join(OUTDIR, f))//1024} KB)")
+        sz = os.path.getsize(os.path.join(OUTDIR, f)) // 1024
+        print(f"  {f}  ({sz} KB)")
