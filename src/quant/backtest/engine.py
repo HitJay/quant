@@ -14,6 +14,7 @@ class BacktestConfig:
     min_commission: float = 5.0
     slippage: float = 0.001
     cash_symbol: str = "CASH"
+    rebalance_freq: str = "monthly"  # 'daily', 'weekly', 'monthly'
 
 
 @dataclass
@@ -36,6 +37,18 @@ class BacktestEngine:
     def __init__(self, config: BacktestConfig | None = None):
         self.config = config or BacktestConfig()
 
+    def _should_rebalance(self, i: int, date, dates) -> bool:
+        """判断是否需要调仓"""
+        if i == 0:
+            return True
+        freq = self.config.rebalance_freq
+        if freq == "daily":
+            return True
+        elif freq == "weekly":
+            return date.weekday() < dates[i - 1].weekday() or (date - dates[i - 1]).days > 5
+        else:  # monthly
+            return date.month != dates[i - 1].month
+
     def run(self, strategy, prices: pd.DataFrame, symbols: list[str]) -> BacktestResult:
         dates = prices.index
         nav = pd.Series(index=dates, dtype=float)
@@ -50,8 +63,8 @@ class BacktestEngine:
         current_weights: dict[str, float] = {}
 
         for i, date in enumerate(dates):
-            # 月初重新生成信号（只对交易标的）
-            if i == 0 or date.month != dates[i - 1].month:
+            # 根据调仓频率决定是否重新生成信号
+            if self._should_rebalance(i, date, dates):
                 signal = strategy.rebalance(date, symbols, prices.loc[:date])
                 current_weights = signal.weights
                 # 将信号中出现的新标的加入 all_symbols 和 positions
