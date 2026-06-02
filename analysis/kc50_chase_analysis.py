@@ -46,7 +46,7 @@ C = {
 }
 
 CARD_W, CARD_H, DPI = 7.2, 9.6, 150  # 1080x1440px
-TOTAL_CARDS = 7
+TOTAL_CARDS = 8
 TODAY = datetime.now().strftime("%Y-%m-%d")
 SAVE_DIR = Path(f"./output/2026-06-02/kc50-chase/cards")
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
@@ -697,11 +697,69 @@ def card_7_conclusion():
     print("  [7/7] conclusion")
 
 
+def card_8_opensource():
+    """Card 8: 开源 — 展示源码和原数据"""
+    fig = _fig()
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.set_facecolor(C["bg"])
+    ax.axis("off")
+
+    ax.text(0.5, 0.90, "全部代码 + 原始数据", ha="center",
+            fontsize=30, fontweight="bold", color=C["text"], transform=ax.transAxes)
+    ax.text(0.5, 0.83, "开源, 欢迎复现 & 质疑", ha="center",
+            fontsize=18, color=C["gold"], transform=ax.transAxes)
+    ax.plot([0.15, 0.85], [0.79, 0.79], color=C["border"], linewidth=1,
+            transform=ax.transAxes)
+
+    items = [
+        ("Python 源码", "kc50_chase.py (~400行)", "完整分析+可视化, 一键运行"),
+        ("原始数据", "data_588000.csv (1300+行)", "科创50ETF 全部日线数据"),
+        ("环境依赖", "requirements.txt", "pip install 即可"),
+        ("使用方式", "pip install -r requirements.txt", "python kc50_chase.py"),
+    ]
+    y = 0.72
+    for title, file, desc in items:
+        rect = FancyBboxPatch((0.06, y - 0.065), 0.88, 0.09,
+                              boxstyle="round,pad=0.01",
+                              facecolor=C["card"], edgecolor=C["border"],
+                              linewidth=1.0, transform=ax.transAxes)
+        ax.add_patch(rect)
+        ax.text(0.12, y - 0.01, title, fontsize=14, fontweight="bold",
+                color=C["blue"], transform=ax.transAxes)
+        ax.text(0.12, y - 0.045, f"{file}  |  {desc}", fontsize=10,
+                color=C["muted"], transform=ax.transAxes)
+        y -= 0.115
+
+    y -= 0.03
+    ax.plot([0.15, 0.85], [y, y], color=C["border"], linewidth=1,
+            transform=ax.transAxes)
+    ax.text(0.5, y - 0.04, "为什么开源?", ha="center",
+            fontsize=16, fontweight="bold", color=C["text"], transform=ax.transAxes)
+    bullets = [
+        "[1] 数据透明: 你能验证每一个数字",
+        "[2] 逻辑透明: 算法没有黑箱",
+        "[3] 欢迎质疑: 发现 bug 请评论区告诉我",
+    ]
+    for i, b in enumerate(bullets):
+        ax.text(0.15, y - 0.08 - i * 0.035, b, fontsize=12,
+                color=C["muted"], transform=ax.transAxes)
+
+    ax.text(0.5, 0.06, "评论区回复 '源码' 发你", ha="center",
+            fontsize=20, fontweight="bold", color=C["gold"], transform=ax.transAxes)
+    ax.text(0.5, 0.015, "#量化投资  #开源  #科创50  #Python", ha="center",
+            fontsize=11, color=C["blue"], transform=ax.transAxes)
+
+    _page_number(fig, 8)
+    fig.savefig(SAVE_DIR / "08_opensource.png", dpi=DPI, facecolor=C["bg"])
+    plt.close()
+    print("  [8/8] opensource")
+
+
 # ════════════════════════════════════════════════════════════════
 # 主流程
 # ════════════════════════════════════════════════════════════════
 if __name__ == "__main__":
-    print("\n生成小红书卡片 (7张)...")
+    print("\n生成小红书卡片 (8张)...")
     card_1_cover()
     card_2_thermometer()
     card_3_winrate()
@@ -709,6 +767,7 @@ if __name__ == "__main__":
     card_5_timing()
     card_6_playbook()
     card_7_conclusion()
+    card_8_opensource()
 
     print(f"\n✓ 全部卡片已保存到 {SAVE_DIR}/")
     print(f"  共 {TOTAL_CARDS} 张, 尺寸 1080×1440px")
