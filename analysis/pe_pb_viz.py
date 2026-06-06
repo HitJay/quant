@@ -80,12 +80,12 @@ HTML_CSS = """
 body { background:#161b22; margin:0; padding:0; }
 .card {
   width:600px; height:800px; background:#161b22;
-  display:flex; flex-direction:column; justify-content:space-between; padding:36px 32px 28px;
+  display:flex; flex-direction:column; justify-content:space-between; padding:32px 28px 24px;
   font-family:'Noto Sans SC',sans-serif; color:#c9d1d9; position:relative; overflow:hidden;
 }
-.card .page-num { position:absolute; bottom:12px; right:16px; font-size:13px; color:#484f58; }
-.card h2 { font-size:28px; text-align:center; font-weight:700; margin-bottom:4px; color:#f0f6fc; }
-.card h3 { font-size:16px; color:#8b949e; text-align:center; font-weight:400; margin-bottom:14px; }
+.card .page-num { position:absolute; bottom:10px; right:14px; font-size:12px; color:#484f58; }
+.card h2 { font-size:30px; text-align:center; font-weight:700; margin-bottom:4px; color:#f0f6fc; }
+.card h3 { font-size:17px; color:#8b949e; text-align:center; font-weight:400; margin-bottom:12px; }
 .card .hero-num { font-size:96px; color:#f0b866; text-align:center; font-weight:700; line-height:1; margin:8px 0; }
 .card .hero-label { font-size:17px; color:#8b949e; text-align:center; margin-bottom:8px; }
 .card .hero-sub { font-size:15px; color:#8b949e; text-align:center; }
@@ -93,20 +93,20 @@ body { background:#161b22; margin:0; padding:0; }
 .card .kpi .val { font-size:32px; font-weight:700; }
 .card .kpi .lab { font-size:14px; color:#8b949e; margin-top:2px; }
 .card .section { margin-top:10px; }
-.card .section-title { font-size:20px; font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+.card .section-title { font-size:20px; font-weight:700; margin-bottom:5px; display:flex; align-items:center; gap:8px; }
 .card .section-title .bar { width:4px; height:20px; border-radius:2px; flex-shrink:0; }
-.card .section-body { font-size:16px; line-height:1.65; padding-left:12px; }
+.card .section-body { font-size:17px; line-height:1.6; padding-left:12px; }
 .card .section-body .item { margin-bottom:1px; }
-.card .finding { margin-bottom:12px; }
+.card .finding { margin-bottom:10px; }
 .card .finding-title { font-size:20px; font-weight:700; margin-bottom:2px; }
-.card .finding-body { font-size:15px; line-height:1.6; color:#c9d1d9; }
-.card .cta { text-align:center; color:#f0b866; font-size:16px; font-weight:700; margin-top:8px; }
+.card .finding-body { font-size:16px; line-height:1.55; color:#c9d1d9; }
+.card .cta { text-align:center; color:#f0b866; font-size:16px; font-weight:700; margin-top:6px; }
 .card .disclaimer { text-align:center; font-size:12px; color:#484f58; margin-top:4px; }
-.card .divider { height:1px; background:#30363d; margin:12px 0; }
-.card .rank-row { display:flex; align-items:center; padding:6px 0; font-size:15px; }
-.card .rank-num { width:28px; text-align:right; margin-right:8px; color:#8b949e; font-weight:600; flex-shrink:0; }
-.card .rank-name { flex:1; font-size:15px; }
-.card .rank-val { width:64px; text-align:right; font-weight:700; font-size:15px; }
+.card .divider { height:1px; background:#30363d; margin:8px 0; }
+.card .rank-row { display:flex; align-items:center; padding:7px 0; font-size:18px; }
+.card .rank-num { width:28px; text-align:right; margin-right:10px; color:#8b949e; font-weight:600; flex-shrink:0; }
+.card .rank-name { flex:1; font-size:18px; }
+.card .rank-val { width:68px; text-align:right; font-weight:700; font-size:18px; }
 .text-amber { color:#f0b866; }
 .text-indigo { color:#7fa5c4; }
 .text-silver { color:#6b7b8d; }
@@ -173,7 +173,8 @@ def card_cover_html(data):
 
     body = f"""
   <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-    <div class="hero-label">PE/PB判断行业买点靠谱吗</div>
+    <div style="font-size:48px; font-weight:700; color:#f0f6fc; text-align:center; margin-bottom:4px;">PE/PB判断行业买点</div>
+    <div style="font-size:56px; font-weight:700; color:#f0b866; text-align:center; margin-bottom:16px;">靠谱吗？</div>
     <div class="hero-num">{hero_val:.1f}%</div>
     <div class="hero-label">PB估值分位择时 · 年化收益</div>
     <div class="hero-sub">2013-2026 · 13年回测 · 沪深300+国债ETF</div>
@@ -242,41 +243,51 @@ def card_heatmap_mpl(data):
     thresholds = ["20_80", "25_75", "30_70"]
 
     fig, axes = plt.subplots(2, 1, figsize=(7.2, 9.6))  # 3:4 ratio
-    fig.suptitle("PE vs PB 估值择时参数扫描", fontproperties=FP_BOLD, fontsize=20, y=0.97, color="white")
+    fig.suptitle("PE vs PB 估值择时参数扫描", fontproperties=FP_BOLD, fontsize=18, y=0.98, color="white")
 
     indicators = [("PE", AMBER), ("PB", INDIGO)]
 
-    # Collect all values
-    all_vals = []
-    for ind, _ in indicators:
-        for w in windows:
-            for t in thresholds:
-                key = f"{ind}_{w}y_{t}"
-                if key in mt and "error" not in mt[key]:
-                    all_vals.append(mt[key]["annual_return"])
-    vmin, vmax = np.nanmin(all_vals), np.nanmax(all_vals)
-    norm = Normalize(vmin=vmin, vmax=vmax)
-    cmap_c = cm.get_cmap("RdYlGn")
-
+    # Build per-indicator color normalization
     for ax_idx, (ind, color) in enumerate(indicators):
         ax = axes[ax_idx]
         ax.set_facecolor(CARD_BG)
         ax.set_title(f"{ind} 分位择时 · 年化收益(%)", fontproperties=FP_BOLD, fontsize=15,
                      color=color, pad=8)
 
+        # Collect values for THIS indicator only
+        ind_vals = []
+        cell_data = {}
         for i in range(len(windows)):
             for j in range(len(thresholds)):
-                key = f"{ind}_{w}y_{t}"
+                key = f"{ind}_{windows[i]}y_{thresholds[j]}"
                 val = mt[key]["annual_return"] if key in mt and "error" not in mt[key] else np.nan
-                if np.isnan(val):
-                    continue
-                rect = Rectangle((j - 0.45, i - 0.45), 0.9, 0.9,
-                                 facecolor=cmap_c(norm(val)),
-                                 edgecolor="#2a2a4a", linewidth=1.5)
-                ax.add_patch(rect)
-                ax.text(j, i, f"{val:.1f}%", ha="center", va="center",
-                        fontproperties=FP_BOLD, fontsize=13, color="white",
-                        path_effects=[pe.withStroke(linewidth=2, foreground="black")])
+                if not np.isnan(val):
+                    ind_vals.append(val)
+                    cell_data[(i, j)] = val
+
+        if not ind_vals:
+            continue
+
+        vmin, vmax = np.min(ind_vals), np.max(ind_vals)
+        # Pad range slightly for visual separation
+        padding = (vmax - vmin) * 0.1 if vmax > vmin else 1.0
+        vmin -= padding
+        vmax += padding
+        norm = Normalize(vmin=vmin, vmax=vmax)
+
+        # A-share convention: red(gain/high) ← yellow(mid) ← green(loss/low)
+        from matplotlib.colors import LinearSegmentedColormap
+        colors_custom = ["#3fb950", "#8cc97e", "#f0b866", "#e8845c", "#e74c3c"]
+        cmap_custom = LinearSegmentedColormap.from_list("green_red", colors_custom, N=256)
+
+        for (i, j), val in cell_data.items():
+            rect = Rectangle((j - 0.45, i - 0.45), 0.9, 0.9,
+                             facecolor=cmap_custom(norm(val)),
+                             edgecolor="#2a2a4a", linewidth=1.5)
+            ax.add_patch(rect)
+            ax.text(j, i, f"{val:.1f}%", ha="center", va="center",
+                    fontproperties=FP_BOLD, fontsize=13, color="white",
+                    path_effects=[pe.withStroke(linewidth=2, foreground="black")])
 
         ax.set_xticks(range(len(thresholds)))
         ax.set_xticklabels([t.replace("_", "/") for t in thresholds], fontproperties=FP_REG, fontsize=11)
@@ -286,7 +297,7 @@ def card_heatmap_mpl(data):
         ax.set_ylim(-0.6, len(windows) - 0.4)
         ax.tick_params(colors="#cccccc")
 
-    fig.subplots_adjust(left=0.10, right=0.95, top=0.92, bottom=0.06, hspace=0.30)
+    fig.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.06, hspace=0.40)
     path = OUT_DIR / "01_heatmap.png"
     fig.text(0.95, 0.015, "3/9", fontproperties=FP_REG, fontsize=11, color="#666688", ha="right")
     fig.savefig(path, dpi=150, facecolor=BG, edgecolor="none")
@@ -326,9 +337,9 @@ def card_best_nav_mpl(data):
             f"PB择时: 年化{mt_pb.get('annual_return',0):.1f}%  回撤{mt_pb.get('max_drawdown',0):.1f}%  夏普{mt_pb.get('sharpe',0):.2f}\n"
             f"买入持有: 年化{mt_bh.get('annual_return',0):.1f}%  回撤{mt_bh.get('max_drawdown',0):.1f}%  夏普{mt_bh.get('sharpe',0):.2f}"
         )
-        ax.text(0.02, 0.96, kpi, transform=ax.transAxes, fontproperties=FP_REG,
-                fontsize=10, color="#cccccc", va="top",
-                bbox=dict(boxstyle="round,pad=0.4", facecolor="#0d1117", edgecolor="#333366", alpha=0.85))
+        ax.text(0.02, 0.88, kpi, transform=ax.transAxes, fontproperties=FP_REG,
+                fontsize=9, color="#cccccc", va="top",
+                bbox=dict(boxstyle="round,pad=0.3", facecolor="#0d1117", edgecolor="#333366", alpha=0.85))
 
     fig.tight_layout()
     path = OUT_DIR / "02_best_nav.png"
@@ -370,9 +381,9 @@ def card_worst_nav_mpl(data):
             f"PE择时: 年化{mt_pe.get('annual_return',0):.1f}%  回撤{mt_pe.get('max_drawdown',0):.1f}%  夏普{mt_pe.get('sharpe',0):.2f}\n"
             f"买入持有: 年化{mt_bh.get('annual_return',0):.1f}%  回撤{mt_bh.get('max_drawdown',0):.1f}%  夏普{mt_bh.get('sharpe',0):.2f}"
         )
-        ax.text(0.02, 0.96, kpi, transform=ax.transAxes, fontproperties=FP_REG,
-                fontsize=10, color="#cccccc", va="top",
-                bbox=dict(boxstyle="round,pad=0.4", facecolor="#0d1117", edgecolor="#333366", alpha=0.85))
+        ax.text(0.02, 0.88, kpi, transform=ax.transAxes, fontproperties=FP_REG,
+                fontsize=9, color="#cccccc", va="top",
+                bbox=dict(boxstyle="round,pad=0.3", facecolor="#0d1117", edgecolor="#333366", alpha=0.85))
 
     fig.tight_layout()
     path = OUT_DIR / "03_worst_nav.png"
@@ -394,19 +405,7 @@ def card_sector_heatmap_mpl(data):
     modes = ["反转", "动量"]
 
     fig, axes = plt.subplots(2, 1, figsize=(7.2, 9.6))  # 3:4 ratio
-    fig.suptitle("行业层面：反转(低估值代理) vs 动量", fontproperties=FP_BOLD, fontsize=18, y=0.97, color="white")
-
-    # Collect all values
-    all_vals = []
-    for mode in modes:
-        for lb in lookbacks:
-            for n in hold_ns:
-                key = f"{mode}{lb}月_hold{n}"
-                if key in sr and "error" not in sr[key]:
-                    all_vals.append(sr[key]["annual_return"])
-    vmin, vmax = np.nanmin(all_vals), np.nanmax(all_vals)
-    norm = Normalize(vmin=vmin, vmax=vmax)
-    cmap_c = cm.get_cmap("RdYlGn")
+    fig.suptitle("行业层面：反转(低估值代理) vs 动量", fontproperties=FP_BOLD, fontsize=16, y=0.98, color="white")
 
     for ax_idx, mode in enumerate(modes):
         ax = axes[ax_idx]
@@ -416,19 +415,39 @@ def card_sector_heatmap_mpl(data):
         ax.set_title(f"{mode}策略 ({label_cn}) · 年化收益(%)", fontproperties=FP_BOLD, fontsize=15,
                      color=color, pad=8)
 
+        # Collect values for THIS mode only
+        mode_vals = []
+        cell_data = {}
         for i, lb in enumerate(lookbacks):
             for j, n in enumerate(hold_ns):
                 key = f"{mode}{lb}月_hold{n}"
                 val = sr[key]["annual_return"] if key in sr and "error" not in sr[key] else np.nan
-                if np.isnan(val):
-                    continue
-                rect = Rectangle((j - 0.45, i - 0.45), 0.9, 0.9,
-                                 facecolor=cmap_c(norm(val)),
-                                 edgecolor="#2a2a4a", linewidth=1.5)
-                ax.add_patch(rect)
-                ax.text(j, i, f"{val:.1f}%", ha="center", va="center",
-                        fontproperties=FP_BOLD, fontsize=13, color="white",
-                        path_effects=[pe.withStroke(linewidth=2, foreground="black")])
+                if not np.isnan(val):
+                    mode_vals.append(val)
+                    cell_data[(i, j)] = val
+
+        if not mode_vals:
+            continue
+
+        vmin, vmax = np.min(mode_vals), np.max(mode_vals)
+        padding = (vmax - vmin) * 0.1 if vmax > vmin else 1.0
+        vmin -= padding
+        vmax += padding
+        norm = Normalize(vmin=vmin, vmax=vmax)
+
+        from matplotlib.colors import LinearSegmentedColormap
+        # A-share convention: red(gain/high) ← yellow(mid) ← green(loss/low)
+        colors_custom = ["#3fb950", "#8cc97e", "#f0b866", "#e8845c", "#e74c3c"]
+        cmap_custom = LinearSegmentedColormap.from_list("green_red", colors_custom, N=256)
+
+        for (i, j), val in cell_data.items():
+            rect = Rectangle((j - 0.45, i - 0.45), 0.9, 0.9,
+                             facecolor=cmap_custom(norm(val)),
+                             edgecolor="#2a2a4a", linewidth=1.5)
+            ax.add_patch(rect)
+            ax.text(j, i, f"{val:.1f}%", ha="center", va="center",
+                    fontproperties=FP_BOLD, fontsize=13, color="white",
+                    path_effects=[pe.withStroke(linewidth=2, foreground="black")])
 
         ax.set_xticks(range(len(hold_ns)))
         ax.set_xticklabels([f"持{n}只" for n in hold_ns], fontproperties=FP_REG, fontsize=11)
@@ -438,7 +457,7 @@ def card_sector_heatmap_mpl(data):
         ax.set_ylim(-0.6, len(lookbacks) - 0.4)
         ax.tick_params(colors="#cccccc")
 
-    fig.subplots_adjust(left=0.10, right=0.95, top=0.92, bottom=0.06, hspace=0.30)
+    fig.subplots_adjust(left=0.10, right=0.95, top=0.90, bottom=0.06, hspace=0.40)
     path = OUT_DIR / "05_sector_heatmap.png"
     fig.text(0.95, 0.015, "6/9", fontproperties=FP_REG, fontsize=11, color="#666688", ha="right")
     fig.savefig(path, dpi=150, facecolor=BG, edgecolor="none")
@@ -477,12 +496,12 @@ def card_annual_mpl(data):
         ax.bar(x - width/2, pb_vals, width, color=pb_colors, label="PB择时", edgecolor=BG, linewidth=0.3)
         ax.bar(x + width/2, bh_vals, width, color=bh_colors, label="买入持有", edgecolor=BG, linewidth=0.3, alpha=0.7)
 
-        ax.set_title("分年度收益: PB择时 vs 买入持有", fontproperties=FP_BOLD, fontsize=18, color=INDIGO, pad=12)
+        ax.set_title("分年度收益: PB择时 vs 买入持有", fontproperties=FP_BOLD, fontsize=22, color=INDIGO, pad=12)
         ax.set_xticks(x)
-        ax.set_xticklabels(years_str, fontproperties=FP_REG, fontsize=9, rotation=45)
-        ax.set_ylabel("年收益 (%)", fontproperties=FP_REG, fontsize=11, color="#aaaacc")
+        ax.set_xticklabels(years_str, fontproperties=FP_REG, fontsize=12, rotation=45)
+        ax.set_ylabel("年收益 (%)", fontproperties=FP_REG, fontsize=14, color="#aaaacc")
         ax.axhline(y=0, color="#555577", linewidth=0.8)
-        ax.legend(loc="upper right", prop=FP_REG, fontsize=11,
+        ax.legend(loc="upper right", prop=FP_REG, fontsize=14,
                   facecolor="#2a2a4a", edgecolor="#444466", labelcolor="white")
         ax.grid(True, alpha=0.3, axis="y")
 
@@ -546,19 +565,23 @@ def card_ranking_html(data):
     for k in ["买入持有", "60/40固定", "PE+PB联合_5y_30_70"]:
         if k in mt and "error" not in mt[k]:
             v = mt[k]
-            all_strats.append((k.replace("_", " "), v["annual_return"], v["max_drawdown"], v["sharpe"]))
+            name_map = {"买入持有": "买入持有(基准)", "60/40固定": "60/40股债固定",
+                        "PE+PB联合_5y_30_70": "PE+PB联合择时"}
+            all_strats.append((name_map.get(k, k.replace("_", " ")), v["annual_return"], v["max_drawdown"], v["sharpe"]))
 
     # Best PB
     for k in ["PB_10y_30_70"]:
         if k in mt and "error" not in mt[k]:
             v = mt[k]
-            all_strats.append(("PB 10y 30/70择时", v["annual_return"], v["max_drawdown"], v["sharpe"]))
+            all_strats.append(("PB分位择时(10年窗口)", v["annual_return"], v["max_drawdown"], v["sharpe"]))
 
     # Top sector strategies
-    for k in ["反转1月_hold3", "反转6月_hold3", "动量12月_hold2", "等权持有"]:
+    sector_names = {"反转1月_hold3": "反转策略(1月·持3只)", "反转6月_hold3": "反转策略(6月·持3只)",
+                    "动量12月_hold2": "动量策略(12月·持2只)", "等权持有": "等权持有(行业基准)"}
+    for k, display_name in sector_names.items():
         if k in sr and "error" not in sr[k]:
             v = sr[k]
-            all_strats.append((k.replace("_", " "), v["annual_return"], v["max_drawdown"], v["sharpe"]))
+            all_strats.append((display_name, v["annual_return"], v["max_drawdown"], v["sharpe"]))
 
     all_strats.sort(key=lambda x: x[3], reverse=True)
 
@@ -575,12 +598,12 @@ def card_ranking_html(data):
   </div>"""
 
     body = f"""
-  <div style="font-size:13px; color:#8b949e; display:flex; padding:4px 0 8px 0; border-bottom:1px solid #30363d; margin-bottom:6px;">
-    <span style="width:36px; flex-shrink:0;"></span>
-    <span style="flex:1;">策略</span>
-    <span style="width:64px; text-align:right;">年化</span>
-    <span style="width:56px; text-align:right;">回撤</span>
-    <span style="width:64px; text-align:right;">夏普</span>
+  <div style="font-size:16px; color:#8b949e; display:flex; padding:4px 0 8px 0; border-bottom:1px solid #30363d; margin-bottom:6px;">
+    <span style="width:38px; flex-shrink:0;"></span>
+    <span style="flex:1; font-weight:700;">策略</span>
+    <span style="width:68px; text-align:right; font-weight:700;">年化</span>
+    <span style="width:68px; text-align:right; font-weight:700;">回撤</span>
+    <span style="width:68px; text-align:right; font-weight:700;">夏普</span>
   </div>
   {rows}
   <div style="flex:1"></div>
