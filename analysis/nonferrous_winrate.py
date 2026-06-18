@@ -47,8 +47,17 @@ C = {
     "purple": "#bc8cff", "gold": "#f0c040", "cyan": "#56d4dd",
 }
 CARD_W, CARD_H, DPI = 7.2, 9.6, 200
-TOTAL_CARDS = 7
+TOTAL_CARDS = 8
 HORIZONS = [(12, "1年"), (24, "2年"), (36, "3年"), (60, "5年")]
+
+# ── 第8页(付费研报引流)配置: 按需修改 ──────────────────────────────
+SALE = {
+    "price": "9.9",           # 现价
+    "price_orig": "39",       # 原价(划线), 留空字符串则不显示
+    "channel": "点击本帖下方的个人售卖链接购买",  # 主入口(帖子底部挂的售卖链接)
+    "keyword": "有色",        # 私信关键词(备用入口)
+    "title": "完整10页·量化深度研报",
+}
 
 # ════════════════════════════════════════════════════════════════
 # 1. 载入数据
@@ -811,6 +820,68 @@ def card_summary():
     _save(fig, "07_summary.png")
 
 
+# ── 卡8 付费研报引流 (CTA) ────────────────────────────────────────
+def card_cta():
+    fig = _fig()
+    win5_now = PWIN(cur_pct_bucket, "lump", 60)
+    med5_low = PMED("low", "lump", 60)
+
+    # 顶部
+    fig.text(0.5, 0.928, "完 整 版 · 付 费 研 报", ha="center", fontsize=15, color=C["gold"], fontweight="bold")
+    fig.text(0.5, 0.862, SALE["title"], ha="center", fontsize=27, color=C["text"], fontweight="bold")
+    fig.add_artist(Line2D([0.08, 0.92], [0.836, 0.836], color=C["border"], lw=1.4))
+
+    # 钩子: 卡片只讲了结论, 完整数据/方法/操作在研报里
+    fig.text(0.5, 0.795, "卡片只是结论 · 完整数据、方法与操作框架在研报里",
+             ha="center", fontsize=12.5, color=C["muted"])
+
+    # 「研报内含」清单框
+    ax = fig.add_axes([0.08, 0.45, 0.84, 0.30]); ax.axis("off")
+    ax.add_patch(FancyBboxPatch((0, 0), 1, 1, boxstyle="round,pad=0.012",
+                                fc=C["card"], ec=C["border"], lw=1.5, transform=ax.transAxes))
+    ax.text(0.5, 0.90, "10 页 · 8 大章节 · 全程可复现", ha="center", fontsize=13.5,
+            color=C["gold"], fontweight="bold", transform=ax.transAxes)
+    items = [
+        ("四档分位完整胜率表", "低位→极高位 × 3/5年, 看清你买在哪一档"),
+        ("风险-收益对照", "26年波动/最大回撤/P10尾部 vs 沪深300"),
+        ("当前位置 4 信号解读", "估值/趋势/动量/赔率 逐条拆解"),
+        ("分位×仓位操作框架", "什么位置定投/持有/止盈, 一表给齐"),
+        ("方法与局限说明", "扩张分位口径·无未来函数·诚实边界"),
+    ]
+    y = 0.74
+    for tag, desc in items:
+        ax.text(0.055, y, "✓", ha="left", va="center", fontsize=13, color=C["green"], fontweight="bold", transform=ax.transAxes)
+        ax.text(0.12, y, tag, ha="left", va="center", fontsize=12.5, color=C["text"], fontweight="bold", transform=ax.transAxes)
+        ax.text(0.12, y - 0.072, desc, ha="left", va="center", fontsize=10.3, color=C["muted"], transform=ax.transAxes)
+        y -= 0.165
+
+    # 价格 + 购买入口 (帖子底部挂的个人售卖链接, 无二维码/无商店)
+    ax2 = fig.add_axes([0.08, 0.165, 0.84, 0.255]); ax2.axis("off")
+    ax2.add_patch(FancyBboxPatch((0, 0), 1, 1, boxstyle="round,pad=0.012",
+                                 fc="#1c1708", ec=C["gold"], lw=1.8, transform=ax2.transAxes))
+
+    # 价格(用「元」, DroidSansFallback 无 ¥ 字形会变豆腐块)
+    ax2.text(0.5, 0.80, f"限时 {SALE['price']}元", ha="center", va="center", fontsize=31,
+             color=C["gold"], fontweight="bold", transform=ax2.transAxes)
+    if SALE["price_orig"]:
+        ax2.text(0.685, 0.80, f"原价 {SALE['price_orig']}元", ha="left", va="center", fontsize=12,
+                 color=C["muted"], transform=ax2.transAxes)
+        ax2.add_line(Line2D([0.685, 0.83], [0.80, 0.80], color=C["muted"], lw=1.1, transform=ax2.transAxes))
+    # 主入口: 帖子底部售卖链接
+    ax2.text(0.5, 0.50, SALE["channel"], ha="center", va="center", fontsize=14, color=C["text"], fontweight="bold", transform=ax2.transAxes)
+    ax2.text(0.5, 0.30, "（就在这条笔记最下方 ↓ 蓝色链接）", ha="center", va="center", fontsize=11, color=C["gold"], transform=ax2.transAxes)
+    # 备用入口: 关注+私信, 手动发送
+    ax2.text(0.5, 0.11, f"或 关注后私信「{SALE['keyword']}」· 看到后手动发你", ha="center", va="center", fontsize=10.8, color=C["muted"], transform=ax2.transAxes)
+
+    # 一句价值钩子
+    fig.text(0.5, 0.118, f"现在 99 分位高位, 历史同位置 5 年胜率仅 {win5_now:.0f}% — 别让一张图替你做决定",
+             ha="center", fontsize=11, color=C["gold"], fontweight="bold")
+    fig.text(0.5, 0.085, "数据源开源 · 方法可复现 · 作者：靳秋野 · 量化研究笔记", ha="center", fontsize=10, color=C["muted"])
+    fig.text(0.5, 0.045, "* 知识付费内容 · 历史回测不代表未来 · 不构成投资建议", ha="center", fontsize=10, color=C["muted"])
+    _pageno(fig, 8)
+    _save(fig, "08_cta.png")
+
+
 # ════════════════════════════════════════════════════════════════
 # 9. 渲染所有卡片
 # ════════════════════════════════════════════════════════════════
@@ -822,6 +893,7 @@ card_vs_hs300(); print("    04_vs_hs300.png")
 card_percentile(); print("    05_percentile.png")
 card_cycle(); print("    06_cycle.png")
 card_summary(); print("    07_summary.png")
+card_cta(); print("    08_cta.png")
 
 print(f"\n✓ 全部完成. 输出目录: {ROOT}")
 print(f"  cards/   {len(list(CARDS.glob('*.png')))} 张卡片")
