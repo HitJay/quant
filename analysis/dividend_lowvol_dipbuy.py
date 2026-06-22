@@ -87,7 +87,7 @@ DD_BINS = [
 ]
 
 CARD_W, CARD_H, DPI = 7.2, 9.6, 200
-TOTAL_CARDS = 7
+TOTAL_CARDS = 8
 
 C = {
     "bg": "#101418",
@@ -865,6 +865,7 @@ def generate_cards(summary: dict[str, Any], f_main: pd.DataFrame, contrib: pd.Da
     end = summary["as_of"]
     peak_date = summary["peak_date"]
     current_dd = state["dd"]
+    sim20 = similar[similar["交易日"] == 20].iloc[0]
     sim60 = similar[similar["交易日"] == 60].iloc[0]
     sim120 = similar[similar["交易日"] == 120].iloc[0]
     sim250 = similar[similar["交易日"] == 250].iloc[0]
@@ -1062,25 +1063,38 @@ def generate_cards(summary: dict[str, Any], f_main: pd.DataFrame, contrib: pd.Da
         ax.set_facecolor(C["bg"])
         ax.text(0.5, 0.94, "抄底最大的坑：接飞刀", ha="center", fontsize=27,
                 fontweight="bold", color=C["text"], transform=ax.transAxes)
-        ax.text(0.5, 0.895, "相似回撤后，未来N日内最大浮亏", ha="center",
+        ax.text(0.5, 0.895, "相似回撤后，买入过程中可能承受的浮亏", ha="center",
                 fontsize=13, color=C["muted"], transform=ax.transAxes)
-        rows = [sim60, sim120, sim250]
-        y = 0.78
+
+        rows = [sim20, sim60, sim120, sim250]
+        xs = [0.14, 0.38, 0.62, 0.84]
+        headers = ["持有", "浮亏中位", "尾部浮亏", "再跌5%"]
+        y = 0.80
+        for x, header in zip(xs, headers):
+            ax.text(x, y, header, ha="center", fontsize=12.5, fontweight="bold",
+                color=C["muted"], transform=ax.transAxes)
+        ax.plot([0.08, 0.92], [y - 0.03, y - 0.03], color=C["border"], transform=ax.transAxes)
+
+        y -= 0.10
         for row in rows:
-            _card_rect(ax, (0.07, y - 0.10), 0.86, 0.12, face="card")
-            ax.text(0.11, y - 0.015, row["持有期"], fontsize=16, fontweight="bold",
-                    color=C["text"], transform=ax.transAxes)
-            ax.text(0.38, y - 0.015, f"浮亏中位 {pct(row['最大浮亏中位'])}", fontsize=14,
-                    color=C["orange"], transform=ax.transAxes)
-            ax.text(0.38, y - 0.065, f"较差10% {pct(row['最大浮亏P10'])}", fontsize=14,
-                    color=C["red"], transform=ax.transAxes)
-            ax.text(0.85, y - 0.04, f"再跌10%\n{pct0(row['再跌10%概率'])}", ha="center",
-                    va="center", fontsize=13, color=C["red"], fontweight="bold",
-                    transform=ax.transAxes)
-            y -= 0.17
-        ax.text(0.5, 0.245, "所以：抄底要假设还会跌，不要满仓赌反转", ha="center",
+            _card_rect(ax, (0.07, y - 0.04), 0.86, 0.075, face="card")
+            values = [
+                row["持有期"],
+                pct(row["最大浮亏中位"]),
+                pct(row["最大浮亏P10"]),
+                pct0(row["再跌5%概率"]),
+            ]
+            colors = [C["text"], C["orange"], C["red"], C["red"]]
+            for x, value, color in zip(xs, values, colors):
+                ax.text(x, y, value, ha="center", va="center", fontsize=14.5,
+                        fontweight="bold", color=color, transform=ax.transAxes)
+            y -= 0.095
+
+        ax.text(0.5, 0.265, "注意：再跌10%历史概率为0，但再跌5%并不少见", ha="center",
+                fontsize=13.5, fontweight="bold", color=C["muted"], transform=ax.transAxes)
+        ax.text(0.5, 0.205, "所以：抄底要假设还会跌，不要满仓赌反转", ha="center",
                 fontsize=15.5, fontweight="bold", color=C["gold"], transform=ax.transAxes)
-        ax.text(0.5, 0.175, "左侧仓位小，右侧确认再加；跌破计划就降仓",
+        ax.text(0.5, 0.145, "左侧仓位小，右侧确认再加；跌破计划就降仓",
                 ha="center", fontsize=13, color=C["muted"], transform=ax.transAxes)
         _page_number(fig, 6)
         _disclaimer(fig)
@@ -1092,35 +1106,114 @@ def generate_cards(summary: dict[str, Any], f_main: pd.DataFrame, contrib: pd.Da
         ax = fig.add_axes([0, 0, 1, 1])
         ax.axis("off")
         ax.set_facecolor(C["bg"])
-        ax.text(0.5, 0.93, "我的抄底方案", ha="center", fontsize=31,
+        ax.text(0.5, 0.93, "更细的抄底路线图", ha="center", fontsize=30,
                 fontweight="bold", color=C["gold"], transform=ax.transAxes)
-        ax.text(0.5, 0.875, "不是预测最低点，而是用仓位管理胜率", ha="center",
+        ax.text(0.5, 0.875, f"当前回撤 {pct(current_dd)}：左侧只试仓，右侧确认再加", ha="center",
                 fontsize=13, color=C["muted"], transform=ax.transAxes)
         plan = [
-            ("第一笔", "30%", "当前位置先建观察仓", C["blue"]),
-            ("第二笔", "30%", "若再跌3-5%或企稳3日再加", C["orange"]),
-            ("第三笔", "40%", "站回MA20/MA60后右侧确认", C["green"]),
-            ("失效条件", "减仓", "10Y利率上行+高股息继续跑输宽基", C["red"]),
+            ("试仓", "20%", "当前位置 / RSI约30", "先买观察仓，不追涨", C["blue"]),
+            ("深跌补", "+20%", "回撤到-12~-15%", "只分批补跌，不一次打满", C["orange"]),
+            ("企稳加", "+20%", "连续3日不创新低", "从接飞刀转为等企稳", C["cyan"]),
+            ("右侧加", "+30%", "站回MA20/MA60", "趋势修复后再提高仓位", C["green"]),
+            ("暂停", "留10%", "跑输300且破前低", "停止补仓，等下一信号", C["red"]),
         ]
-        y = 0.77
-        for title, num, body, color in plan:
-            _card_rect(ax, (0.07, y - 0.09), 0.86, 0.11, face="card")
-            ax.text(0.11, y - 0.02, title, fontsize=16, fontweight="bold", color=C["text"], transform=ax.transAxes)
-            ax.text(0.42, y - 0.02, num, fontsize=22, fontweight="bold", color=color,
+        y = 0.785
+        for title, num, trigger, action, color in plan:
+            _card_rect(ax, (0.06, y - 0.065), 0.88, 0.092, face="card")
+            ax.text(0.10, y - 0.015, title, fontsize=15.5, fontweight="bold", color=color,
+                transform=ax.transAxes)
+            ax.text(0.31, y - 0.015, num, fontsize=19, fontweight="bold", color=color,
                     ha="center", transform=ax.transAxes)
-            ax.text(0.56, y - 0.02, body, fontsize=13, color=C["muted"], transform=ax.transAxes)
-            y -= 0.145
-        ax.text(0.5, 0.185, "一句话结论：红利低波可以抄，但只适合分批低吸",
-                ha="center", fontsize=15.2, fontweight="bold", color=C["text"], transform=ax.transAxes)
-        ax.text(0.5, 0.128, "完整深度研报 + 数据表已生成", ha="center",
-                fontsize=13, color=C["cyan"], transform=ax.transAxes)
+            ax.text(0.46, y + 0.002, trigger, fontsize=12.2, color=C["text"],
+                transform=ax.transAxes)
+            ax.text(0.46, y - 0.037, action, fontsize=11.5, color=C["muted"],
+                transform=ax.transAxes)
+            y -= 0.112
+        ax.text(0.5, 0.205, "总仓位不是一次到位：20 -> 40 -> 60 -> 90%，留10%应对极端",
+            ha="center", fontsize=13.3, fontweight="bold", color=C["gold"], transform=ax.transAxes)
+        ax.text(0.5, 0.145, "空仓按路线图走；已重仓者先别加，等MA20修复再说",
+            ha="center", fontsize=12.5, color=C["muted"], transform=ax.transAxes)
         _page_number(fig, 7)
         _disclaimer(fig)
         fig.savefig(CARDS / "07_playbook.png", dpi=DPI, facecolor=C["bg"])
         plt.close(fig)
 
-    print("[5] 生成 7 张小红书卡片...")
-    card_1(); card_2(); card_3(); card_4(); card_5(); card_6(); card_7()
+    def card_8() -> None:
+        fig = _fig()
+        ax = fig.add_axes([0, 0, 1, 1])
+        ax.axis("off")
+        ax.set_facecolor(C["bg"])
+
+        ax.text(0.5, 0.95, "  最后总结  ", ha="center", va="center", fontsize=12,
+                fontweight="bold", color=C["bg"],
+                bbox=dict(boxstyle="round,pad=0.45", fc=C["gold"], ec="none"),
+                transform=ax.transAxes)
+        ax.text(0.5, 0.885, "三句话看懂红利低波", ha="center", fontsize=28,
+                fontweight="bold", color=C["text"], transform=ax.transAxes)
+
+        points = [
+            ("01", "不是逻辑崩了", C["orange"], "更像高股息拥挤退潮 + 权重股补跌"),
+            ("02", "胜率已经改善", C["green"], "相似回撤: 3个月胜率93%, 1年胜率98%"),
+            ("03", "但别满仓赌底", C["red"], "跌破MA20/MA60/MA120, 右侧还没回来"),
+        ]
+        for i, (y, (num, title, col, body)) in enumerate(zip([0.785, 0.675, 0.565], points)):
+            ax.text(0.13, y, num, ha="center", va="center", fontsize=32,
+                    fontweight="bold", color=col, transform=ax.transAxes)
+            ax.text(0.25, y + 0.022, title, ha="left", va="center", fontsize=17,
+                    fontweight="bold", color=C["text"], transform=ax.transAxes)
+            ax.text(0.25, y - 0.025, body, ha="left", va="center", fontsize=11.5,
+                    color=C["muted"], transform=ax.transAxes)
+            if i < 2:
+                ax.plot([0.10, 0.90], [y - 0.058, y - 0.058], color=C["border"], lw=0.6,
+                        transform=ax.transAxes)
+
+        ax.add_patch(FancyBboxPatch((0.08, 0.375), 0.84, 0.125,
+                                    boxstyle="round,pad=0.01,rounding_size=0.015",
+                                    facecolor=C["card"], edgecolor=C["orange"], lw=1.2,
+                                    transform=ax.transAxes))
+        ax.text(0.5, 0.475, "仓位纪律", ha="center", fontsize=11.5, fontweight="bold",
+                color=C["bg"],
+                bbox=dict(boxstyle="round,pad=0.35", fc=C["orange"], ec="none"),
+                transform=ax.transAxes)
+        ax.text(0.5, 0.425, "左侧只试仓, 右侧确认再加", ha="center", fontsize=14,
+                fontweight="bold", color=C["text"], transform=ax.transAxes)
+        ax.text(0.5, 0.395, "20 -> 40 -> 60 -> 90%, 永远留一点子弹",
+                ha="center", fontsize=11.5, color=C["muted"], transform=ax.transAxes)
+
+        ax.text(0.5, 0.315, "你现在是哪一种?", ha="center", fontsize=21,
+                fontweight="bold", color=C["text"], transform=ax.transAxes)
+        options = [
+            ("已经持有", C["blue"]),
+            ("准备试仓", C["green"]),
+            ("继续观望", C["muted"]),
+        ]
+        for i, (opt, col) in enumerate(options):
+            x = 0.20 + i * 0.30
+            ax.text(x, 0.265, opt, ha="center", va="center", fontsize=11.5,
+                    color=col, fontweight="bold",
+                    bbox=dict(boxstyle="round,pad=0.42", fc=C["card"], ec=col, lw=0.9),
+                    transform=ax.transAxes)
+
+        ax.add_patch(FancyBboxPatch((0.10, 0.165), 0.80, 0.072,
+                                    boxstyle="round,pad=0.01,rounding_size=0.014",
+                                    facecolor=C["panel"], edgecolor=C["cyan"], lw=1.6,
+                                    transform=ax.transAxes))
+        ax.text(0.5, 0.201, "评论区打「红利低波」↓", ha="center", va="center",
+                fontsize=20, fontweight="bold", color=C["cyan"], transform=ax.transAxes)
+
+        ax.text(0.5, 0.125, "我把完整胜率表、拖累项和仓位路线整理好了", ha="center",
+                fontsize=11.5, color=C["muted"], style="italic", transform=ax.transAxes)
+        ax.text(0.5, 0.078, "关注我: 每周拆一个 A股ETF 的回撤和胜率", ha="center",
+                fontsize=11.5, fontweight="bold", color=C["gold"],
+                bbox=dict(boxstyle="round,pad=0.35", fc=C["card"], ec=C["gold"], lw=0.8),
+                transform=ax.transAxes)
+        _page_number(fig, 8)
+        _disclaimer(fig)
+        fig.savefig(CARDS / "08_cta.png", dpi=DPI, facecolor=C["bg"])
+        plt.close(fig)
+
+    print("[5] 生成 8 张小红书卡片...")
+    card_1(); card_2(); card_3(); card_4(); card_5(); card_6(); card_7(); card_8()
 
 
 # ============================================================================
@@ -1243,12 +1336,13 @@ def build_markdown(summary: dict[str, Any], proxy_returns: pd.DataFrame, contrib
 
 本报告建议把“抄底”拆成仓位计划，而不是一次性判断底部。
 
-1. 第一笔 30%：当前位置可以建立观察仓，承认当前估值/回撤已经进入可买区域。
-2. 第二笔 30%：若继续回撤 3-5%，或连续 3 个交易日不再创新低，再加仓。
-3. 第三笔 40%：站回 MA20/MA60 后再加，等右侧确认。
-4. 风险控制：如果高股息继续显著跑输沪深300，且长端利率重新上行，说明“防御溢价”仍在压缩，应降低加仓速度。
+1. 左侧试仓 20%：当前位置（回撤约10%、RSI约30）只建立观察仓，不把“胜率改善”误读成“已经见底”。
+2. 深跌补仓 +20%：若回撤进入 -12%~-15% 区间，或较当前位置再跌 3-5%，再分批补仓；不在单日放量破位时追着补。
+3. 企稳加仓 +20%：连续 3 个交易日不再创新低，或 5 日收益转正时再加，这一步是从接飞刀切到等企稳。
+4. 右侧确认 +30%：重新站回 MA20 后提高仓位，若继续站回 MA60，再接近目标仓位；趋势未修复前不打满。
+5. 现金与失效 10%：保留至少10%现金；若高股息持续跑输沪深300且跌破前低，暂停补仓，等下一轮信号。
 
-这个方案的核心不是预测最低点，而是承认两件事：第一，红利低波在中期有较高均值回归胜率；第二，短期接飞刀风险真实存在。
+这个方案的核心不是预测最低点，而是把“左侧赔率”和“右侧确认”拆开：空仓者可以小仓试错，已重仓者不急着加，真正提高仓位要等价格不再创新低或均线修复。
 
 ---
 
@@ -1379,7 +1473,7 @@ def build_pdf(summary: dict[str, Any], proxy_returns: pd.DataFrame, contrib: pd.
         f"回撤原因上，本轮更像高股息拥挤交易退潮和权重行业补跌：前30大权重股覆盖约"
         f"{pct(summary['contrib_weight_coverage'], 0, False)} 权重，区间近似贡献 {pct(summary['contrib_sum'])}；"
         f"同期10年国债收益率变化 {bp(summary['bond'].get('cn10_change'))}，并非典型利率上行杀估值。", BODY))
-    story.append(Paragraph("结论：可以分批低吸，不建议一把梭。第一笔观察仓，第二笔留给继续回撤，第三笔等MA20/MA60右侧修复。", BODY))
+    story.append(Paragraph("结论：可以分批低吸，但当前只适合左侧试仓。更完整的路线是20%观察仓、深跌补到40%、企稳补到60%、站回MA20/MA60后再接近90%，并保留10%现金应对极端。", BODY))
 
     story.append(Paragraph("一、近期回撤状态", H2))
     story.append(img("fig_nav_drawdown.png", 16.0))
@@ -1431,10 +1525,11 @@ def build_pdf(summary: dict[str, Any], proxy_returns: pd.DataFrame, contrib: pd.
 
     story.append(Paragraph("四、操作框架", H2))
     for text in [
-        "第一笔30%：当前位置建立观察仓，承认赔率已经改善，但不押注最低点。",
-        "第二笔30%：若再跌3-5%或连续3日不创新低，再加仓。",
-        "第三笔40%：站回MA20/MA60后右侧确认，再补足仓位。",
-        "失效条件：高股息继续显著跑输宽基，且长端利率重新上行，则降低加仓速度。",
+        "左侧试仓20%：当前位置回撤约10%、RSI约30，只建立观察仓，不把胜率改善误读为已经见底。",
+        "深跌补仓+20%：若回撤进入-12%~-15%，或较当前位置再跌3-5%，再分批补仓；单日放量破位时不追着补。",
+        "企稳加仓+20%：连续3个交易日不再创新低，或5日收益转正时再加，这是从接飞刀切到等企稳。",
+        "右侧确认+30%：重新站回MA20后提高仓位，若继续站回MA60，再接近目标仓位；趋势未修复前不打满。",
+        "现金与失效10%：保留至少10%现金；若高股息持续跑输沪深300且跌破前低，暂停补仓，等下一轮信号。",
     ]:
         story.append(Paragraph(text, BODY))
     story.append(Paragraph("方法局限：成分贡献为前30大权重股近似，不是完整指数归因；历史胜率使用重叠样本，不代表未来收益承诺。", NOTE))
