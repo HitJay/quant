@@ -1,22 +1,33 @@
-"""有色金属 (周期之王) 长线胜率 + 周期位置量化研究 + 7 页小红书深色卡片
+"""蓝宝石概念 (题材股池) 长线胜率 + 当下位置量化研究 + 8 页小红书深色卡片
 ================================================================
-主代理:  801050   申万有色金属指数 (1999-12 起, 26 年, ~319 月)  ★长历史
-ETF 交叉: 159866   有色金属ETF (2021-04 起)
-基准:    sh000300  沪深 300
+A 股没有"蓝宝石指数"——本研报自建「蓝宝石概念等权指数」(7 只成分股, 月末再平衡)。
+
+成分股 (业务纯度优先):
+  600330 天通股份  长晶炉+衬底片
+  002617 露笑科技  长晶炉龙头
+  600666 奥瑞德    窗口片
+  002273 水晶光电  滤光片+蓝宝石
+  300316 晶盛机电  长晶设备
+  300285 国瓷材料  蓝宝石+陶瓷
+  300554 三超新材  切片砂线 (2017-04 上市, 决定起始)
+
+样本: 2017-06 至今, ~9 年, ~108 个月度起点
+基准: sh000300 沪深 300 (同期对照)
 
 方法:
-  1. 滚动起点回测: 月末入场, 持有 1/2/3/5 年, 一次性 vs 定投
-  2. 当前位置评估: 回撤 / 200日均线 / 12月动量 / 价格历史分位
-  3. 条件胜率: 不同回撤深度入场 (≤-30/-40/-50/-60%), 后续 1/3/5 年胜率与中位
-  4. 风险对照: 有色 vs 沪深300 的年化波动 / 最大回撤 (强周期的代价)
+  1. 等权指数: 7 只成分股月末归一化净值算术平均, 1y/3y/5y/总收益与单股一致
+  2. 滚动起点回测: 月末入场, 持有 1/2/3/5 年, 一次性 vs 定投
+  3. 当前位置评估: 回撤 / 200日均线 / 12月动量 / 价格历史分位
+  4. 条件胜率: 不同回撤深度入场 (≤-30/-40/-50%), 后续 1/3/5 年胜率与中位
+  5. 风险对照: 蓝宝石概念 vs 沪深300 的年化波动 / 最大回撤 (题材股的代价)
 
-核心叙事: 有色是「周期之王」—— 强周期、高波动、与全球商品/美元/地产基建挂钩。
-          不是躺赢品种, 但深度回撤(周期底部)入场是历史最肥右尾。
+核心叙事: 蓝宝石是题材, 不是周期。题材股 = 散户情绪驱动 · 高波动 · 强分位效应。
+          历史上买在 ≥90 分位高位, 5 年胜率显著低于低位入场——这是题材股的"贵就是贵"。
 
 Usage:
-    cd /home/QYJI/das/quant && unset http_proxy https_proxy
-    conda run -n research python analysis/nonferrous_fetch.py
-    conda run -n research python analysis/nonferrous_winrate.py
+    cd /das/user/QYJI/quant && unset http_proxy https_proxy
+    conda run -n research python analysis/sapphire_fetch.py
+    conda run -n research python analysis/sapphire_winrate.py
 """
 import sys, json
 sys.path.insert(0, "src")
@@ -34,8 +45,8 @@ plt.rcParams["axes.unicode_minus"] = False
 
 # ────────── 路径 / 配色 ──────────
 INDEX_DIR = Path("./data/cache/index")
-ETF_DIR = Path("./data/cache/etf")
-ROOT = Path("./output/2026-06-17/nonferrous-metals")
+SAP_DIR = Path("./data/cache/sapphire")
+ROOT = Path("./output/2026-06-18/sapphire")
 CARDS, FIGS, DATA = ROOT / "cards", ROOT / "figures", ROOT / "data"
 for d in (CARDS, FIGS, DATA):
     d.mkdir(parents=True, exist_ok=True)
@@ -50,46 +61,91 @@ CARD_W, CARD_H, DPI = 7.2, 9.6, 200
 TOTAL_CARDS = 8
 HORIZONS = [(12, "1年"), (24, "2年"), (36, "3年"), (60, "5年")]
 
+# 成分股 (与 sapphire_fetch.py 严格一致)
+COMPONENTS = [
+    ("600330", "天通股份"),
+    ("002617", "露笑科技"),
+    ("600666", "奥瑞德"),
+    ("002273", "水晶光电"),
+    ("300316", "晶盛机电"),
+    ("300285", "国瓷材料"),
+    ("300554", "三超新材"),
+]
+
 # ── 第8页(付费研报引流)配置: 按需修改 ──────────────────────────────
 SALE = {
-    "price": "9.9",           # 现价
-    "price_orig": "39",       # 原价(划线), 留空字符串则不显示
-    "channel": "点击本帖下方的个人售卖链接购买",  # 主入口(帖子底部挂的售卖链接)
-    "keyword": "有色",        # 私信关键词(备用入口)
+    "price": "9.9",
+    "price_orig": "39",
+    "channel": "点击本帖下方的个人售卖链接购买",
+    "keyword": "蓝宝石",
     "title": "完整10页·量化深度研报",
 }
 
 # ════════════════════════════════════════════════════════════════
-# 1. 载入数据
+# 1. 载入数据 + 自建蓝宝石概念等权指数
 # ════════════════════════════════════════════════════════════════
 print("=" * 60)
-print("有色金属 长线胜率 + 周期位置研究 — 计算")
+print("蓝宝石概念 长线胜率 + 当前位置研究 — 计算")
 print("=" * 60)
 
-nf_d = pd.read_parquet(INDEX_DIR / "sw801050.parquet")["close"].astype(float)
-nf_d.index = pd.to_datetime(nf_d.index)
+# 载入 7 只成分股日线 (前复权 close)
+stock_d = {}
+for code, name in COMPONENTS:
+    df = pd.read_parquet(SAP_DIR / f"{code}.parquet")
+    s = df["close"].astype(float)
+    s.index = pd.to_datetime(s.index)
+    stock_d[code] = s
+    print(f"  {code} {name}: {s.index[0].date()} → {s.index[-1].date()}, {len(s)} 日")
+
+# 共同起始日 (max of all start) — 三超 2017-04-21 决定
+common_start_stocks = max(s.index[0] for s in stock_d.values())
+print(f"\n  共同起始: {common_start_stocks.date()} (三超新材决定)")
+
+# 截取共同区间 + 月末重采样 + 归一化净值
+def to_monthly_normalized(s, start):
+    s2 = s[s.index >= start]
+    m = s2.resample("ME").last().dropna()
+    return m / m.iloc[0]
+
+stock_m_norm = {code: to_monthly_normalized(s, common_start_stocks) for code, s in stock_d.items()}
+
+# 等权指数 = 7 只归一化净值的算术平均, 月末再平衡
+sap_idx_df = pd.DataFrame(stock_m_norm)
+sap_m = sap_idx_df.mean(axis=1)  # 月度等权指数
+sap_m.name = "sapphire_eq"
+
+# 日度等权指数 (用于年化波动 / 最大回撤 / 200日均线 / 当前位置)
+def to_daily_normalized(s, start):
+    s2 = s[s.index >= start]
+    return s2 / s2.iloc[0]
+
+stock_d_norm = {code: to_daily_normalized(s, common_start_stocks) for code, s in stock_d.items()}
+sap_idx_d = pd.DataFrame(stock_d_norm).dropna(how="all")
+# 前向填充个股停牌日 (个别成分股短暂停牌不影响整体等权)
+sap_idx_d = sap_idx_d.ffill().dropna()
+sap_d = sap_idx_d.mean(axis=1)
+sap_d.name = "sapphire_eq"
+
+# 沪深 300 同期对照
 hs300_d = pd.read_parquet(INDEX_DIR / "sh000300.parquet")["close"].astype(float)
 hs300_d.index = pd.to_datetime(hs300_d.index)
-etf_d = pd.read_parquet(ETF_DIR / "159866.parquet")["close"].astype(float)
-etf_d.index = pd.to_datetime(etf_d.index)
-
-# 基准对齐到有色起始 (取二者重叠区间, 沪深300 从 2002 起)
-common_start = max(nf_d.index[0], hs300_d.index[0])
+common_start = max(sap_d.index[0], hs300_d.index[0])
 hs300_align = hs300_d[hs300_d.index >= common_start]
-nf_align = nf_d[nf_d.index >= common_start]
-
-# 月末序列
-nf_m = nf_d.resample("ME").last().dropna()
+sap_align = sap_d[sap_d.index >= common_start]
 hs300_m = hs300_align.resample("ME").last().dropna()
+# 把 sap_m / hs300_m 对齐到相同月末索引
+common_idx = sap_m.index.intersection(hs300_m.index)
+sap_m = sap_m.loc[common_idx]
+hs300_m = hs300_m.loc[common_idx]
 
-AS_OF = nf_d.index[-1].strftime("%Y.%m.%d")
-N_MONTH = len(nf_m)
-N_YEAR = round((nf_d.index[-1] - nf_d.index[0]).days / 365.25, 1)
+AS_OF = sap_d.index[-1].strftime("%Y.%m.%d")
+N_MONTH = len(sap_m)
+N_YEAR = round((sap_d.index[-1] - sap_d.index[0]).days / 365.25, 1)
 
-print(f"  申万有色 (801050): {nf_d.index[0].date()} → {nf_d.index[-1].date()}, {N_MONTH} 月 / {N_YEAR} 年")
+print(f"\n  蓝宝石等权指数: {sap_d.index[0].date()} → {sap_d.index[-1].date()}, {N_MONTH} 月 / {N_YEAR} 年")
 print(f"  沪深300 同期对照: {len(hs300_m)} 月 (自 {common_start.date()})")
-print(f"  有色金属ETF (159866): {etf_d.index[0].date()} → {etf_d.index[-1].date()}, {len(etf_d)} 日")
 print(f"  AS_OF = {AS_OF}")
+print(f"  当前等权指数净值 = {sap_d.iloc[-1]:.3f} (起点=1.000)")
 
 # ════════════════════════════════════════════════════════════════
 # 2. 核心计算函数
@@ -145,11 +201,11 @@ def ann_ret(daily_close):
 
 
 # ════════════════════════════════════════════════════════════════
-# 3. 滚动起点 — 有色 vs 沪深300
+# 3. 滚动起点 — 蓝宝石 vs 沪深300
 # ════════════════════════════════════════════════════════════════
 print("\n[2] 滚动起点回测 ...")
-results = {"有色": {}, "沪深300": {}}
-for name, mser in [("有色", nf_m), ("沪深300", hs300_m)]:
+results = {"蓝宝石": {}, "沪深300": {}}
+for name, mser in [("蓝宝石", sap_m), ("沪深300", hs300_m)]:
     mv = mser.values.astype(float)
     for method in ("dca", "lump"):
         results[name][method] = {}
@@ -167,31 +223,31 @@ print("\n[3] 风险对照 (重叠区间) ...")
 risk = {
     "as_of": AS_OF,
     "common_start": common_start.strftime("%Y-%m-%d"),
-    "有色": {"ann_ret": ann_ret(nf_align), "ann_vol": ann_vol(nf_align), "max_dd": max_dd(nf_align)},
+    "蓝宝石": {"ann_ret": ann_ret(sap_align), "ann_vol": ann_vol(sap_align), "max_dd": max_dd(sap_align)},
     "沪深300": {"ann_ret": ann_ret(hs300_align), "ann_vol": ann_vol(hs300_align), "max_dd": max_dd(hs300_align)},
 }
-for k in ("有色", "沪深300"):
+for k in ("蓝宝石", "沪深300"):
     print(f"  {k}: 年化{risk[k]['ann_ret']*100:+.1f}% 波动{risk[k]['ann_vol']*100:.1f}% 最大回撤{risk[k]['max_dd']*100:.0f}%")
 
 # ════════════════════════════════════════════════════════════════
 # 5. 当前位置评估
 # ════════════════════════════════════════════════════════════════
 print("\n[4] 当前位置评估 ...")
-peak_d = nf_d.expanding().max()
-dd_d = nf_d / peak_d - 1
-ma200 = nf_d.rolling(200).mean()
+peak_d = sap_d.expanding().max()
+dd_d = sap_d / peak_d - 1
+ma200 = sap_d.rolling(200).mean()
 current = {
     "as_of": AS_OF,
-    "price": float(nf_d.iloc[-1]),
-    "peak_price": float(nf_d.max()),
-    "peak_date": nf_d.idxmax().strftime("%Y-%m-%d"),
+    "price": float(sap_d.iloc[-1]),
+    "peak_price": float(sap_d.max()),
+    "peak_date": sap_d.idxmax().strftime("%Y-%m-%d"),
     "drawdown": float(dd_d.iloc[-1]),
-    "days_since_peak": int((nf_d.index[-1] - nf_d.idxmax()).days),
+    "days_since_peak": int((sap_d.index[-1] - sap_d.idxmax()).days),
     "ma200": float(ma200.iloc[-1]),
-    "vs_ma200": float(nf_d.iloc[-1] / ma200.iloc[-1] - 1),
-    "mom_6m": float(nf_d.iloc[-1] / nf_d.iloc[-126] - 1),
-    "mom_12m": float(nf_d.iloc[-1] / nf_d.iloc[-252] - 1),
-    "price_pctile": float((nf_d <= nf_d.iloc[-1]).mean()),
+    "vs_ma200": float(sap_d.iloc[-1] / ma200.iloc[-1] - 1),
+    "mom_6m": float(sap_d.iloc[-1] / sap_d.iloc[-126] - 1),
+    "mom_12m": float(sap_d.iloc[-1] / sap_d.iloc[-252] - 1),
+    "price_pctile": float((sap_d <= sap_d.iloc[-1]).mean()),
 }
 for k, v in current.items():
     print(f"  {k}: {v}")
@@ -200,8 +256,8 @@ for k, v in current.items():
 # 6. 条件胜率: 不同回撤深度入场后的前瞻收益
 # ════════════════════════════════════════════════════════════════
 print("\n[5] 条件胜率 (历史不同回撤深度入场) ...")
-mv_b = nf_m.values.astype(float)
-mpeak = pd.Series(mv_b, index=nf_m.index).expanding().max().values
+mv_b = sap_m.values.astype(float)
+mpeak = pd.Series(mv_b, index=sap_m.index).expanding().max().values
 mdd = mv_b / mpeak - 1
 
 
@@ -288,7 +344,7 @@ summary = {
 print(f"\n[6] 写出 {ROOT}/summary.json")
 
 rows = []
-for name in ("有色", "沪深300"):
+for name in ("蓝宝石", "沪深300"):
     for method, mlab in (("dca", "定投"), ("lump", "一次性")):
         for H, hlab in HORIZONS:
             st = results[name][method][H]
@@ -351,8 +407,8 @@ def fig_winrate():
     labs = [l for _, l in HORIZONS]
     x = np.arange(len(labs)); w = 0.35
     fig, ax = plt.subplots(figsize=(8.4, 4.2))
-    dca_v = [W("有色", "dca", H) for H, _ in HORIZONS]
-    lump_v = [W("有色", "lump", H) for H, _ in HORIZONS]
+    dca_v = [W("蓝宝石", "dca", H) for H, _ in HORIZONS]
+    lump_v = [W("蓝宝石", "lump", H) for H, _ in HORIZONS]
     ax.bar(x - w/2, dca_v, w, label="定投", color=LC["green"])
     ax.bar(x + w/2, lump_v, w, label="一次性", color=LC["blue"])
     for xi in range(len(labs)):
@@ -361,15 +417,15 @@ def fig_winrate():
     ax.axhline(50, color=LC["gray"], lw=0.8, ls="--", alpha=0.6)
     ax.set_xticks(x); ax.set_xticklabels(labs, fontsize=11)
     ax.set_ylabel("胜率 (%)", fontsize=11); ax.set_ylim(0, 105)
-    ax.set_title("申万有色: 持有不同年限的赚钱概率(胜率)", fontsize=13, color=LC["navy"], fontweight="bold")
+    ax.set_title("等权蓝宝石: 持有不同年限的赚钱概率(胜率)", fontsize=13, color=LC["navy"], fontweight="bold")
     ax.legend(fontsize=10, ncol=2, loc="lower right", frameon=False)
     ax.spines[["top", "right"]].set_visible(False)
     save_lightfig(fig, "fig_winrate.png")
 
 
 def fig_distribution():
-    cats = ["有色\n定投5年", "有色\n一次性5年", "沪深300\n定投5年", "沪深300\n一次性5年"]
-    keys = [("有色","dca"), ("有色","lump"), ("沪深300","dca"), ("沪深300","lump")]
+    cats = ["蓝宝石\n定投5年", "蓝宝石\n一次性5年", "沪深300\n定投5年", "沪深300\n一次性5年"]
+    keys = [("蓝宝石","dca"), ("蓝宝石","lump"), ("沪深300","dca"), ("沪深300","lump")]
     p10 = [results[g][m][60]["p10"] * 100 for g, m in keys]
     med = [results[g][m][60]["med"] * 100 for g, m in keys]
     p90 = [results[g][m][60]["p90"] * 100 for g, m in keys]
@@ -395,7 +451,7 @@ def fig_distribution():
 
 
 def fig_drawdown():
-    s = nf_d / nf_d.iloc[0]
+    s = sap_d / sap_d.iloc[0]
     pk = s.expanding().max()
     dd = s / pk - 1
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8.6, 5.6), sharex=True,
@@ -404,7 +460,7 @@ def fig_drawdown():
     ax1.fill_between(s.index, s.values, color=LC["navy"], alpha=0.10)
     ax1.set_yscale("log")
     ax1.set_ylabel("归一化净值 (对数, 起点=1)", fontsize=10.5)
-    ax1.set_title(f"申万有色金属指数 (801050) — {N_YEAR:.0f}年净值 + 回撤", fontsize=13, color=LC["navy"], fontweight="bold")
+    ax1.set_title(f"等权蓝宝石概念指数 (sap_eq) — {N_YEAR:.0f}年净值 + 回撤", fontsize=13, color=LC["navy"], fontweight="bold")
     ax1.spines[["top", "right"]].set_visible(False)
     ax1.grid(alpha=0.25)
 
@@ -449,20 +505,20 @@ def fig_conditional():
 
 
 def fig_riskreturn():
-    """风险-收益: 有色 vs 沪深300 (年化收益/波动/最大回撤)"""
+    """风险-收益: 蓝宝石 vs 沪深300 (年化收益/波动/最大回撤)"""
     cats = ["年化收益", "年化波动", "最大回撤"]
-    nf_v = [risk["有色"]["ann_ret"]*100, risk["有色"]["ann_vol"]*100, abs(risk["有色"]["max_dd"])*100]
+    nf_v = [risk["蓝宝石"]["ann_ret"]*100, risk["蓝宝石"]["ann_vol"]*100, abs(risk["蓝宝石"]["max_dd"])*100]
     hs_v = [risk["沪深300"]["ann_ret"]*100, risk["沪深300"]["ann_vol"]*100, abs(risk["沪深300"]["max_dd"])*100]
     x = np.arange(len(cats)); w = 0.35
     fig, ax = plt.subplots(figsize=(8.4, 4.2))
-    ax.bar(x - w/2, nf_v, w, label="有色金属", color=LC["orange"])
+    ax.bar(x - w/2, nf_v, w, label="蓝宝石概念", color=LC["orange"])
     ax.bar(x + w/2, hs_v, w, label="沪深300", color=LC["navy"])
     for xi in range(len(cats)):
         ax.text(xi - w/2, nf_v[xi] + 1.5, f"{nf_v[xi]:.0f}", ha="center", fontsize=10, color="#333")
         ax.text(xi + w/2, hs_v[xi] + 1.5, f"{hs_v[xi]:.0f}", ha="center", fontsize=10, color="#333")
     ax.set_xticks(x); ax.set_xticklabels(cats, fontsize=11)
     ax.set_ylabel("%", fontsize=11)
-    ax.set_title(f"有色 vs 沪深300: 风险-收益 (自 {risk['common_start'][:4]} 年)", fontsize=12.5, color=LC["navy"], fontweight="bold")
+    ax.set_title(f"蓝宝石 vs 沪深300: 风险-收益 (自 {risk['common_start'][:4]} 年)", fontsize=12.5, color=LC["navy"], fontweight="bold")
     ax.legend(fontsize=10, ncol=2, loc="upper left", frameon=False)
     ax.spines[["top", "right"]].set_visible(False)
     save_lightfig(fig, "fig_riskreturn.png")
@@ -551,37 +607,37 @@ def card_cover():
     dd_pct = current["drawdown"] * 100
     pctile = current["price_pctile"] * 100
     mom12 = current["mom_12m"] * 100
-    # 当前所处分位桶的历史前瞻 (一次性 5 年)
-    win5 = PWIN(cur_pct_bucket, "lump", 60)
-    med5 = PMED(cur_pct_bucket, "lump", 60)
-    win5_low = PWIN("low", "lump", 60)
-    med5_low = PMED("low", "lump", 60)
+    # 当前所处分位桶的历史前瞻 (一次性 3 年, 信号最显著)
+    win3 = PWIN(cur_pct_bucket, "lump", 36)
+    med3 = PMED(cur_pct_bucket, "lump", 36)
+    win3_low = PWIN("low", "lump", 36)
+    med3_low = PMED("low", "lump", 36)
 
-    fig.text(0.5, 0.93, "有 色 金 属 · 量 化 评 估", ha="center", fontsize=14, color=C["gold"], fontweight="bold")
-    fig.text(0.5, 0.852, "有色金属·周期之王", ha="center", fontsize=33, color=C["text"], fontweight="bold")
+    fig.text(0.5, 0.93, "蓝 宝 石 概 念 · 量 化 评 估", ha="center", fontsize=14, color=C["gold"], fontweight="bold")
+    fig.text(0.5, 0.852, "蓝宝石概念·题材龙头", ha="center", fontsize=33, color=C["text"], fontweight="bold")
     fig.text(0.5, 0.778, "现在能追吗?", ha="center", fontsize=36, color=C["orange"], fontweight="bold")
-    fig.text(0.5, 0.706, f"申万有色 {N_YEAR:.0f} 年, {N_MONTH} 个起点, 滚一遍历史看胜率", ha="center", fontsize=13.5, color=C["muted"])
+    fig.text(0.5, 0.706, f"等权指数 {N_YEAR:.0f} 年, {N_MONTH} 个起点, 滚一遍历史看胜率", ha="center", fontsize=13.5, color=C["muted"])
 
     ax = fig.add_axes([0.07, 0.28, 0.86, 0.40]); ax.axis("off")
     ax.add_patch(FancyBboxPatch((0, 0), 1, 1, boxstyle="round,pad=0.012",
                                 fc=C["card"], ec=C["border"], lw=1.5, transform=ax.transAxes))
 
-    # 行1: 当前位置 = 99 分位高位 (不是底部!)
+    # 行1: 当前位置 = 100 分位 (历史最高点!)
     ax.text(0.06, 0.86, "当前位置", ha="left", fontsize=14.5, color=C["text"], fontweight="bold", transform=ax.transAxes)
     ax.text(0.50, 0.78, f"{pctile:.0f} 分位", ha="center", fontsize=40, color=C["red"], fontweight="bold", transform=ax.transAxes)
-    ax.text(0.50, 0.655, f"近 12 月 {mom12:+.0f}% · 距高点仅 {dd_pct:.0f}% · 山顶不是山脚", ha="center", fontsize=11.5, color=C["muted"], transform=ax.transAxes)
+    ax.text(0.50, 0.655, f"近 12 月 {mom12:+.0f}% · 创历史新高 · 山顶不是山脚", ha="center", fontsize=11.5, color=C["muted"], transform=ax.transAxes)
     ax.add_line(Line2D([0.04, 0.96], [0.56, 0.56], color=C["border"], lw=1, transform=ax.transAxes))
 
-    # 行2: 历史在这个分位入场的命运 vs 低位
-    ax.text(0.06, 0.48, "历史买在 ≥90 分位 (现在) · 一次性持有 5 年", ha="left", fontsize=12.5, color=C["text"], fontweight="bold", transform=ax.transAxes)
-    ax.text(0.30, 0.25, f"{win5:.0f}%", ha="center", fontsize=44, color=C["red"], fontweight="bold", transform=ax.transAxes)
+    # 行2: 历史在这个分位入场的命运 (3y 一次性)
+    ax.text(0.06, 0.48, "历史买在 ≥90 分位 (现在) · 一次性持有 3 年", ha="left", fontsize=12.5, color=C["text"], fontweight="bold", transform=ax.transAxes)
+    ax.text(0.30, 0.25, f"{win3:.0f}%", ha="center", fontsize=44, color=C["red"], fontweight="bold", transform=ax.transAxes)
     ax.text(0.30, 0.11, "赚钱概率", ha="center", fontsize=12, color=C["muted"], transform=ax.transAxes)
-    ax.text(0.70, 0.25, f"{med5:.0f}%", ha="center", fontsize=44, color=C["red"], fontweight="bold", transform=ax.transAxes)
+    ax.text(0.70, 0.25, f"{med3:+.0f}%", ha="center", fontsize=44, color=C["red"], fontweight="bold", transform=ax.transAxes)
     ax.text(0.70, 0.11, "中位收益", ha="center", fontsize=12, color=C["muted"], transform=ax.transAxes)
 
-    fig.text(0.5, 0.225, f"对比: 买在 ≤30 分位低位, 5 年胜率 {win5_low:.0f}% · 中位 {med5_low:+.0f}%", ha="center", fontsize=12.5, color=C["green"], fontweight="bold")
-    fig.text(0.5, 0.178, "周期品的钱在山脚赚, 不在山顶追", ha="center", fontsize=14, color=C["gold"], fontweight="bold")
-    fig.text(0.5, 0.135, f"数据截止 {AS_OF} · 申万有色金属(801050) · {N_MONTH} 个月度起点 · 可复现", ha="center", fontsize=11, color=C["text"])
+    fig.text(0.5, 0.225, f"对比: 买在 ≤30 分位低位, 3 年胜率 {win3_low:.0f}% · 中位 {med3_low:+.0f}%", ha="center", fontsize=12.5, color=C["green"], fontweight="bold")
+    fig.text(0.5, 0.178, "题材股的钱在山脚赚, 不在山顶追", ha="center", fontsize=14, color=C["gold"], fontweight="bold")
+    fig.text(0.5, 0.135, f"数据截止 {AS_OF} · 蓝宝石概念等权指数 · {N_MONTH} 个月度起点 · 可复现", ha="center", fontsize=11, color=C["text"])
     _disc(fig)
     _save(fig, "01_cover.png")
 
@@ -591,10 +647,10 @@ def card_design():
     fig = _fig()
     _header(fig, "实验设计", "怎么算才公平?")
     rows = [
-        (C["blue"], "标的", f"申万有色金属指数 801050 (主代理)\n{N_MONTH}个月度起点 · {N_YEAR:.0f}年 · A股最长有色序列"),
-        (C["green"], "比较项", "每月入场一次, 持有 1/2/3/5 年\n定投(每月固定金额) vs 一次性梭哈"),
-        (C["orange"], "基准", "沪深300 同期对照\n比的是「波动的代价 vs 周期的回报」"),
-        (C["purple"], "周期信号", "回撤幅度 / 200日均线 / 12月动量 / 价格分位\n+ 不同回撤深度入场的历史条件胜率"),
+        (C["blue"], "股池", f"7 只蓝宝石概念股 (天通/露笑/奥瑞德/水晶光电/晶盛/国瓷/三超)\n等权指数 · 月末再平衡 · {N_MONTH} 月 / {N_YEAR:.0f} 年"),
+        (C["green"], "比较项", "每月入场一次, 持有 1/2/3 年\n定投(每月固定金额) vs 一次性梭哈"),
+        (C["orange"], "基准", "沪深300 同期对照\n比的是「题材股波动的代价 vs 题材的回报」"),
+        (C["purple"], "题材信号", "回撤幅度 / 200日均线 / 12月动量 / 价格分位\n+ 不同分位入场的历史条件胜率"),
     ]
     y = 0.79
     for col, tag, body in rows:
@@ -610,38 +666,39 @@ def card_design():
     ax = fig.add_axes([0.08, 0.135, 0.84, 0.10]); ax.axis("off")
     ax.add_patch(FancyBboxPatch((0, 0), 1, 1, boxstyle="round,pad=0.02",
                                 fc="#2d2410", ec=C["gold"], lw=1.6, transform=ax.transAxes))
-    ax.text(0.5, 0.72, f"重点: {N_YEAR:.0f} 年涵盖完整商品周期", ha="center", fontsize=13.5,
+    ax.text(0.5, 0.72, f"重点: {N_YEAR:.0f} 年涵盖完整题材周期", ha="center", fontsize=13.5,
             color=C["gold"], fontweight="bold", transform=ax.transAxes)
-    ax.text(0.5, 0.30, "2006-07 超级周期 · 2008 金融危机 · 2015 杠杆牛熊\n2021 新能源/铜锂大牛 · 涵盖「在周期顶点入场」的最差情形",
+    ax.text(0.5, 0.30, "2017-19 长晶炉扩产 · 2020 LED泡沫 · 2021-22 半导体题材爆炒\n2024-25 消费电子调整 · 2026-06 蓝宝石手机/AR概念再起",
             ha="center", va="center", fontsize=11.0, color=C["text"], transform=ax.transAxes)
     _pageno(fig, 2)
     _save(fig, "02_design.png")
 
 
-# ── 卡3 主胜率 (1/2/3/5 年) ──────────────────────────────────────
+# ── 卡3 主胜率 (1/2/3 年, 5y 因起点全在2017-21样本偏置严重不展示) ──
 def card_winrate():
     fig = _fig()
-    _header(fig, "主结论 ①", "时间能熨平周期吗?")
+    _header(fig, "主结论 ①", "时间能熨平题材吗?")
+    horiz3 = [(12, "1年"), (24, "2年"), (36, "3年")]
     ax = fig.add_axes([0.10, 0.31, 0.82, 0.46]); _ax_clean(ax)
-    labs = [l for _, l in HORIZONS]; x = np.arange(len(labs)); w = 0.35
-    dca_v = [W("有色", "dca", H) for H, _ in HORIZONS]
-    lump_v = [W("有色", "lump", H) for H, _ in HORIZONS]
+    labs = [l for _, l in horiz3]; x = np.arange(len(labs)); w = 0.35
+    dca_v = [W("蓝宝石", "dca", H) for H, _ in horiz3]
+    lump_v = [W("蓝宝石", "lump", H) for H, _ in horiz3]
     ax.bar(x - w/2, dca_v, w, color=C["green"], label="定投")
     ax.bar(x + w/2, lump_v, w, color=C["blue"], label="一次性")
     for xi in range(len(labs)):
-        ax.text(xi - w/2, dca_v[xi] + 2, f"{dca_v[xi]:.0f}", ha="center", fontsize=13, color=C["green"], fontweight="bold")
-        ax.text(xi + w/2, lump_v[xi] + 2, f"{lump_v[xi]:.0f}", ha="center", fontsize=13, color=C["blue"], fontweight="bold")
+        ax.text(xi - w/2, dca_v[xi] + 2, f"{dca_v[xi]:.0f}", ha="center", fontsize=14, color=C["green"], fontweight="bold")
+        ax.text(xi + w/2, lump_v[xi] + 2, f"{lump_v[xi]:.0f}", ha="center", fontsize=14, color=C["blue"], fontweight="bold")
     ax.axhline(50, color=C["muted"], lw=0.9, ls="--")
-    ax.text(len(labs) - 0.5, 52, "50%", fontsize=10, color=C["muted"], ha="right")
+    ax.text(2.55, 51, "50%", fontsize=10, color=C["muted"], ha="left", va="bottom")
     ax.set_xticks(x); ax.set_xticklabels(labs, color=C["text"], fontsize=15)
     ax.set_ylim(0, 105); ax.set_yticks([])
     _legend(fig, [("定投", C["green"]), ("一次性", C["blue"])], y=0.255)
 
-    d5 = W("有色","dca",60); l5 = W("有色","lump",60)
-    d1 = W("有色","dca",12); l1 = W("有色","lump",12)
-    fig.text(0.5, 0.18, f"持有 5 年: 定投 {d5:.0f}% · 一次性 {l5:.0f}%",
+    d3 = W("蓝宝石","dca",36); l3 = W("蓝宝石","lump",36)
+    d1 = W("蓝宝石","dca",12); l1 = W("蓝宝石","lump",12)
+    fig.text(0.5, 0.18, f"持有 3 年: 定投 {d3:.0f}% · 一次性 {l3:.0f}%",
              ha="center", fontsize=14, color=C["gold"], fontweight="bold")
-    fig.text(0.5, 0.135, f"持有 1 年: 定投 {d1:.0f}% · 一次性 {l1:.0f}% · 定投全程压制随机择时风险",
+    fig.text(0.5, 0.135, f"持有 1 年: 定投 {d1:.0f}% · 一次性 {l1:.0f}% · 整体胜率不到 70%, 题材股长不出宽基",
              ha="center", fontsize=11.5, color=C["muted"])
     _disc(fig); _pageno(fig, 3)
     _save(fig, "03_winrate.png")
@@ -650,87 +707,102 @@ def card_winrate():
 # ── 卡4 vs 沪深300 风险收益 ──────────────────────────────────────
 def card_vs_hs300():
     fig = _fig()
-    _header(fig, "主结论 ②", "高波动的代价与回报")
-    # 上图: 5 年中位收益 4 组
+    _header(fig, "主结论 ②", "题材股的代价与回报")
+    # 上图: 3 年中位收益 4 组 (3y 信号清晰, 5y 全 100% 不展示)
     ax = fig.add_axes([0.10, 0.50, 0.82, 0.27]); _ax_clean(ax)
-    cats = ["有色\n定投", "有色\n一次性", "沪深300\n定投", "沪深300\n一次性"]
-    vals = [MED("有色","dca",60), MED("有色","lump",60), MED("沪深300","dca",60), MED("沪深300","lump",60)]
+    cats = ["蓝宝石\n定投", "蓝宝石\n一次性", "沪深300\n定投", "沪深300\n一次性"]
+    vals = [MED("蓝宝石","dca",36), MED("蓝宝石","lump",36), MED("沪深300","dca",36), MED("沪深300","lump",36)]
     cols = [C["orange"], C["red"], C["purple"], C["cyan"]]
     bars = ax.bar(cats, vals, color=cols)
     for b, v in zip(bars, vals):
         ax.text(b.get_x() + b.get_width()/2, v + (3 if v >= 0 else -8), f"{v:+.0f}%", ha="center", fontsize=12, color=C["text"], fontweight="bold")
     ax.axhline(0, color=C["muted"], lw=0.7, ls="--")
     ax.tick_params(axis="x", labelsize=11)
-    ax.set_ylabel("5 年中位收益", color=C["text"], fontsize=11.5)
+    ax.set_ylabel("3 年中位收益", color=C["text"], fontsize=11.5)
     ax.set_ylim(min(vals) * 1.3 if min(vals) < 0 else -10, max(vals) * 1.3)
 
     # 下图: 风险三件套 (年化波动 / 最大回撤)
     ax2 = fig.add_axes([0.10, 0.20, 0.82, 0.20]); _ax_clean(ax2)
     rcats = ["年化波动", "最大回撤"]
-    nf_r = [risk["有色"]["ann_vol"]*100, abs(risk["有色"]["max_dd"])*100]
+    nf_r = [risk["蓝宝石"]["ann_vol"]*100, abs(risk["蓝宝石"]["max_dd"])*100]
     hs_r = [risk["沪深300"]["ann_vol"]*100, abs(risk["沪深300"]["max_dd"])*100]
     xr = np.arange(len(rcats)); wr = 0.34
-    ax2.bar(xr - wr/2, nf_r, wr, color=C["orange"], label="有色")
+    ax2.bar(xr - wr/2, nf_r, wr, color=C["orange"], label="蓝宝石")
     ax2.bar(xr + wr/2, hs_r, wr, color=C["purple"], label="沪深300")
     for i in range(len(rcats)):
         ax2.text(xr[i] - wr/2, nf_r[i] + 2, f"{nf_r[i]:.0f}", ha="center", fontsize=11, color=C["orange"], fontweight="bold")
         ax2.text(xr[i] + wr/2, hs_r[i] + 2, f"{hs_r[i]:.0f}", ha="center", fontsize=11, color=C["purple"], fontweight="bold")
     ax2.set_xticks(xr); ax2.set_xticklabels(rcats, color=C["text"], fontsize=12)
-    ax2.set_ylim(0, max(nf_r) * 1.3); ax2.set_yticks([])
+    ax2.set_ylim(0, max(nf_r) * 1.45); ax2.set_yticks([])
     ax2.set_title("风险 (%)", color=C["text"], fontsize=11.5, loc="left", pad=4)
+    # 二级 legend (避免四根柱归属误读)
+    ax2.legend(loc="upper right", frameon=False, fontsize=10,
+               labelcolor=C["text"], handlelength=1.2)
 
-    fig.text(0.5, 0.145, f"有色年化波动 {risk['有色']['ann_vol']*100:.0f}% / 最大回撤 {abs(risk['有色']['max_dd'])*100:.0f}% · 远高于宽基",
+    fig.text(0.5, 0.145, f"蓝宝石年化波动 {risk['蓝宝石']['ann_vol']*100:.0f}% / 最大回撤 {abs(risk['蓝宝石']['max_dd'])*100:.0f}% · 是沪深300 的 2 倍",
              ha="center", fontsize=12, color=C["gold"], fontweight="bold")
     fig.text(0.5, 0.105, "高弹性的另一面是巨震 · 想拿这份收益必须扛得住回撤", ha="center", fontsize=10.5, color=C["muted"])
     _disc(fig); _pageno(fig, 4)
     _save(fig, "04_vs_hs300.png")
 
 
-# ── 卡5 买在高位 vs 低位 (分位条件胜率, 核心卡) ───────────────────
+# ── 卡5 买在高位 vs 低位 (分位条件胜率, 核心卡, 用 3y 一次性) ───────
 def card_percentile():
     fig = _fig()
     _header(fig, "主结论 ③", "买在山顶 vs 山脚")
 
     keys = ["low", "mid", "high", "vhigh"]
     labels = ["低位\n≤30分位", "中位\n30-70", "高位\n70-90", "极高位\n≥90"]
-    med5 = [PMED(k, "lump", 60) for k in keys]
-    win5 = [PWIN(k, "lump", 60) for k in keys]
+    med3 = [PMED(k, "lump", 36) for k in keys]
+    win3 = [PWIN(k, "lump", 36) for k in keys]
     cols = [C["green"], C["cyan"], C["orange"], C["red"]]
 
-    # 上图: 5 年一次性中位收益
+    # 上图: 3 年一次性中位收益
     ax = fig.add_axes([0.12, 0.47, 0.80, 0.29]); _ax_clean(ax)
     x = np.arange(len(keys))
-    bars = ax.bar(x, med5, color=cols)
-    for b, v in zip(bars, med5):
-        ax.text(b.get_x() + b.get_width()/2, v + (10 if v >= 0 else -9), f"{v:+.0f}%",
-                ha="center", fontsize=12.5, color=C["text"] if v >= 0 else C["red"], fontweight="bold",
-                va="bottom" if v >= 0 else "top")
+    bars = ax.bar(x, med3, color=cols)
+    for i, (b, v) in enumerate(zip(bars, med3)):
+        # 极小正值(0<v<15)柱矮, 标签放柱右侧避开 0 轴/箭头
+        if 0 <= v < 15:
+            ax.text(b.get_x() + b.get_width() + 0.04, max(v, 2),
+                    f"{v:+.0f}%", ha="left", va="center", fontsize=12.5,
+                    color=C["text"], fontweight="bold")
+        elif v >= 15:
+            ax.text(b.get_x() + b.get_width()/2, v + 8, f"{v:+.0f}%",
+                    ha="center", va="bottom", fontsize=12.5, color=C["text"], fontweight="bold")
+        else:
+            # 负值标签下移到柱底下方, 远离 0 线虚线
+            ax.text(b.get_x() + b.get_width()/2, v - 22, f"{v:+.0f}%",
+                    ha="center", va="top", fontsize=12.5, color=C["red"], fontweight="bold")
     ax.axhline(0, color=C["muted"], lw=0.8, ls="--")
     ax.set_xticks(x); ax.set_xticklabels(labels, color=C["text"], fontsize=12)
-    ax.set_ylim(min(med5) * 2.4 if min(med5) < 0 else -20, max(med5) * 1.18)
+    # 下界给负值标签留 40 单位空间 (-9 - 22 = -31, 加缓冲)
+    ymin = (min(med3) - 40) if min(med3) < 0 else -25
+    ax.set_ylim(ymin, max(med3) * 1.22)
     ax.set_yticks([])
-    ax.set_title("买入后持有 5 年·中位总收益 (一次性)", color=C["text"], fontsize=12, loc="left", pad=6)
+    ax.set_title("买入后持有 3 年·中位总收益 (一次性)", color=C["text"], fontsize=12, loc="left", pad=6)
 
-    # 当前位置箭头标注
+    # 当前位置箭头标注: 从高处直指 vhigh 柱顶, 偏左侧不挤标签
     cur_idx = {"low": 0, "mid": 1, "high": 2, "vhigh": 3}[cur_pct_bucket]
-    ax.annotate("现在在这里", xy=(cur_idx, med5[cur_idx] * 0.5),
-                xytext=(cur_idx, max(med5) * 0.62),
+    arrow_y_target = max(med3[cur_idx], 0) + 5
+    ax.annotate("现在在这里", xy=(cur_idx - 0.05, arrow_y_target),
+                xytext=(cur_idx - 0.05, max(med3) * 0.62),
                 ha="center", fontsize=12, color=C["red"], fontweight="bold",
                 arrowprops=dict(arrowstyle="->", color=C["red"], lw=1.8))
 
-    # 下图: 5 年胜率
+    # 下图: 3 年胜率
     ax2 = fig.add_axes([0.12, 0.20, 0.80, 0.16]); _ax_clean(ax2)
-    bars2 = ax2.bar(x, win5, color=cols)
-    for b, v in zip(bars2, win5):
+    bars2 = ax2.bar(x, win3, color=cols)
+    for b, v in zip(bars2, win3):
         ax2.text(b.get_x() + b.get_width()/2, v + 3, f"{v:.0f}%", ha="center", fontsize=11.5, color=C["text"], fontweight="bold")
     ax2.axhline(50, color=C["muted"], lw=0.7, ls="--")
     ax2.set_xticks(x); ax2.set_xticklabels(labels, color=C["text"], fontsize=10.5)
     ax2.set_ylim(0, 118); ax2.set_yticks([])
-    ax2.set_title("5 年赚钱概率 (胜率)", color=C["text"], fontsize=11.5, loc="left", pad=4)
+    ax2.set_title("3 年赚钱概率 (胜率)", color=C["text"], fontsize=11.5, loc="left", pad=4)
 
-    fig.text(0.5, 0.145, f"极高位(现在)买入: 5年胜率仅 {win5[3]:.0f}% · 中位 {med5[3]:+.0f}%",
+    fig.text(0.5, 0.145, f"极高位(现在)买入: 3年胜率 {win3[3]:.0f}% · 中位仅 {med3[3]:+.0f}%",
              ha="center", fontsize=12.5, color=C["red"], fontweight="bold")
-    fig.text(0.5, 0.108, f"低位买入: 5年胜率 {win5[0]:.0f}% · 中位 {med5[0]:+.0f}% · 周期品贵就是贵",
+    fig.text(0.5, 0.108, f"低位买入: 3年胜率 {win3[0]:.0f}% · 中位 {med3[0]:+.0f}% · 题材股贵就是贵",
              ha="center", fontsize=11, color=C["muted"])
     _disc(fig); _pageno(fig, 5)
     _save(fig, "05_percentile.png")
@@ -739,28 +811,28 @@ def card_percentile():
 # ── 卡6 周期位置 ───────────────────────────────────────────────────
 def card_cycle():
     fig = _fig()
-    _header(fig, "周 期 位 置", "现在到底是什么位置?")
+    _header(fig, "当 前 位 置", "现在到底是什么位置?")
 
     dd = current["drawdown"] * 100
     vs_ma = current["vs_ma200"] * 100
     mom12 = current["mom_12m"] * 100
     pctile = current["price_pctile"] * 100
-    win5_now = PWIN(cur_pct_bucket, "lump", 60)
+    win3_now = PWIN(cur_pct_bucket, "lump", 36)
 
     GR = ("好", C["green"]); WN = ("注意", C["orange"]); RD = ("警惕", C["red"])
     s1 = RD if pctile >= 80 else (WN if pctile >= 55 else GR)   # 估值/位置
     s2 = GR if vs_ma >= 0 else WN                                # 趋势
     s3 = RD if mom12 >= 60 else (GR if mom12 >= 0 else WN)       # 动量(过热也是风险)
-    s4 = RD if win5_now < 40 else (WN if win5_now < 60 else GR)  # 条件赔率
+    s4 = RD if win3_now < 40 else (WN if win3_now < 60 else GR)  # 条件赔率
     rows = [
-        (*s1, "估值/位置", f"价格处历史 {pctile:.0f} 分位 · 回撤仅 {dd:.0f}%",
+        (*s1, "估值/位置", f"价格处历史 {pctile:.0f} 分位 · 创历史新高",
                             "极高位 · 估值已透支, 安全垫薄"),
         (*s2, "趋势/均线", f"价 {vs_ma:+.0f}% vs 200 日均线",
-                            "仍在均线上方 · 右侧趋势暂未破"),
+                            "强势在均线上方 · 右侧趋势仍在"),
         (*s3, "近12月动量", f"近 12 月 {mom12:+.0f}%",
-                            "涨幅巨大 · 过热, 易高位剧烈回撤"),
-        (*s4, "历史赔率", f"≥90 分位入场 · 5y一次性胜率 {win5_now:.0f}%",
-                            "同样位置历史多数 3-5 年不赚钱"),
+                            "翻倍涨幅 · 严重过热, 分位已极端"),
+        (*s4, "历史赔率", f"≥90 分位入场 · 3y一次性胜率 {win3_now:.0f}%",
+                            "同位置历史 3 年仅一半概率赚钱"),
     ]
     y = 0.78
     for emoji, col, tag, body, note in rows:
@@ -778,7 +850,7 @@ def card_cycle():
 
     fig.text(0.5, 0.155, "结论: 趋势还在, 但位置极端 → 追涨不抄底",
              ha="center", fontsize=12.5, color=C["gold"], fontweight="bold")
-    fig.text(0.5, 0.118, "周期品看位置不看信仰 · 越接近顶部越要轻", ha="center", fontsize=11, color=C["muted"])
+    fig.text(0.5, 0.118, "题材股看分位不看信仰 · 越接近顶部越要轻", ha="center", fontsize=11, color=C["muted"])
     _disc(fig); _pageno(fig, 6)
     _save(fig, "06_cycle.png")
 
@@ -788,15 +860,17 @@ def card_summary():
     fig = _fig()
     _header(fig, "怎 么 操 作", "把胜率翻译成动作")
 
-    win5_now = PWIN(cur_pct_bucket, "lump", 60)
-    med5_now = PMED(cur_pct_bucket, "lump", 60)
+    win3_now = PWIN(cur_pct_bucket, "lump", 36)
+    med3_now = PMED(cur_pct_bucket, "lump", 36)
+    mom12 = current["mom_12m"] * 100
+    pctile = current["price_pctile"] * 100
     takeaways = [
         (C["red"], "1", "现在不是抄底位",
-         f"价格 99 分位 + 近12月 +90% = 山顶不是山脚\n历史同位置 5 年一次性胜率仅 {win5_now:.0f}% · 中位 {med5_now:+.0f}%"),
+         f"价格 {pctile:.0f} 分位 + 近12月 {mom12:+.0f}% = 山顶不是山脚\n历史同位置 3 年一次性胜率 {win3_now:.0f}% · 中位仅 {med3_now:+.0f}%"),
         (C["gold"], "2", "已持有: 控仓/止盈",
          "趋势虽在但位置极端 · 设跌破200日线/月线止盈线\n分批兑现利润, 别在山顶满仓等反转"),
         (C["green"], "3", "想上车: 等回到中低位",
-         f"≤30 分位低位买入, 5y 中位 {PMED('low','lump',60):+.0f}%\n或等深度回撤(≤-30%)分批定投, 别追高"),
+         f"≤30 分位低位买入, 3y 中位 {PMED('low','lump',36):+.0f}%\n或等深度回撤(≤-30%)分批定投, 别追高"),
     ]
     y = 0.78
     for col, num, tag, body in takeaways:
@@ -814,7 +888,7 @@ def card_summary():
     ax.add_patch(FancyBboxPatch((0, 0), 1, 1, boxstyle="round,pad=0.02",
                                 fc="#3a1f1f", ec=C["red"], lw=1.5, transform=ax.transAxes))
     ax.text(0.5, 0.72, "风 险 提 示", ha="center", fontsize=13, color=C["red"], fontweight="bold", transform=ax.transAxes)
-    ax.text(0.5, 0.30, "有色是强周期品, 与全球商品/美元/地产基建高度绑定 · 波动巨大\n趋势可能再创新高(动量), 也可能高位崩跌; 本文只讲历史赔率, 不预测点位",
+    ax.text(0.5, 0.30, "蓝宝石是题材股, 与消费电子/AR/手机外屏炒作高度绑定 · 波动巨大\n动量可能再创新高, 也可能高位崩跌; 本文只讲历史赔率, 不预测点位",
             ha="center", va="center", fontsize=10.0, color=C["text"], transform=ax.transAxes)
     _disc(fig); _pageno(fig, 7)
     _save(fig, "07_summary.png")
@@ -823,8 +897,8 @@ def card_summary():
 # ── 卡8 付费研报引流 (CTA) ────────────────────────────────────────
 def card_cta():
     fig = _fig()
-    win5_now = PWIN(cur_pct_bucket, "lump", 60)
-    med5_low = PMED("low", "lump", 60)
+    win3_now = PWIN(cur_pct_bucket, "lump", 36)
+    med3_low = PMED("low", "lump", 36)
 
     # 顶部
     fig.text(0.5, 0.928, "完 整 版 · 付 费 研 报", ha="center", fontsize=15, color=C["gold"], fontweight="bold")
@@ -842,11 +916,11 @@ def card_cta():
     ax.text(0.5, 0.90, "10 页 · 8 大章节 · 全程可复现", ha="center", fontsize=13.5,
             color=C["gold"], fontweight="bold", transform=ax.transAxes)
     items = [
-        ("四档分位完整胜率表", "低位→极高位 × 3/5年, 看清你买在哪一档"),
-        ("风险-收益对照", "26年波动/最大回撤/P10尾部 vs 沪深300"),
+        ("四档分位完整胜率表", "低位→极高位 × 1/2/3年, 看清你买在哪一档"),
+        ("风险-收益对照", "9年波动/最大回撤/P10尾部 vs 沪深300"),
         ("当前位置 4 信号解读", "估值/趋势/动量/赔率 逐条拆解"),
         ("分位×仓位操作框架", "什么位置定投/持有/止盈, 一表给齐"),
-        ("方法与局限说明", "扩张分位口径·无未来函数·诚实边界"),
+        ("方法与局限说明", "等权指数构造·扩张分位口径·诚实边界"),
     ]
     y = 0.74
     for tag, desc in items:
@@ -866,7 +940,7 @@ def card_cta():
     if SALE["price_orig"]:
         ax2.text(0.685, 0.80, f"原价 {SALE['price_orig']}元", ha="left", va="center", fontsize=12,
                  color=C["muted"], transform=ax2.transAxes)
-        ax2.add_line(Line2D([0.685, 0.83], [0.80, 0.80], color=C["muted"], lw=1.1, transform=ax2.transAxes))
+        ax2.add_line(Line2D([0.685, 0.78], [0.80, 0.80], color=C["muted"], lw=1.1, transform=ax2.transAxes))
     # 主入口: 帖子底部售卖链接
     ax2.text(0.5, 0.50, SALE["channel"], ha="center", va="center", fontsize=14, color=C["text"], fontweight="bold", transform=ax2.transAxes)
     ax2.text(0.5, 0.30, "（就在这条笔记最下方 ↓ 蓝色链接）", ha="center", va="center", fontsize=11, color=C["gold"], transform=ax2.transAxes)
@@ -874,7 +948,7 @@ def card_cta():
     ax2.text(0.5, 0.11, f"或 关注后私信「{SALE['keyword']}」· 看到后手动发你", ha="center", va="center", fontsize=10.8, color=C["muted"], transform=ax2.transAxes)
 
     # 一句价值钩子
-    fig.text(0.5, 0.118, f"现在 99 分位高位, 历史同位置 5 年胜率仅 {win5_now:.0f}% — 别让一张图替你做决定",
+    fig.text(0.5, 0.118, f"现在 100 分位创新高, 历史同位置 3 年胜率 {win3_now:.0f}% — 别让一张图替你做决定",
              ha="center", fontsize=11, color=C["gold"], fontweight="bold")
     fig.text(0.5, 0.085, "数据源开源 · 方法可复现 · 作者：靳秋野 · 量化研究笔记", ha="center", fontsize=10, color=C["muted"])
     fig.text(0.5, 0.045, "* 知识付费内容 · 历史回测不代表未来 · 不构成投资建议", ha="center", fontsize=10, color=C["muted"])
