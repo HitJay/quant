@@ -1,0 +1,86 @@
+{# 基础模板 v2 — 深色 GitHub 风, 不用 emoji 改用 SVG / 文字标识 #}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap');
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 1080px; height: 1440px;
+    background: #0d1117;
+    color: #c9d1d9;
+    font-family: 'Noto Sans SC', 'Noto Sans CJK SC', system-ui, sans-serif;
+    overflow: hidden;
+    /* 整体放大 v3 — 用户反馈还是小, 再加一档 */
+    font-size: 20px;
+  }
+  /* 重写 Tailwind 默认字号阶梯 — 整体上移 2 档 */
+  .text-xs   { font-size: 17px !important; line-height: 1.45 !important; }
+  .text-sm   { font-size: 19px !important; line-height: 1.5 !important; }
+  .text-base { font-size: 23px !important; line-height: 1.55 !important; }
+  .text-lg   { font-size: 26px !important; line-height: 1.5 !important; }
+  .text-xl   { font-size: 30px !important; line-height: 1.4 !important; }
+  .text-2xl  { font-size: 34px !important; line-height: 1.35 !important; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 16px; }
+  .card2 { background: #1c2129; border: 1px solid #30363d; border-radius: 16px; }
+  .pill {
+    display: inline-flex; align-items: center;
+    padding: 4px 14px; border-radius: 999px;
+    font-size: 14px; font-weight: 600;
+  }
+  .text-blue   { color: #58a6ff; }
+  .text-green  { color: #3fb950; }
+  .text-red    { color: #f85149; }
+  .text-orange { color: #d2991d; }
+  .text-purple { color: #bc8cff; }
+  .text-gold   { color: #f0c040; }
+  .text-cyan   { color: #56d4dd; }
+  .text-rose   { color: #ff7b72; }
+  .text-muted  { color: #8b949e; }
+  .text-dim    { color: #6e7681; }
+  .bg-card     { background: #161b22; }
+  .bg-card2    { background: #1c2129; }
+  .border-card { border-color: #30363d; }
+  .grid-pattern {
+    background-image:
+      linear-gradient(rgba(48, 54, 61, 0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(48, 54, 61, 0.15) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  /* 小标记 — 替代 emoji */
+  .marker-dot { display:inline-block; width:8px; height:8px; border-radius:999px; vertical-align: middle; margin-right: 6px; }
+</style>
+</head>
+<body>
+<div class="w-[1080px] h-[1440px] relative grid-pattern p-12 flex flex-col">
+
+  {# 顶部品牌条 #}
+  <div class="flex items-center justify-between mb-2">
+    <div class="flex items-center gap-3">
+      <span class="pill bg-card2 border border-[#30363d] text-cyan">// 复旦杰伦</span>
+      <span class="text-muted text-sm mono">黄金深度 · {{ data.date_str }}</span>
+    </div>
+    <span class="text-dim text-xs mono">{{ "%02d"|format(page_num) }} / 07</span>
+  </div>
+
+  {# 主体 — 由各页填充 #}
+  <div class="flex-1 flex flex-col min-h-0">
+    {% block body %}{% endblock %}
+  </div>
+
+  {# 底部 #}
+  <div class="flex items-center justify-between mt-auto pt-3 text-xs">
+    <span class="text-dim mono">data: AkShare · 东方财富</span>
+    <span class="text-dim">非投资建议 · 仅供参考</span>
+  </div>
+
+</div>
+{% block scripts %}{% endblock %}
+</body>
+</html>

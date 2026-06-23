@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="mt-2 mb-3">
+  <div class="pill bg-[#0a2a2a] border border-[#1a4a4a] text-cyan">06 / 当前买点判断</div>
+  <h1 class="mt-3 text-[54px] font-black leading-tight text-white">
+    现在能不能买?<br>
+    用 <span class="text-cyan">4 个指标</span>给你区间答案
+  </h1>
+  <p class="mt-2 text-xl text-muted">
+    不是 yes/no, 是 <span class="text-gold font-bold">轻仓试探</span> / <span class="text-orange font-bold">观望</span> / <span class="text-rose font-bold">拒绝抄底</span> 的判断
+  </p>
+</div>
+
+{# 4 个指标卡 #}
+<div class="grid grid-cols-2 gap-3 mb-4">
+  {# MA200 #}
+  <div class="card p-4">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-purple text-xs font-bold mono">// 指标 1 · 200 日均线</span>
+      <span class="pill bg-[#3a1a1a] text-rose text-xs">破位</span>
+    </div>
+    <div class="flex items-baseline gap-2">
+      <span class="mono text-2xl font-black text-rose">{{ data.p6.dist_ma200_pct }}%</span>
+      <span class="text-muted text-sm">距 MA200</span>
+    </div>
+    <div class="mt-2 text-xs text-dim">
+      现价 <span class="mono text-white">{{ data.p6.cur_price }}</span> &lt; MA200 <span class="mono text-orange">{{ data.p6.ma200 }}</span>
+    </div>
+    <div class="mt-1 text-xs text-rose">→ 长周期趋势已转空</div>
+  </div>
+
+  {# MA50 #}
+  <div class="card p-4">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-purple text-xs font-bold mono">// 指标 2 · 50 日均线</span>
+      <span class="pill bg-[#3a1a1a] text-rose text-xs">破位</span>
+    </div>
+    <div class="flex items-baseline gap-2">
+      <span class="mono text-2xl font-black text-rose">{{ data.p6.dist_ma50_pct }}%</span>
+      <span class="text-muted text-sm">距 MA50</span>
+    </div>
+    <div class="mt-2 text-xs text-dim">
+      现价 <span class="mono text-white">{{ data.p6.cur_price }}</span> &lt; MA50 <span class="mono text-orange">{{ data.p6.ma50 }}</span>
+    </div>
+    <div class="mt-1 text-xs text-rose">→ 短周期也在下行通道</div>
+  </div>
+
+  {# RSI #}
+  <div class="card p-4">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-purple text-xs font-bold mono">// 指标 3 · RSI 14</span>
+      <span class="pill bg-[#2a2a0a] text-orange text-xs">偏弱</span>
+    </div>
+    <div class="flex items-baseline gap-2">
+      <span class="mono text-2xl font-black text-orange">{{ data.p6.rsi14 }}</span>
+      <span class="text-muted text-sm">/ 100</span>
+    </div>
+    <div class="mt-2 text-xs text-dim">
+      &lt;30 超卖 · 30-50 偏弱 · &gt;70 超买
+    </div>
+    <div class="mt-1 text-xs text-orange">→ 还没到超卖反弹区</div>
+  </div>
+
+  {# 距 1Y 低点 #}
+  <div class="card p-4">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-purple text-xs font-bold mono">// 指标 4 · 距 1Y 低点</span>
+      <span class="pill bg-[#2a2a0a] text-orange text-xs">有缓冲</span>
+    </div>
+    <div class="flex items-baseline gap-2">
+      <span class="mono text-2xl font-black text-orange">+{{ data.p6.dist_to_low1y_pct }}%</span>
+      <span class="text-muted text-sm">缓冲空间</span>
+    </div>
+    <div class="mt-2 text-xs text-dim">
+      1Y 低 <span class="mono text-white">{{ data.p6.low1y }}</span> @ {{ data.p6.low1y_date }}
+    </div>
+    <div class="mt-1 text-xs text-orange">→ 离去年低点还有距离</div>
+  </div>
+</div>
+
+{# 综合判断 - 三档区间 #}
+<div class="card p-5 mb-3">
+  <div class="text-white text-base font-bold mb-3">综合判断 · 价格分档</div>
+  <div class="space-y-2">
+    <div class="flex items-center gap-3 p-3 bg-[#0d1f0d] rounded-lg border border-[#1a4a1a]">
+      <span class="pill bg-green text-white text-xs">≤ 8.0</span>
+      <span class="text-green text-sm font-bold flex-shrink-0">轻仓试探</span>
+      <span class="text-muted text-sm">≈ 1Y 低点附近, 历史性低位, 可以分批 1/3 入场</span>
+    </div>
+    <div class="flex items-center gap-3 p-3 bg-[#1f1a0d] rounded-lg border border-[#4a3a1a]">
+      <span class="pill bg-orange text-white text-xs">8.0 - 9.0</span>
+      <span class="text-orange text-sm font-bold flex-shrink-0">观望区</span>
+      <span class="text-muted text-sm">当前 <span class="text-rose mono font-bold">{{ data.p6.cur_price }}</span> 在此区, MA 都在上面, 拐点未现</span>
+    </div>
+    <div class="flex items-center gap-3 p-3 bg-[#1f0d0d] rounded-lg border border-[#4a1a1a]">
+      <span class="pill bg-rose text-white text-xs">≥ 9.5</span>
+      <span class="text-rose text-sm font-bold flex-shrink-0">拒绝追高</span>
+      <span class="text-muted text-sm">回到 MA50 上方再说, 否则反弹也只是逃命</span>
+    </div>
+  </div>
+</div>
+
+{# 关键提示 #}
+<div class="card2 p-4">
+  <div class="text-cyan text-xs font-bold mb-2 mono">// 复旦杰伦</div>
+  <div class="text-sm text-muted leading-relaxed">
+    4 个指标里 <span class="text-rose font-bold">2 个破位 + 2 个偏弱</span>, 没有任何一个发出"该买了"的信号.
+    P5 历史告诉你深熊通常筑底 1-2 年, 别因为 <span class="text-rose">-25%</span> 就觉得"便宜了" — 
+    <span class="text-gold font-bold">分批 + 等信号</span>, 比一把梭强 10 倍.
+  </div>
+</div>
+
+{% endblock %}

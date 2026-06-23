@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="mt-2 mb-3">
+  <div class="pill bg-[#0a1a2a] border border-[#1a3a5a] text-blue">07 / 关注 & 互动</div>
+  <h1 class="mt-3 text-[60px] font-black leading-tight text-white">
+    看到这, 你应该<br>
+    比 <span class="text-gold">90%</span> 的人更懂黄金了
+  </h1>
+  <p class="mt-3 text-xl text-muted">
+    数据 ≠ 建议, 但<span class="text-gold font-bold">认知差</span>能帮你少踩坑
+  </p>
+</div>
+
+{# 全篇 7 页 TL;DR 回顾 #}
+<div class="card p-5 mb-4">
+  <div class="text-cyan text-xs font-bold mb-3 mono">// 7 页核心要点 · 复习一遍</div>
+  <div class="space-y-2 text-base">
+    <div class="flex gap-3">
+      <span class="mono text-orange font-bold flex-shrink-0 w-6">P1</span>
+      <span class="text-muted">黄金 ETF 距 1/29 ATH 已跌 <span class="text-rose mono font-bold">-25.2%</span>, 进入技术熊市.</span>
+    </div>
+    <div class="flex gap-3">
+      <span class="mono text-orange font-bold flex-shrink-0 w-6">P2</span>
+      <span class="text-muted">2026 年 1 月单月 <span class="text-rose mono font-bold">+18.4%</span> 是顶部, 3 月 <span class="text-rose mono font-bold">-11.3%</span> 破位.</span>
+    </div>
+    <div class="flex gap-3">
+      <span class="mono text-orange font-bold flex-shrink-0 w-6">P3</span>
+      <span class="text-muted">黄金股 3 个月跌 <span class="text-rose mono font-bold">-22%</span>, 比 ETF 多亏 <span class="text-rose mono font-bold">6pp</span> — 杠杆双刃.</span>
+    </div>
+    <div class="flex gap-3">
+      <span class="mono text-orange font-bold flex-shrink-0 w-6">P4</span>
+      <span class="text-muted">白银 1Y <span class="text-green mono font-bold">+132%</span> 锤爆黄金; 黄金与沪深 300 相关 <span class="text-orange mono font-bold">+0.45</span>.</span>
+    </div>
+    <div class="flex gap-3">
+      <span class="mono text-orange font-bold flex-shrink-0 w-6">P5</span>
+      <span class="text-muted">13 年来第 3 次 -20% 深熊, 历史平均回本 <span class="text-gold mono font-bold">{{ data.p5.history_avg_recover_days }} 天</span>.</span>
+    </div>
+    <div class="flex gap-3">
+      <span class="mono text-orange font-bold flex-shrink-0 w-6">P6</span>
+      <span class="text-muted">破 MA200 / MA50, RSI <span class="text-orange mono font-bold">{{ data.p6.rsi14 }}</span> 偏弱; 当前 <span class="text-rose font-bold">观望区</span>, 别接飞刀.</span>
+    </div>
+  </div>
+</div>
+
+{# 互动钩子 #}
+<div class="card2 p-5 mb-4">
+  <div class="text-purple text-xs font-bold mb-3 mono">// 评论区聊聊</div>
+  <div class="space-y-3">
+    <div class="flex gap-3 items-start">
+      <span class="mono text-cyan font-bold flex-shrink-0">Q1</span>
+      <span class="text-base text-muted">你买的是 <span class="text-cyan">黄金 ETF</span> 还是 <span class="text-gold">黄金股 ETF</span> ? 现在浮亏多少?</span>
+    </div>
+    <div class="flex gap-3 items-start">
+      <span class="mono text-cyan font-bold flex-shrink-0">Q2</span>
+      <span class="text-base text-muted">如果跌到 <span class="text-green font-bold mono">8.0</span> 你会加仓吗? 还是觉得还不够便宜?</span>
+    </div>
+    <div class="flex gap-3 items-start">
+      <span class="mono text-cyan font-bold flex-shrink-0">Q3</span>
+      <span class="text-base text-muted">想看下一篇深度的话题: <span class="text-gold">白银 +132%</span> / <span class="text-blue">国债</span> / <span class="text-purple">医药</span> ?</span>
+    </div>
+  </div>
+</div>
+
+{# CTA #}
+<div class="card p-5 border-2 border-[#56d4dd]">
+  <div class="flex items-center gap-4 mb-3">
+    <div class="text-cyan text-4xl font-black mono">→</div>
+    <div>
+      <div class="text-white text-2xl font-black">关注「复旦杰伦」</div>
+      <div class="text-muted text-sm mt-1">每周用真实数据复盘一个市场热点 · 拒绝小作文</div>
+    </div>
+  </div>
+  <div class="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-[#30363d]">
+    <div class="text-center">
+      <div class="text-cyan font-bold mono text-xl">点赞</div>
+      <div class="text-dim text-xs mt-1">让更多人看到</div>
+    </div>
+    <div class="text-center">
+      <div class="text-gold font-bold mono text-xl">收藏</div>
+      <div class="text-dim text-xs mt-1">回头复盘用</div>
+    </div>
+    <div class="text-center">
+      <div class="text-orange font-bold mono text-xl">关注</div>
+      <div class="text-dim text-xs mt-1">下一篇不错过</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

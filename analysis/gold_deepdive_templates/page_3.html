@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="mt-2 mb-3">
+  <div class="pill bg-[#1f2a0a] border border-[#3a4a1a] text-green">03 / 反共识 01</div>
+  <h1 class="mt-3 text-[54px] font-black leading-tight text-white">
+    买<span class="text-gold">黄金股</span>的人,<br>
+    亏得比买<span class="text-cyan">黄金 ETF</span>的<span class="text-rose">更多</span>
+  </h1>
+  <p class="mt-2 text-xl text-muted">
+    一个真实数据反差: 你以为买的都是黄金, 其实差很多
+  </p>
+</div>
+
+{# 今日单日反差大数 #}
+<div class="card p-6 mb-4">
+  <div class="grid grid-cols-3 items-center">
+    <div class="text-center">
+      <div class="text-cyan text-xs font-bold mono mb-1">// 黄金 ETF</div>
+      <div class="text-dim text-xs mono mb-1">518880</div>
+      <div class="mono text-[50px] font-black text-rose leading-none">{{ data.p3.today_etf_ret }}%</div>
+      <div class="text-dim text-xs mt-1">今日单日</div>
+    </div>
+    <div class="text-center">
+      <div class="text-gold text-3xl font-bold">VS</div>
+      <div class="mt-2 mono text-xl font-bold text-rose">差 {{ data.p3.today_gap }}pp</div>
+    </div>
+    <div class="text-center">
+      <div class="text-gold text-xs font-bold mono mb-1">// 黄金股 ETF</div>
+      <div class="text-dim text-xs mono mb-1">159562</div>
+      <div class="mono text-[50px] font-black text-rose leading-none">{{ data.p3.today_stk_ret }}%</div>
+      <div class="text-dim text-xs mt-1">今日单日</div>
+    </div>
+  </div>
+</div>
+
+{# 多周期反差表 #}
+<div class="card p-5 mb-4">
+  <div class="flex items-center justify-between mb-3">
+    <span class="text-white text-base font-bold">多周期累计涨跌幅对比</span>
+    <span class="text-dim text-xs mono">数据起始 2024-01-22</span>
+  </div>
+  <div class="space-y-2">
+    {% for r in data.p3.compare %}
+    <div class="grid grid-cols-12 items-center gap-2 py-2 border-b border-[#21262d]">
+      <span class="col-span-2 text-muted text-sm">{{ r.window }}</span>
+      <span class="col-span-3 mono text-lg font-bold text-right {% if r.etf_ret >= 0 %}text-green{% else %}text-rose{% endif %}">
+        {% if r.etf_ret >= 0 %}+{% endif %}{{ r.etf_ret }}%
+      </span>
+      <span class="col-span-1 text-dim text-xs text-center">vs</span>
+      <span class="col-span-3 mono text-lg font-bold text-right {% if r.stk_ret >= 0 %}text-green{% else %}text-rose{% endif %}">
+        {% if r.stk_ret >= 0 %}+{% endif %}{{ r.stk_ret }}%
+      </span>
+      <span class="col-span-3 mono text-sm text-right {% if r.gap >= 0 %}text-cyan{% else %}text-orange{% endif %}">
+        {% if r.gap >= 0 %}股领先 +{% else %}股拖累 {% endif %}{{ r.gap }}pp
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="mt-3 flex items-center justify-between text-xs text-dim">
+    <span class="text-cyan">黄金 ETF</span>
+    <span class="text-gold">黄金股 ETF</span>
+    <span>差值</span>
+  </div>
+</div>
+
+{# 关键洞察 #}
+<div class="card2 p-5">
+  <div class="text-cyan text-xs font-bold mb-2 mono">// 复旦杰伦 · 黄金股的"双刃剑"</div>
+  <div class="space-y-2 text-base text-muted leading-snug">
+    <div class="flex gap-3">
+      <span class="text-gold mono font-bold flex-shrink-0">↑</span>
+      <span><span class="text-green font-bold">涨的时候</span>黄金股放大: 1 年累计 <span class="text-green mono font-bold">+28%</span> vs ETF 的 <span class="text-green mono font-bold">+19%</span>, 多赚 9pp.</span>
+    </div>
+    <div class="flex gap-3">
+      <span class="text-rose mono font-bold flex-shrink-0">↓</span>
+      <span><span class="text-rose font-bold">跌的时候</span>也放大: 3 个月 ETF 跌 <span class="text-rose mono font-bold">-16%</span> 时, 股已经跌 <span class="text-rose mono font-bold">-22%</span>, 多亏 6pp.</span>
+    </div>
+    <div class="flex gap-3">
+      <span class="text-orange mono font-bold flex-shrink-0">!</span>
+      <span>本质: 黄金股 = <span class="text-orange font-bold">黄金 × 经营杠杆</span>, 金价上涨产能成本固定 → 利润非线性. 但反过来也成立.</span>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
