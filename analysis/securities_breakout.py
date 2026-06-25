@@ -175,7 +175,7 @@ def card_1(state, win_b):
             fontweight="bold", color=C["text"], transform=ax.transAxes)
     ax.text(0.5, 0.845, "这次能追吗？", ha="center", fontsize=38,
             fontweight="bold", color=C["gold"], transform=ax.transAxes)
-    ax.text(0.5, 0.78, f"512880 · 6/22 +7.7% → 今天再 +3.6% · 数据截止 {TODAY}",
+    ax.text(0.5, 0.78, f"512880 · 6/22 +7.7% → 6/25 +3.4% · 数据截止 {TODAY}",
             ha="center", fontsize=12.5, color=C["muted"], transform=ax.transAxes)
 
     # 大字: 60日胜率
@@ -280,12 +280,12 @@ def card_3():
             fontsize=12.8, color=C["muted"], transform=ax.transAxes)
 
     reasons = [
-        ("01", "单股暴吸 36 亿",
-         f"长江证券 主力净流入 {TODAY_LJZQ_INFLOW_YI:.1f}亿，单日吸金全市场第一", C["orange"]),
+        ("01", "单股净流入 4 亿",
+         f"长江证券 主力净流入 {TODAY_LJZQ_INFLOW_YI:.1f}亿（6/23 单日 +7.5 亿后回落，散户接力）", C["orange"]),
         ("02", "非银板块全员动",
-         f"非银金融 {pct(TODAY_SECTOR_GAIN, 2)} · 保险II {pct(0.0356, 2)} · 证券II {pct(0.0330, 2)}",
+         f"证券Ⅱ {pct(TODAY_SECTOR_GAIN, 2)} · 保险II {pct(0.0356, 2)} · 非银金融板块整体跟涨",
          C["red"]),
-        ("03", "成交放大到 31亿",
+        ("03", "成交放大到 42亿",
          f"证券ETF 换手 {TODAY_TURNOVER:.1f}%，是近20日均量的 {2.16:.1f} 倍", C["blue"]),
     ]
     y = 0.80
@@ -583,7 +583,7 @@ def card_8(win_b):
     points = [
         ("01", "信号确实强",
          C["green"],
-         "长江证券吸金36亿+连续脉冲+换手5.6%"),
+         "长江证券+连续脉冲+换手7.5%"),
         ("02", "但历史胜率劝退",
          C["red"],
          f"连续脉冲后3月胜率仅{pct0(sig_b_60['胜率'])}, 中位{pct(sig_b_60['中位'], 1)}"),
