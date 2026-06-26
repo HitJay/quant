@@ -1,0 +1,671 @@
+"""FCF 反共识 8 页深色卡片渲染 — 2026-06-26."""
+
+from __future__ import annotations
+
+import json
+import os
+from pathlib import Path
+
+for _k in ("http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY"):
+    os.environ.pop(_k, None)
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch, Rectangle
+import numpy as np
+import pandas as pd
+
+plt.rcParams["font.sans-serif"] = ["Droid Sans Fallback", "WenQuanYi Micro Hei", "DejaVu Sans"]
+plt.rcParams["axes.unicode_minus"] = False
+
+OUT = Path("/das/user/QYJI/quant/output/2026-06-26/fcf-contrarian")
+CARD_DIR = OUT / "cards"
+DATA_DIR = OUT / "data"
+CARD_DIR.mkdir(parents=True, exist_ok=True)
+
+with open(DATA_DIR / "summary.json", "r", encoding="utf-8") as f:
+    S = json.load(f)
+
+C = {
+    "bg":     "#0d1117",
+    "card":   "#161b22",
+    "border": "#30363d",
+    "text":   "#c9d1d9",
+    "muted":  "#8b949e",
+    "blue":   "#58a6ff",
+    "green":  "#3fb950",
+    "red":    "#f85149",
+    "orange": "#d2991d",
+    "purple": "#bc8cff",
+    "gold":   "#f0c040",
+    "cyan":   "#56d4dd",
+    "pink":   "#ff7b72",
+}
+CARD_W, CARD_H, DPI = 7.2, 9.6, 200
+TOTAL_PAGES = 8
+BRAND = "复旦杰伦"
+
+
+def new_card():
+    fig, ax = plt.subplots(figsize=(CARD_W, CARD_H), dpi=DPI)
+    fig.patch.set_facecolor(C["bg"])
+    ax.set_facecolor(C["bg"])
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.axis("off")
+    # 撑满 figure (干掉默认 matplotlib 的 ~12% margin), 让 transAxes 坐标真到边
+    fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    return fig, ax
+
+
+def header(ax, eyebrow: str, title: str, subtitle: str | None = None):
+    ax.text(0.06, 0.955, eyebrow, fontsize=10, color=C["muted"], transform=ax.transAxes,
+            fontweight="bold")
+    ax.text(0.06, 0.905, title, fontsize=22, color=C["text"], transform=ax.transAxes,
+            fontweight="bold")
+    if subtitle:
+        ax.text(0.06, 0.865, subtitle, fontsize=11.5, color=C["muted"], transform=ax.transAxes)
+
+
+def footer(ax, page: int):
+    ax.axhline(0.04, xmin=0.06, xmax=0.94, color=C["border"], lw=0.5, alpha=0.5)
+    ax.text(0.06, 0.018,
+            "* 历史回测不代表未来 · 不构成投资建议",
+            fontsize=7.5, color=C["muted"], transform=ax.transAxes)
+    ax.text(0.94, 0.018, f"{page}/{TOTAL_PAGES}",
+            fontsize=8, color=C["muted"], transform=ax.transAxes, ha="right")
+    ax.text(0.94, 0.038, f"@{BRAND}",
+            fontsize=7.5, color=C["muted"], transform=ax.transAxes, ha="right",
+            fontstyle="italic")
+
+
+def pill(ax, x, y, text, fc, fg="#0d1117", fontsize=10):
+    ax.text(x, y, text, ha="center", va="center", fontsize=fontsize,
+            color=fg, fontweight="bold",
+            bbox=dict(boxstyle="round,pad=0.35", fc=fc, ec="none"),
+            transform=ax.transAxes)
+
+
+def card_box(ax, x, y, w, h, fc=None, ec=None, lw=1.0, alpha=1.0):
+    fc = fc or C["card"]
+    ec = ec or C["border"]
+    box = FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.005,rounding_size=0.015",
+                         fc=fc, ec=ec, lw=lw, alpha=alpha, transform=ax.transAxes)
+    ax.add_patch(box)
+
+
+def fmt_pct(v, plus=True):
+    if v is None or (isinstance(v, float) and np.isnan(v)):
+        return "N/A"
+    if plus:
+        return f"{v:+.2%}"
+    return f"{v:.2%}"
+
+
+def save(fig, name):
+    p = CARD_DIR / name
+    fig.savefig(p, dpi=DPI, facecolor=C["bg"], bbox_inches=None, pad_inches=0)
+    plt.close(fig)
+    print(f"[OK] {p}")
+
+
+# ============ PAGE 1: 封面 — 反共识 hero ============
+def page_1():
+    fig, ax = new_card()
+    # 顶部 eyebrow
+    ax.text(0.06, 0.94, "反共识 · 自由现金流 ETF 真相", fontsize=11,
+            color=C["red"], transform=ax.transAxes, fontweight="bold")
+
+    # 主标题 (大字, 两行)
+    ax.text(0.5, 0.83, "自由现金流",
+            fontsize=42, color=C["text"], transform=ax.transAxes,
+            ha="center", fontweight="bold")
+    ax.text(0.5, 0.755, "不是红利的升级版",
+            fontsize=30, color=C["red"], transform=ax.transAxes,
+            ha="center", fontweight="bold")
+
+    # 副标题
+    ax.text(0.5, 0.700, "5 只 FCF ETF 同名实异 · 散户被名字坑惨了",
+            fontsize=12.5, color=C["muted"], transform=ax.transAxes,
+            ha="center")
+
+    # Hero 数字对比卡 (双数字)
+    # 左: 国证自由现金流指数 3 个月跌幅
+    card_box(ax, 0.07, 0.42, 0.41, 0.21, fc="#1a1f26")
+    ax.text(0.275, 0.605, "国证自由现金流指数", fontsize=10, color=C["muted"],
+            transform=ax.transAxes, ha="center")
+    ax.text(0.275, 0.555, "近 60 日", fontsize=10, color=C["muted"],
+            transform=ax.transAxes, ha="center")
+    fcf60 = S["headline"]["fcf_index_60d"]
+    ax.text(0.275, 0.475, fmt_pct(fcf60), fontsize=34, color=C["red"],
+            transform=ax.transAxes, ha="center", fontweight="bold")
+
+    # 右: 中证红利低波同期
+    card_box(ax, 0.52, 0.42, 0.41, 0.21, fc="#1a1f26")
+    ax.text(0.725, 0.605, "中证红利低波 100", fontsize=10, color=C["muted"],
+            transform=ax.transAxes, ha="center")
+    ax.text(0.725, 0.555, "近 60 日", fontsize=10, color=C["muted"],
+            transform=ax.transAxes, ha="center")
+    dvd60 = S["headline"]["dvd_lowvol_60d"]
+    ax.text(0.725, 0.475, fmt_pct(dvd60), fontsize=34, color=C["green"],
+            transform=ax.transAxes, ha="center", fontweight="bold")
+
+    # 中部箭头 + gap
+    gap = (fcf60 - dvd60) * 100
+    ax.text(0.5, 0.475, "→", fontsize=22, color=C["muted"],
+            transform=ax.transAxes, ha="center")
+    ax.text(0.5, 0.385, f"差距 {abs(gap):.1f} 个百分点",
+            fontsize=12.5, color=C["gold"], transform=ax.transAxes,
+            ha="center", fontweight="bold")
+
+    # TL;DR 三条 (下半救援)
+    ax.text(0.06, 0.330, "TL;DR · 你需要先知道的 3 件事",
+            fontsize=11, color=C["text"], transform=ax.transAxes,
+            fontweight="bold")
+    tldr = [
+        ("01", "5 只 ETF 名字都叫\"自由现金流\", 持仓最高差到 60%+", C["red"]),
+        ("02", "国证 FCF 指数 2024 年 12 月才发布 · ETF 集中 2025 上市 → 发布即顶点", C["orange"]),
+        ("03", "近 60 日 FCF 龙头 -16.9% / 红利低波 +21.9% · 风格 ≠ 红利", C["gold"]),
+    ]
+    yy = 0.270
+    for num, text, color in tldr:
+        ax.text(0.085, yy, num, fontsize=18, color=color,
+                transform=ax.transAxes, fontweight="bold")
+        ax.text(0.155, yy + 0.005, text, fontsize=10, color=C["text"],
+                transform=ax.transAxes)
+        yy -= 0.060
+
+    # 底部时间戳
+    ax.text(0.5, 0.075, "数据截至 2026-06-25 · 共 8 页深度复盘",
+            fontsize=9, color=C["muted"], transform=ax.transAxes, ha="center")
+
+    footer(ax, 1)
+    save(fig, "01_cover.png")
+
+page_1()
+
+
+# ============ PAGE 2: 5 只 FCF ETF 同名实异 ============
+def page_2():
+    fig, ax = new_card()
+    header(ax, "PAGE 02 · 5 只名字都叫\"自由现金流\"",
+           "但表现差了 34.4 个百分点",
+           "同一天买入, 同一类名字, 完全不同命运")
+
+    # 5 只 ETF 60 日表现条形图
+    etfs = [
+        ("562340", "中证自由现金流", "华泰柏瑞"),
+        ("563690", "国新央企现金流", "国新"),
+        ("159218", "嘉实自由现金流", "嘉实"),
+        ("159201", "国证自由现金流", "易方达"),
+        ("159222", "华夏自由现金流", "华夏"),
+    ]
+    SYM_KEY = {"562340": "sh562340", "563690": "sh563690",
+               "159218": "sz159218", "159201": "sz159201", "159222": "sz159222"}
+
+    data = [(c, name, brand, S["fcf_etfs"][SYM_KEY[c]]["ret_60d"]) for c, name, brand in etfs]
+    data.sort(key=lambda x: -x[3])  # 高到低
+
+    y_top = 0.78
+    y_bot = 0.36
+    y_step = (y_top - y_bot) / (len(data) - 1)
+    max_abs = max(abs(d[3]) for d in data)
+    bar_max_w = 0.32
+
+    for i, (code, name, brand, ret) in enumerate(data):
+        y = y_top - i * y_step
+        # 左侧 ETF 名 + 代码
+        ax.text(0.06, y + 0.012, f"{name}", fontsize=12, color=C["text"],
+                transform=ax.transAxes, fontweight="bold")
+        ax.text(0.06, y - 0.018, f"{code} · {brand}", fontsize=8.5, color=C["muted"],
+                transform=ax.transAxes)
+
+        # 中线 (0%)
+        mid_x = 0.55
+        ax.plot([mid_x, mid_x], [y - 0.02, y + 0.02], color=C["border"], lw=1, transform=ax.transAxes)
+
+        # 条 (从中线向左/右)
+        bar_w = (abs(ret) / max_abs) * bar_max_w
+        if ret > 0:
+            color = C["green"]
+            rect = Rectangle((mid_x, y - 0.012), bar_w, 0.024, fc=color, ec="none",
+                             transform=ax.transAxes)
+            ax.add_patch(rect)
+            ax.text(mid_x + bar_w + 0.012, y, f"{ret:+.1%}", fontsize=12, color=color,
+                    transform=ax.transAxes, va="center", fontweight="bold")
+        else:
+            color = C["red"]
+            rect = Rectangle((mid_x - bar_w, y - 0.012), bar_w, 0.024, fc=color, ec="none",
+                             transform=ax.transAxes)
+            ax.add_patch(rect)
+            ax.text(mid_x - bar_w - 0.012, y, f"{ret:+.1%}", fontsize=12, color=color,
+                    transform=ax.transAxes, va="center", ha="right", fontweight="bold")
+
+    ax.text(0.5, 0.85, "近 60 日涨跌幅", fontsize=10, color=C["muted"],
+            transform=ax.transAxes, ha="center")
+
+    # 底部点睛 (上移让节奏更连贯)
+    card_box(ax, 0.06, 0.16, 0.88, 0.13, fc="#1a1f26", ec=C["gold"], lw=1.2)
+    top = data[0]
+    bot = data[-1]
+    gap_pp = (top[3] - bot[3]) * 100
+    ax.text(0.5, 0.252, f"最强 vs 最弱 差距 {gap_pp:.1f} 个百分点",
+            fontsize=13, color=C["gold"], transform=ax.transAxes,
+            ha="center", fontweight="bold")
+    ax.text(0.5, 0.212, f"{top[1]} +{top[3]*100:.1f}%   vs   {bot[1]} {bot[3]*100:.1f}%",
+            fontsize=10, color=C["text"], transform=ax.transAxes, ha="center")
+    ax.text(0.5, 0.180, "同一类名字, 跟踪不同指数, 重仓不同行业",
+            fontsize=9, color=C["muted"], transform=ax.transAxes, ha="center")
+
+    footer(ax, 2)
+    save(fig, "02_5etfs.png")
+
+page_2()
+
+
+# ============ PAGE 3: 持仓真相 — 同名不同股 ============
+def page_3():
+    fig, ax = new_card()
+    header(ax, "PAGE 03 · 持仓真相",
+           "5 只 ETF 持仓行业差到离谱",
+           "想买\"自由现金流\"? 你买到的可能是军工/有色/银行")
+
+    # 4 列行业堆叠条 (562340, 159201, 159218, 563690)
+    # 每只 ETF 一个条状结构, 显示前 5 大行业占比
+    SECTOR_COLORS = {
+        "汽车": C["blue"], "石油石化": "#e6a23c", "家电": C["purple"],
+        "航运": C["cyan"], "钢铁": "#8b949e", "有色": C["gold"],
+        "机械": "#a0826d", "军工": C["red"], "电气设备": C["green"],
+        "建筑": "#6f7d8e", "通信": "#5b8def",
+        "银行": "#2d8cf0", "医药": "#d63aff", "半导体": "#00d4aa",
+        "贸易": "#7f8c8d", "游戏": "#ff7b72", "互联网": "#56d4dd",
+        "其他": C["muted"],
+    }
+
+    etf_show = [
+        ("159201", "国证自由现金流ETF", "易方达"),
+        ("159222", "华夏自由现金流ETF", "华夏"),
+        ("159218", "嘉实自由现金流ETF", "嘉实"),
+        ("562340", "华泰柏瑞中证自由现金流ETF", "华泰柏瑞"),
+        ("563690", "国新央企现金流ETF", "国新"),
+    ]
+
+    y_top = 0.74
+    y_step = 0.105
+    bar_h = 0.045
+
+    # 图例 (顶部, 最常见 8 个行业)
+    legend_items = [
+        ("汽车", C["blue"]), ("石油石化", "#e6a23c"), ("家电", C["purple"]),
+        ("有色", C["gold"]), ("钢铁", "#8b949e"), ("军工", C["red"]),
+        ("银行", "#2d8cf0"), ("机械", "#a0826d"),
+    ]
+    lg_y = 0.815
+    lg_x = 0.06
+    for sec, color in legend_items:
+        rect = Rectangle((lg_x, lg_y), 0.018, 0.012, fc=color, ec="none", transform=ax.transAxes)
+        ax.add_patch(rect)
+        ax.text(lg_x + 0.022, lg_y + 0.006, sec, fontsize=7.5, color=C["text"],
+                transform=ax.transAxes, va="center")
+        lg_x += 0.115
+
+    for i, (code, name, brand) in enumerate(etf_show):
+        y = y_top - i * y_step
+        # 名字
+        ax.text(0.06, y + bar_h + 0.005, f"{name} · {code}",
+                fontsize=10, color=C["text"],
+                transform=ax.transAxes, fontweight="bold")
+        # 持仓数据
+        sym_key = f"sh{code}" if code in ("562340", "563690") else f"sz{code}"
+        sectors = S["holdings"][sym_key]["sectors"]
+        # 按"占净值比例"绝对值 (不归一化) — 条长=100%, 没覆盖到的是\"未披露/其他持仓\"
+        sectors_sorted = sorted(sectors.items(), key=lambda x: -x[1])
+        # 排除 \"其他\" (来自映射 fallback), 把它当未覆盖
+        coverage = sum(w for s, w in sectors_sorted if s != "其他")
+        unmapped = sum(w for s, w in sectors_sorted if s == "其他")
+        x = 0.06
+        bar_total_w = 0.88
+        for sec, w in sectors_sorted:
+            if sec == "其他":
+                continue
+            seg_w = (w / 100.0) * bar_total_w
+            color = SECTOR_COLORS.get(sec, C["muted"])
+            rect = Rectangle((x, y), seg_w, bar_h, fc=color, ec="none", transform=ax.transAxes)
+            ax.add_patch(rect)
+            # >= 8% 内部标百分比
+            if w >= 8:
+                ax.text(x + seg_w/2, y + bar_h/2, f"{sec} {w:.0f}%",
+                        fontsize=7.5, color="#0d1117",
+                        transform=ax.transAxes, ha="center", va="center", fontweight="bold")
+            x += seg_w
+        # 未覆盖段 (未披露 + 已映射但小)
+        rest_w = bar_total_w - (x - 0.06)
+        if rest_w > 0.005:
+            rect = Rectangle((x, y), rest_w, bar_h, fc="#21262d", ec=C["border"],
+                             lw=0.5, transform=ax.transAxes)
+            ax.add_patch(rect)
+            if rest_w > 0.10:
+                ax.text(x + rest_w/2, y + bar_h/2, "未披露/其他",
+                        fontsize=7.5, color=C["muted"],
+                        transform=ax.transAxes, ha="center", va="center")
+
+        # 右侧标注 top1 行业 + 占比
+        top_sec, top_w = sectors_sorted[0] if sectors_sorted[0][0] != "其他" else (sectors_sorted[1] if len(sectors_sorted) > 1 else sectors_sorted[0])
+        ax.text(0.94, y - 0.012, f"TOP1 {top_sec} {top_w:.0f}%",
+                fontsize=8, color=C["gold"], transform=ax.transAxes,
+                ha="right")
+
+    # 底部反共识结论
+    card_box(ax, 0.06, 0.07, 0.88, 0.09, fc="#2a1f1f", ec=C["red"])
+    ax.text(0.5, 0.13, "三个真相",
+            fontsize=11, color=C["red"], transform=ax.transAxes,
+            ha="center", fontweight="bold")
+    ax.text(0.5, 0.094, "① 159201/159222 重合 90% (都跟踪国证 980092)",
+            fontsize=8.5, color=C["text"], transform=ax.transAxes, ha="center")
+    ax.text(0.5, 0.073, "② 159218 (嘉实) 63% 是军工 · 名字最坑   ③ 562340 重仓有色/半导体",
+            fontsize=8.5, color=C["text"], transform=ax.transAxes, ha="center")
+
+    footer(ax, 3)
+    save(fig, "03_holdings.png")
+
+page_3()
+
+
+# ============ PAGE 4: FCF vs 红利 vs 红利低波 — 不是同一个东西 ============
+def page_4():
+    fig, ax = new_card()
+    header(ax, "PAGE 04 · 你以为 FCF = 红利?",
+           "数据说: FCF 跑得比红利还差",
+           "近 60 日三类\"防御资产\"对比")
+
+    # 4 柱: FCF指数 / 红利ETF / 红利低波 / 沪深300
+    items = [
+        ("国证 FCF 指数", S["headline"]["fcf_index_60d"], C["red"]),
+        ("红利 ETF", S["benchmarks"]["sh510880"]["ret_60d"], C["orange"]),
+        ("沪深 300", S["headline"]["hs300_60d"], C["blue"]),
+        ("红利低波 100", S["headline"]["dvd_lowvol_60d"], C["green"]),
+    ]
+    items.sort(key=lambda x: x[1])
+
+    # 竖直柱 — 整体上移避免与底部洞察卡重叠
+    n = len(items)
+    bar_w = 0.13
+    gap = (0.82 - n * bar_w) / (n - 1)
+    base_y = 0.55
+    max_h = 0.22
+    vmax = max(abs(v) for _, v, _ in items)
+
+    for i, (name, v, color) in enumerate(items):
+        x = 0.10 + i * (bar_w + gap)
+        h = abs(v) / vmax * max_h
+        if v >= 0:
+            rect = Rectangle((x, base_y), bar_w, h, fc=color, ec="none", transform=ax.transAxes)
+            ax.add_patch(rect)
+            ax.text(x + bar_w/2, base_y + h + 0.020, f"{v:+.1%}",
+                    fontsize=14, color=color, transform=ax.transAxes,
+                    ha="center", fontweight="bold")
+        else:
+            rect = Rectangle((x, base_y - h), bar_w, h, fc=color, ec="none", transform=ax.transAxes)
+            ax.add_patch(rect)
+            ax.text(x + bar_w/2, base_y - h - 0.020, f"{v:+.1%}",
+                    fontsize=14, color=color, transform=ax.transAxes,
+                    ha="center", va="top", fontweight="bold")
+        # 名称
+        ax.text(x + bar_w/2, 0.32, name, fontsize=9.5, color=C["text"],
+                transform=ax.transAxes, ha="center")
+
+    # 0 线 (横贯)
+    ax.plot([0.07, 0.93], [base_y, base_y], color=C["border"], lw=1, transform=ax.transAxes)
+    ax.text(0.06, base_y - 0.005, "0%", fontsize=8, color=C["muted"],
+            transform=ax.transAxes, ha="right", va="center")
+
+    # 关键洞察卡
+    card_box(ax, 0.06, 0.13, 0.88, 0.16, fc="#1a1f26")
+    ax.text(0.5, 0.265, "FCF ≠ 红利 · FCF ≠ 红利低波",
+            fontsize=13, color=C["gold"], transform=ax.transAxes,
+            ha="center", fontweight="bold")
+    dvd_total = S["long_term_dvd_vs_300"]["dvd_total"]
+    hs300_total = S["long_term_dvd_vs_300"]["hs300_total"]
+    years = S["long_term_dvd_vs_30"]["years"] if "long_term_dvd_vs_30" in S else S["long_term_dvd_vs_300"]["years"]
+    ax.text(0.5, 0.225, f"14 年长期: 红利 ETF 年化 +3.2% < 沪深 300 +4.8%",
+            fontsize=10, color=C["text"], transform=ax.transAxes, ha="center")
+    ax.text(0.5, 0.190, "→ 连\"红利打沪深\"都是迷思 · 何况 FCF",
+            fontsize=10, color=C["red"], transform=ax.transAxes, ha="center")
+    ax.text(0.5, 0.155, "三类资产的相关性最低到 0.42 (国证 FCF vs 红利低波) · 不是替代品",
+            fontsize=9, color=C["muted"], transform=ax.transAxes, ha="center")
+
+    footer(ax, 4)
+    save(fig, "04_fcf_vs_dividend.png")
+
+page_4()
+
+
+# ============ PAGE 5: 跌的真相 — 发布即顶点 ============
+def page_5():
+    fig, ax = new_card()
+    header(ax, "PAGE 05 · 为什么跌这么惨",
+           "发布即顶点 · ETF 集中 2025 上市",
+           "回测做出来的指数, 散户买完就跌")
+
+    # 时间轴 (从 2024-12 至 2026-06)
+    timeline = [
+        ("2024-12", "国证自由现金流指数发布"),
+        ("2025-02", "159201 上市 (易方达)"),
+        ("2025-04", "159222 上市 (华夏)"),
+        ("2025-05", "159218 上市 (嘉实)"),
+        ("2025-10", "563690 上市 (国新)"),
+        ("2026-03", "指数到顶 6227 (距今 -22.9%)"),
+        ("2026-06", "今日 4799"),
+    ]
+    # 垂直时间轴
+    line_x = 0.13
+    y_start = 0.80
+    y_end = 0.22
+    y_step = (y_start - y_end) / (len(timeline) - 1)
+
+    # 主轴线
+    ax.plot([line_x, line_x], [y_end - 0.01, y_start + 0.01],
+            color=C["border"], lw=1.5, transform=ax.transAxes)
+
+    for i, (dt, evt) in enumerate(timeline):
+        y = y_start - i * y_step
+        # 节点圆点
+        # 关键节点(发布, 顶点, 今日)用红
+        is_key = i in [0, 5, 6]
+        dot_color = C["red"] if is_key else C["blue"]
+        ax.scatter([line_x], [y], s=70 if is_key else 40, c=dot_color,
+                   transform=ax.transAxes, zorder=3, ec=C["bg"], lw=2)
+
+        # 日期 (左)
+        ax.text(line_x - 0.02, y, dt, fontsize=10, color=C["muted"],
+                transform=ax.transAxes, ha="right", va="center")
+        # 事件 (右)
+        text_color = C["red"] if i in (0, 5) else (C["gold"] if i == 6 else C["text"])
+        weight = "bold" if is_key else "normal"
+        ax.text(line_x + 0.025, y, evt, fontsize=11, color=text_color,
+                transform=ax.transAxes, va="center", fontweight=weight)
+
+    # 关键洞察
+    card_box(ax, 0.06, 0.06, 0.88, 0.13, fc="#2a1f1f", ec=C["red"])
+    ax.text(0.5, 0.155, "「发布即顶点」三连击",
+            fontsize=12, color=C["red"], transform=ax.transAxes,
+            ha="center", fontweight="bold")
+    ax.text(0.5, 0.123, "① 指数 2024-12 发布 (无真实 out-of-sample)",
+            fontsize=9, color=C["text"], transform=ax.transAxes, ha="center")
+    ax.text(0.5, 0.097, "② 2025 全年 ETF 密集上市 · 散户进场",
+            fontsize=9, color=C["text"], transform=ax.transAxes, ha="center")
+    ax.text(0.5, 0.071, "③ 上市后基金抱团推上去 · 2026-03 见顶 · 3 个月跌 22.9%",
+            fontsize=9, color=C["text"], transform=ax.transAxes, ha="center")
+
+    footer(ax, 5)
+    save(fig, "05_publish_peak.png")
+
+
+# ============ PAGE 6: 当前位置诊断 — 抄底还是趋势? ============
+def page_6():
+    fig, ax = new_card()
+    header(ax, "PAGE 06 · 现在该抄底吗?",
+           "三个客观信号 · 拒绝拍脑袋",
+           "用数据说话, 不用情绪")
+
+    # 三个信号灯卡
+    signals = [
+        {
+            "title": "信号 1 · 回撤深度",
+            "val": "-22.9%",
+            "note": "国证 FCF 指数距 ATH",
+            "pill": "WARN",
+            "pill_color": C["orange"],
+            "expl": "已超过指数发布以来\n所有回撤的最深值",
+        },
+        {
+            "title": "信号 2 · 风格相关性",
+            "val": "0.42",
+            "note": "FCF vs 红利低波 (120 日)",
+            "pill": "NEUTRAL",
+            "pill_color": C["blue"],
+            "expl": "弱相关 · FCF 不是\n红利的替代品",
+        },
+        {
+            "title": "信号 3 · 跟踪行业风险",
+            "val": "70%+",
+            "note": "周期/资源/汽车权重",
+            "pill": "RISK",
+            "pill_color": C["red"],
+            "expl": "本质是周期股组合\n不是防御资产",
+        },
+    ]
+
+    y_top = 0.66
+    card_h = 0.16
+    gap = 0.025
+    for i, s in enumerate(signals):
+        y = y_top - i * (card_h + gap)
+        card_box(ax, 0.06, y, 0.88, card_h, fc="#1a1f26")
+        # 左侧 pill + title
+        ax.text(0.10, y + card_h - 0.030, s["title"], fontsize=11,
+                color=C["muted"], transform=ax.transAxes, fontweight="bold")
+        pill(ax, 0.83, y + card_h - 0.030, s["pill"], s["pill_color"], fontsize=9)
+        # 大数字
+        ax.text(0.10, y + 0.045, s["val"], fontsize=30, color=s["pill_color"],
+                transform=ax.transAxes, fontweight="bold")
+        ax.text(0.10, y + 0.020, s["note"], fontsize=9, color=C["muted"],
+                transform=ax.transAxes)
+        # 右侧解释
+        for j, line in enumerate(s["expl"].split("\n")):
+            ax.text(0.60, y + card_h - 0.075 - j*0.025, line,
+                    fontsize=10, color=C["text"], transform=ax.transAxes)
+
+    # 结论
+    card_box(ax, 0.06, 0.07, 0.88, 0.10, fc="#1a2a1f", ec=C["gold"])
+    ax.text(0.5, 0.145, "结论: 现在不是\"无脑抄底\"的位置",
+            fontsize=12, color=C["gold"], transform=ax.transAxes,
+            ha="center", fontweight="bold")
+    ax.text(0.5, 0.115, "回撤深度只代表\"跌了多少\", 不代表\"该买\"",
+            fontsize=10, color=C["text"], transform=ax.transAxes, ha="center")
+    ax.text(0.5, 0.088, "真正决定收益的是: 持仓行业的景气度 + 你买的是哪一只",
+            fontsize=9, color=C["muted"], transform=ax.transAxes, ha="center")
+
+    footer(ax, 6)
+    save(fig, "06_position.png")
+
+page_5()
+page_6()
+
+
+# ============ PAGE 7: 操作策略 ============
+def page_7():
+    fig, ax = new_card()
+    header(ax, "PAGE 07 · 怎么操作",
+           "买之前先认清你买的是什么",
+           "5 句话教你避开 90% 的坑")
+
+    strategies = [
+        ("01", "千万别看名字买", "5 只\"自由现金流 ETF\"持仓差到 60%+\n买之前先查跟踪指数 + 看 top10 持仓", C["red"]),
+        ("02", "想吃 FCF 因子? 选大池子", "国证自由现金流 980092 池子大 (100 股)\n对应 159201/159222 · 重合度 90%, 任选一只", C["blue"]),
+        ("03", "想吃军工? 159218 是\"伪 FCF\"", "嘉实那只 63% 是军工\n不要拿它当现金流策略 buy and hold", C["orange"]),
+        ("04", "不要单笔重仓 · 分批进", "指数发布以来仅 18 个月\n样本不足 · 不知道真正底部在哪\n建议: 现价 50% + 再跌 10% 加 30% + 再跌 10% 补 20%", C["gold"]),
+        ("05", "用红利低波做对冲", "FCF 和红利低波相关性只有 0.42\n两个都买可对冲风格切换风险", C["green"]),
+    ]
+
+    y_top = 0.78
+    y_step = 0.128
+    for i, (num, title, body, color) in enumerate(strategies):
+        y = y_top - i * y_step
+        # 编号大字
+        ax.text(0.08, y + 0.025, num, fontsize=24, color=color,
+                transform=ax.transAxes, fontweight="bold", va="center")
+        # 标题
+        ax.text(0.18, y + 0.045, title, fontsize=11.5, color=C["text"],
+                transform=ax.transAxes, fontweight="bold")
+        # body 多行
+        for j, line in enumerate(body.split("\n")):
+            ax.text(0.18, y + 0.015 - j*0.022, line, fontsize=8.5, color=C["muted"],
+                    transform=ax.transAxes)
+        # 横分割线
+        if i < len(strategies) - 1:
+            ax.plot([0.08, 0.92], [y - 0.070, y - 0.070],
+                    color=C["border"], lw=0.4, alpha=0.5, transform=ax.transAxes)
+
+    # 底部口诀总结 (填充留白)
+    card_box(ax, 0.06, 0.07, 0.88, 0.08, fc="#1a2a1f", ec=C["gold"])
+    ax.text(0.5, 0.118, "核心口诀",
+            fontsize=11, color=C["gold"], transform=ax.transAxes,
+            ha="center", fontweight="bold")
+    ax.text(0.5, 0.085, "查持仓 · 选大池子 · 分批进 · 配红利低波",
+            fontsize=11, color=C["text"], transform=ax.transAxes, ha="center")
+
+    footer(ax, 7)
+    save(fig, "07_strategy.png")
+
+
+# ============ PAGE 8: 总结 + 免责 ============
+def page_8():
+    fig, ax = new_card()
+    header(ax, "PAGE 08 · 一图总结",
+           "自由现金流真相速记卡",
+           "存图防止再被名字割韭菜")
+
+    # 大主标
+    ax.text(0.5, 0.79, "记住这 4 句", fontsize=16, color=C["gold"],
+            transform=ax.transAxes, ha="center", fontweight="bold")
+
+    quotes = [
+        ("名字 ≠ 因子", "5 只\"自由现金流 ETF\"持仓最高差到 60%+", C["red"]),
+        ("回测 ≠ 实盘", "国证 FCF 指数 2024-12 发布 · 散户买进就跌 22.9%", C["orange"]),
+        ("FCF ≠ 红利", "相关性 0.42 · 跑势差 38.8 pp · 不是替代品", C["blue"]),
+        ("现在 ≠ 抄底", "样本不足 18 个月 · 不知道真底 · 分批 > 一次性", C["gold"]),
+    ]
+
+    y_top = 0.70
+    y_step = 0.115
+    for i, (h, body, color) in enumerate(quotes):
+        y = y_top - i * y_step
+        card_box(ax, 0.06, y - 0.05, 0.88, 0.10, fc="#1a1f26", ec=color, lw=1.0)
+        ax.text(0.10, y, h, fontsize=14, color=color, transform=ax.transAxes,
+                fontweight="bold", va="center")
+        ax.text(0.94, y, body, fontsize=9.5, color=C["text"],
+                transform=ax.transAxes, ha="right", va="center")
+
+    # 底部 CTA
+    ax.text(0.5, 0.18, "看完点赞收藏",
+            fontsize=14, color=C["gold"], transform=ax.transAxes,
+            ha="center", fontweight="bold")
+    ax.text(0.5, 0.15, "下次再有 ETF 网红主题 · 先看看跟踪指数发布时间",
+            fontsize=9, color=C["muted"], transform=ax.transAxes, ha="center")
+    # 绿色按钮化 CTA
+    cta_box = FancyBboxPatch((0.18, 0.080), 0.64, 0.045,
+                             boxstyle="round,pad=0.005,rounding_size=0.020",
+                             fc=C["green"], ec="none", transform=ax.transAxes)
+    ax.add_patch(cta_box)
+    ax.text(0.5, 0.102, "想看完整深度研报 PDF · 评论区扣【FCF】",
+            fontsize=11, color="#0d1117", transform=ax.transAxes,
+            ha="center", va="center", fontweight="bold")
+
+    footer(ax, 8)
+    save(fig, "08_summary.png")
+
+page_7()
+page_8()
+print("\n[ALL 8 CARDS DONE]")
