@@ -1,4 +1,4 @@
-"""FCF 反共识 — 浅色 figures (PDF 研报用) — 2026-06-26."""
+"""现金流反共识 — 浅色 figures (PDF 研报用) — 2026-06-26."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ with open(DATA_DIR / "summary.json", "r", encoding="utf-8") as f:
     S = json.load(f)
 
 
-# ============ FIG 1: 5 FCF ETF 60d 表现条形 ============
+# ============ FIG 1: 5 现金流 ETF 60d 表现条形 ============
 def fig_5etfs():
     fig, ax = plt.subplots(figsize=(10, 5.5), dpi=120)
     fig.patch.set_facecolor("white")
@@ -42,7 +42,7 @@ def fig_5etfs():
     data.sort(key=lambda x: x[1])
     names = [d[0] for d in data]
     vals = [d[1] * 100 for d in data]
-    colors = ["#dc2626" if v < 0 else "#16a34a" for v in vals]
+    colors = ["#16a34a" if v < 0 else "#dc2626" for v in vals]
 
     y = np.arange(len(names))
     ax.barh(y, vals, color=colors, edgecolor="none", height=0.6)
@@ -119,12 +119,12 @@ def fig_holdings():
     print(f"[OK] {p}")
 
 
-# ============ FIG 3: FCF 指数 vs 沪深300 vs 红利低波 净值曲线 (rebase 100) ============
+# ============ FIG 3: 现金流指数 vs 沪深300 vs 红利低波 净值曲线 (rebase 100) ============
 def fig_nav_compare():
     fig, ax = plt.subplots(figsize=(10, 5.5), dpi=120)
     fig.patch.set_facecolor("white")
 
-    # 取 FCF 指数 sz980092 自发布以来
+    # 取 现金流指数 sz980092 自发布以来
     idx_fcf = pd.read_parquet(CACHE / "idx_sz980092.parquet")
     idx_fcf["date"] = pd.to_datetime(idx_fcf["date"])
     idx_fcf = idx_fcf.set_index("date")["close"]
@@ -141,23 +141,23 @@ def fig_nav_compare():
     hs300_n = hs300 / hs300.iloc[0] * 100
     dvd_n = dvd_lv / dvd_lv.iloc[0] * 100
 
-    ax.plot(fcf_n.index, fcf_n.values, color="#dc2626", lw=2.2, label=f"国证自由现金流指数 ({fcf_n.iloc[-1]-100:+.1f}%)")
+    ax.plot(fcf_n.index, fcf_n.values, color="#16a34a", lw=2.2, label=f"国证自由现金流指数 ({fcf_n.iloc[-1]-100:+.1f}%)")
     ax.plot(hs300_n.index, hs300_n.values, color="#2563eb", lw=2.0, label=f"沪深 300 ({hs300_n.iloc[-1]-100:+.1f}%)")
-    ax.plot(dvd_n.index, dvd_n.values, color="#16a34a", lw=2.0, label=f"红利低波 100 ({dvd_n.iloc[-1]-100:+.1f}%)")
+    ax.plot(dvd_n.index, dvd_n.values, color="#dc2626", lw=2.0, label=f"红利低波 100 ({dvd_n.iloc[-1]-100:+.1f}%)")
 
     # 标记顶点
     peak_idx = fcf_n.idxmax()
     peak_val = fcf_n.max()
-    ax.scatter([peak_idx], [peak_val], s=100, c="#dc2626", zorder=5, ec="white", lw=1.5)
-    ax.annotate(f"FCF 指数顶点\n{peak_idx.strftime('%Y-%m-%d')} ({peak_val:.1f})",
+    ax.scatter([peak_idx], [peak_val], s=100, c="#16a34a", zorder=5, ec="white", lw=1.5)
+    ax.annotate(f"现金流指数顶点\n{peak_idx.strftime('%Y-%m-%d')} ({peak_val:.1f})",
                 xy=(peak_idx, peak_val), xytext=(0.55, 0.92),
                 textcoords="axes fraction",
-                fontsize=9.5, color="#dc2626", fontweight="bold",
-                arrowprops=dict(arrowstyle="->", color="#dc2626", lw=1.0))
+                fontsize=9.5, color="#16a34a", fontweight="bold",
+                arrowprops=dict(arrowstyle="->", color="#16a34a", lw=1.0))
 
     ax.axhline(100, color="#64748b", lw=0.8, ls=":")
     ax.set_ylabel("净值 (起点 = 100)", fontsize=11)
-    ax.set_title("发布即顶点 — FCF 指数 vs 沪深300 vs 红利低波 (起点对齐)",
+    ax.set_title("发布即顶点 — 现金流指数 vs 沪深300 vs 红利低波 (起点对齐)",
                  fontsize=12, fontweight="bold", pad=12)
     ax.legend(loc="lower left", fontsize=10, frameon=False)
     ax.grid(alpha=0.3, ls=":")
@@ -170,7 +170,7 @@ def fig_nav_compare():
     print(f"[OK] {p}")
 
 
-# ============ FIG 4: FCF 指数回撤曲线 ============
+# ============ FIG 4: 现金流指数回撤曲线 ============
 def fig_drawdown():
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6), dpi=120,
                                     gridspec_kw={"height_ratios": [2, 1]}, sharex=True)
@@ -184,10 +184,10 @@ def fig_drawdown():
 
     # 上: 价格
     ax1.plot(idx_fcf.index, idx_fcf.values, color="#10243e", lw=1.8)
-    ax1.fill_between(idx_fcf.index, idx_fcf.values, cummax.values, color="#dc2626", alpha=0.15)
-    ax1.plot(cummax.index, cummax.values, color="#dc2626", lw=0.8, ls="--", alpha=0.6, label="历史峰值 (ATH)")
+    ax1.fill_between(idx_fcf.index, idx_fcf.values, cummax.values, color="#16a34a", alpha=0.15)
+    ax1.plot(cummax.index, cummax.values, color="#16a34a", lw=0.8, ls="--", alpha=0.6, label="历史峰值 (ATH)")
     peak_d = idx_fcf.idxmax()
-    ax1.scatter([peak_d], [idx_fcf.max()], s=80, c="#dc2626", zorder=5, ec="white", lw=1.5)
+    ax1.scatter([peak_d], [idx_fcf.max()], s=80, c="#16a34a", zorder=5, ec="white", lw=1.5)
     ax1.set_ylabel("国证自由现金流指数", fontsize=10)
     ax1.set_title("国证自由现金流指数 (sz980092) 价格 + 回撤双面板",
                   fontsize=12, fontweight="bold", pad=10)
@@ -197,15 +197,15 @@ def fig_drawdown():
     ax1.spines["right"].set_visible(False)
 
     # 下: 回撤
-    ax2.fill_between(dd.index, dd.values, 0, color="#dc2626", alpha=0.30)
-    ax2.plot(dd.index, dd.values, color="#dc2626", lw=1.5)
+    ax2.fill_between(dd.index, dd.values, 0, color="#16a34a", alpha=0.30)
+    ax2.plot(dd.index, dd.values, color="#16a34a", lw=1.5)
     ax2.axhline(0, color="#10243e", lw=0.6)
     cur_dd = dd.iloc[-1]
-    ax2.axhline(cur_dd, color="#dc2626", ls="--", lw=0.8, alpha=0.6)
+    ax2.axhline(cur_dd, color="#16a34a", ls="--", lw=0.8, alpha=0.6)
     ax2.annotate(f"当前回撤 {cur_dd:+.1f}%",
                  xy=(dd.index[-1], cur_dd), xytext=(-160, -10),
                  textcoords="offset points",
-                 fontsize=10, color="#dc2626", fontweight="bold")
+                 fontsize=10, color="#16a34a", fontweight="bold")
     ax2.set_ylabel("回撤 (%)", fontsize=10)
     ax2.set_xlabel("日期", fontsize=10)
     ax2.grid(alpha=0.3, ls=":")

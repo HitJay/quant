@@ -1,10 +1,10 @@
-"""FCF 反共识分析 + 8 页小红书深色卡片 — 2026-06-26.
+"""现金流反共识分析 + 8 页小红书深色卡片 — 2026-06-26.
 
 核心叙事 (反共识):
-  1. 5 只"自由现金流 ETF"看似同质, 实际持仓彻底不同 — 散户买的不是 FCF 因子, 是名字
-  2. 真正的 FCF 龙头 (国证自由现金流) = 周期股扎堆 (上汽+海油+格力+海控+长城+宝钢...) 60d -16.85%
-  3. FCF ETF 全部 2024-2025 集中上市, 国证自由现金流指数 2024-12 才发布 → "发布即顶点"
-  4. 同期红利低波 (sz159211) +21.87% / 沪深300 +12.48% / FCF 龙头 -16.85% → 不是大盘问题, 是风格问题
+  1. 5 只"自由现金流 ETF"看似同质, 实际持仓彻底不同 — 散户买的不是 现金流因子, 是名字
+  2. 真正的 现金流龙头 (国证自由现金流) = 周期股扎堆 (上汽+海油+格力+海控+长城+宝钢...) 60d -16.85%
+  3. 现金流 ETF 全部 2024-2025 集中上市, 国证自由现金流指数 2024-12 才发布 → "发布即顶点"
+  4. 同期红利低波 (sz159211) +21.87% / 沪深300 +12.48% / 现金流龙头 -16.85% → 不是大盘问题, 是风格问题
   5. 当前位置: 距 ATH -22.81% (3 个月击穿) — 是 buy the dip 还是趋势刚开始?
   6. 操作策略: 区分 5 只产品 / 不要看到"自由现金流"就买 / 分批 vs 一次性
 """
@@ -29,7 +29,7 @@ CARD_DIR = OUT / "cards"
 for d in (DATA_DIR, FIG_DIR, CARD_DIR):
     d.mkdir(parents=True, exist_ok=True)
 
-# 5 只 FCF ETF
+# 5 只 现金流 ETF
 FCF_ETFS = [
     ("sh562340", "562340", "中证自由现金流ETF", "华泰柏瑞", "中证自由现金流指数", "2024-05-08"),
     ("sz159201", "159201", "国证自由现金流ETF", "易方达",   "国证自由现金流指数 980092", "2025-02-27"),
@@ -83,9 +83,9 @@ def perf_window(df: pd.DataFrame, end_date: pd.Timestamp | None = None) -> dict:
     return out
 
 
-# ============ 1. 5 只 FCF ETF 表现表 ============
+# ============ 1. 5 只 现金流 ETF 表现表 ============
 print("=" * 60)
-print("STAGE 1: 5 只 FCF ETF 表现 + 基准对比")
+print("STAGE 1: 5 只 现金流 ETF 表现 + 基准对比")
 print("=" * 60)
 fcf_perf = {}
 for sym, code, name, brand, track, ipo in FCF_ETFS:
@@ -111,7 +111,7 @@ print("\n=== 基准 ===")
 for sym, p in bench_perf.items():
     print(f"{p['name']:24s} 20d={p['ret_20d']:+.2%}  60d={p['ret_60d']:+.2%}  YTD={p['ret_ytd']:+.2%}")
 
-# 国证自由现金流指数 sz980092 (FCF 龙头)
+# 国证自由现金流指数 sz980092 (现金流龙头)
 idx_fcf = load_idx("sz980092")
 idx_fcf_perf = perf_window(idx_fcf)
 idx_fcf_perf["name"] = "国证自由现金流指数 (980092)"
@@ -176,7 +176,7 @@ for sym, code, name, brand, track, ipo in FCF_ETFS:
 
 # ============ 3. 跌的真相 — 5 只 ETF 的相关性矩阵 + 与煤炭/资源/红利的相关性 ============
 print("\n" + "=" * 60)
-print("STAGE 3: FCF 跑势归因 (相关性 + 跟踪指数辨析)")
+print("STAGE 3: 现金流跑势归因 (相关性 + 跟踪指数辨析)")
 print("=" * 60)
 
 # 取最近 120 个交易日, 各 ETF 收益率序列
@@ -192,7 +192,7 @@ for sym, name, _ in BENCH:
 ret_df = pd.DataFrame(SERIES).dropna()
 print(f"\n相关性窗口 N={len(ret_df)}, range={ret_df.index[0].date()} ~ {ret_df.index[-1].date()}")
 corr = ret_df.corr()
-# 焦点: 国证 FCF (159201) 与各基准的相关
+# 焦点: 国证现金流 (159201) 与各基准的相关
 key_sym = "sz159201"
 print(f"\n{key_sym} 国证自由现金流ETF 与基准相关性:")
 for s in ["sh510300", "sh510880", "sz159211", "sh515220"]:
@@ -200,10 +200,10 @@ for s in ["sh510300", "sh510880", "sz159211", "sh515220"]:
         print(f"  vs {bench_perf[s]['name']:24s} corr={corr.loc[key_sym, s]:.3f}")
 
 # ============ 4. 条件胜率 (用代理) ============
-# FCF 指数 980092 只有 363 天, 不够长. 取煤炭 ETF 515220 (4 年) + 沪深300 长期数据做 fallback.
+# 现金流指数 980092 只有 363 天, 不够长. 取煤炭 ETF 515220 (4 年) + 沪深300 长期数据做 fallback.
 # 用国证自由现金流指数 sz980092 月线做 fwd 回测, 接受样本小
 print("\n" + "=" * 60)
-print("STAGE 4: FCF 指数(短样本)前瞻收益分布 — 当前位置诊断")
+print("STAGE 4: 现金流指数(短样本)前瞻收益分布 — 当前位置诊断")
 print("=" * 60)
 
 fcf_m = idx_fcf.set_index("date").resample("ME").last()
@@ -215,7 +215,7 @@ print(f"国证自由现金流指数月线 N={len(fcf_m_close)} {fcf_m_close.inde
 fcf_d = idx_fcf.set_index("date")["close"]
 cummax_fcf = fcf_d.expanding().max()
 dd_fcf = fcf_d / cummax_fcf - 1
-print("\n国证 FCF 指数 自发布以来回撤分布:")
+print("\n国证 现金流指数 自发布以来回撤分布:")
 print(f"  当前回撤  {dd_fcf.iloc[-1]:+.2%}")
 print(f"  历史最深  {dd_fcf.min():+.2%} ({dd_fcf.idxmin().date()})")
 print(f"  历史中位  {dd_fcf.median():+.2%}")
@@ -226,7 +226,7 @@ cur_dd = float(dd_fcf.iloc[-1])
 worse_pct = float((dd_fcf <= cur_dd).mean())
 print(f"  当前回撤 {cur_dd:+.2%} 是历史样本中第 {(1 - worse_pct)*100:.0f}% 分位 (越低越深)")
 
-# ============ 5. 红利 vs FCF 长期对比 (用代理) ============
+# ============ 5. 红利 vs 现金流 长期对比 (用代理) ============
 # 红利低波 sh510880 (4721 天 2007 起) vs 沪深300 vs (FCF 没法长 proxy)
 # 取一段共同窗口, 滚动 12M 回报对比
 print("\n" + "=" * 60)
@@ -246,7 +246,7 @@ print(f"沪深300:  累计 {ret_300_total:+.2%} 年化 {ann_300:+.2%}")
 
 # ============ 6. 导出 summary.json ============
 summary = {
-    "topic": "FCF 反共识帖",
+    "topic": "现金流反共识帖",
     "date": "2026-06-26",
     "headline": {
         "fcf_index_60d": idx_fcf_perf["ret_60d"],

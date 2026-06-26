@@ -1,4 +1,4 @@
-"""Fetch FCF ETF + 基准 + 持仓表 — 反共识帖 2026-06-26.
+"""Fetch 现金流 ETF + 基准 + 持仓表 — 反共识帖 2026-06-26.
 
 数据源:
 - ETF 日线: ak.fund_etf_hist_sina (HPC 稳定)
@@ -25,7 +25,7 @@ import akshare as ak
 CACHE = Path("/das/user/QYJI/quant/data/cache/fcf")
 CACHE.mkdir(parents=True, exist_ok=True)
 
-# 5 只 FCF ETF (sina 必须带 sh/sz 前缀)
+# 5 只 现金流 ETF (sina 必须带 sh/sz 前缀)
 FCF_ETFS = {
     "sh562340": "中证自由现金流ETF(华泰柏瑞)",   # 2024-05-08 上市, 历史最长
     "sz159201": "国证自由现金流ETF",              # 2025-02-27
@@ -34,7 +34,7 @@ FCF_ETFS = {
     "sh563690": "国新央企现金流ETF",              # 2025-10-10
 }
 
-# 基准: 沪深300 + 红利 + 红利低波 + 资源股 ETF (用于 FCF 风格归因)
+# 基准: 沪深300 + 红利 + 红利低波 + 资源股 ETF (用于 现金流风格归因)
 BENCH_ETFS = {
     "sh510300": "沪深300ETF",
     "sh510880": "红利ETF",
@@ -47,7 +47,7 @@ BENCH_ETFS = {
 # 指数 (用 sina 走 stock_zh_index_daily)
 INDEXES = {
     "sh000300": "沪深300",
-    "sz980092": "国证自由现金流指数",  # FCF ETF 主跟踪标的, 但只有 2024-12 起
+    "sz980092": "国证自由现金流指数",  # 现金流 ETF 主跟踪标的, 但只有 2024-12 起
     "sh000922": "中证红利",
     "sh000932": "中证电力公用",
 }
@@ -127,7 +127,7 @@ def fetch_holdings(code: str, name: str, retries: int = 3) -> pd.DataFrame | Non
 
 
 def main() -> None:
-    print("=== FCF ETFs ===")
+    print("=== 现金流 ETFs ===")
     for sym, name in FCF_ETFS.items():
         fetch_etf(sym, name)
         time.sleep(0.5)

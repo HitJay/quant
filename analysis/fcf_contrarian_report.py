@@ -1,7 +1,7 @@
-"""FCF 反共识 — 付费深度研报 PDF (reportlab) — 2026-06-26.
+"""现金流反共识 — 付费深度研报 PDF (reportlab) — 2026-06-26.
 
 输入: output/2026-06-26/fcf-contrarian/data/summary.json + figures/*.png
-输出: output/2026-06-26/fcf-contrarian/FCF反共识深度研报.pdf
+输出: output/2026-06-26/fcf-contrarian/现金流反共识深度研报.pdf
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from reportlab.pdfbase.pdfmetrics import registerFontFamily
 ROOT = Path("/das/user/QYJI/quant/output/2026-06-26/fcf-contrarian")
 FIGS = ROOT / "figures"
 DATA = ROOT / "data"
-PDF = ROOT / "FCF反共识深度研报.pdf"
+PDF = ROOT / "现金流反共识深度研报.pdf"
 S = json.loads((DATA / "summary.json").read_text(encoding="utf-8"))
 
 FONT = "/usr/share/fonts/google-droid/DroidSansFallback.ttf"
@@ -32,8 +32,11 @@ registerFontFamily("CN", normal="CN", bold="CN-B", italic="CN", boldItalic="CN-B
 
 # ── 配色 ──
 NAVY = colors.HexColor("#10243e")
-GREEN = colors.HexColor("#16a34a")
-RED = colors.HexColor("#dc2626")
+# A 股配色: 红 = 涨/正, 绿 = 跌/负 (与美股相反)
+# RED/GREEN 这两个名字保留 (避免大规模重命名), 但语义已对齐 A 股
+# RED 字面是红色 hex, 用于涨幅/正值; GREEN 字面是绿色 hex, 用于跌幅/负值
+RED = colors.HexColor("#dc2626")    # 涨幅 / 正值 / 利好
+GREEN = colors.HexColor("#16a34a")  # 跌幅 / 负值 / 警示
 ORANGE = colors.HexColor("#ea580c")
 BLUE = colors.HexColor("#2563eb")
 GOLD = colors.HexColor("#b8860b")
@@ -90,7 +93,7 @@ def on_first(c, d):
     # 底部
     c.setFont("CN", 8)
     c.setFillColor(GRAY)
-    c.drawString(2 * cm, 1.2 * cm, "FCF 反共识深度研报 · 复旦杰伦 · 2026-06-26")
+    c.drawString(2 * cm, 1.2 * cm, "现金流反共识深度研报 · 复旦杰伦 · 2026-06-26")
     c.drawRightString(A4[0] - 2 * cm, 1.2 * cm, f"第 {d.page} 页")
     c.setFont("CN", 7.5)
     c.drawString(2 * cm, 0.8 * cm,
@@ -105,7 +108,7 @@ def on_later(c, d):
     c.line(2 * cm, A4[1] - 1.2 * cm, A4[0] - 2 * cm, A4[1] - 1.2 * cm)
     c.setFont("CN", 8.5)
     c.setFillColor(NAVY)
-    c.drawString(2 * cm, A4[1] - 0.9 * cm, "FCF 反共识深度研报")
+    c.drawString(2 * cm, A4[1] - 0.9 * cm, "现金流反共识深度研报")
     c.setFillColor(GRAY)
     c.drawRightString(A4[0] - 2 * cm, A4[1] - 0.9 * cm,
                       "数据截至 2026-06-25  ·  复旦杰伦")
@@ -129,11 +132,11 @@ story.append(Spacer(1, 1.5 * cm))
 
 # 三个核心数字大字
 hero_data = [[
-    Paragraph(f'<font name="CN-B" size="34" color="#dc2626">{pct(S["headline"]["fcf_index_60d"])}</font>', BODY),
+    Paragraph(f'<font name="CN-B" size="34" color="#16a34a">{pct(S["headline"]["fcf_index_60d"])}</font>', BODY),
     Paragraph(f'<font name="CN-B" size="34" color="#2563eb">{pct(S["headline"]["fcf_index_dd"])}</font>', BODY),
     Paragraph(f'<font name="CN-B" size="34" color="#b8860b">{pct(S["headline"]["dvd_lowvol_60d"])}</font>', BODY),
 ], [
-    Paragraph('<font size="9" color="#666">国证 FCF 指数<br/>近 60 日</font>', BODY),
+    Paragraph('<font size="9" color="#666">国证 现金流指数<br/>近 60 日</font>', BODY),
     Paragraph('<font size="9" color="#666">距 ATH<br/>2026-03 见顶</font>', BODY),
     Paragraph('<font size="9" color="#666">红利低波 100<br/>同期对比</font>', BODY),
 ]]
@@ -152,7 +155,7 @@ story.append(Paragraph(
     '本报告系统量化了 5 只\"自由现金流 ETF\"在近期市场剧烈分化背后的真相: '
     '它们看似同质, 实际跟踪不同指数、持仓行业差异巨大; 国证自由现金流指数自'
     '2024-12 发布以来即见顶, 短短 3 个月回撤 22.9%, 远跑输沪深300 (+12.1%) '
-    '与红利低波 100 (+21.9%)。本文以数据为核心论据, 拆解\"FCF = 红利升级版\"的认知误区, '
+    '与红利低波 100 (+21.9%)。本文以数据为核心论据, 拆解\"现金流 = 红利升级版\"的认知误区, '
     '给出可执行的操作策略。',
     BODY
 ))
@@ -179,17 +182,17 @@ bullets = [
     f'(易方达 2-月, 华夏 4-月, 嘉实 5-月, 国新 10-月), 上市后基金抱团推升至 2026-03 顶点 6227, '
     f'随后 3 个月回撤 {pct(S["headline"]["fcf_index_dd"])}, 击穿历史所有回撤深度。',
 
-    f'<b>结论 3 · FCF ≠ 红利。</b> 国证 FCF 与中证红利低波 100 的 120 日相关性仅 '
+    f'<b>结论 3 · 现金流 ≠ 红利。</b> 国证现金流 与中证红利低波 100 的 120 日相关性仅 '
     f'{S["correlation_fcf_vs_bench"]["vs_dividend_lowvol"]:.2f}, 跑势差距 '
     f'{(S["headline"]["fcf_index_60d"] - S["headline"]["dvd_lowvol_60d"])*100:.1f} 个百分点; '
-    f'连\"红利打沪深300\"在 14 年长跑里都不成立 (红利年化 +3.2% < 沪深300 +4.8%), 何况 FCF。',
+    f'连\"红利打沪深300\"在 14 年长跑里都不成立 (红利年化 +3.2% < 沪深300 +4.8%), 何况 现金流。',
 
-    f'<b>结论 4 · 当前不是无脑抄底位。</b> 国证 FCF 指数发布以来仅 18 个月样本, 当前回撤 '
+    f'<b>结论 4 · 当前不是无脑抄底位。</b> 国证 现金流指数发布以来仅 18 个月样本, 当前回撤 '
     f'-22.9% 已是历史最深, 但样本不足无法判断这是\"地板\"还是\"半山腰\"; '
     f'真实风险在持仓: 159201/159222 的周期权重 50%+, 与全球大宗商品周期高度绑定。',
 
-    f'<b>结论 5 · 区分产品 + 分批进场 + 红利低波对冲。</b> 想吃 FCF 因子选大池子 (980092 跟踪标的 '
-    f'159201/159222 重合 90%); 避开\"伪 FCF\" (159218 实际军工); 不要一次性梭哈, 分批进场, '
+    f'<b>结论 5 · 区分产品 + 分批进场 + 红利低波对冲。</b> 想吃 现金流因子选大池子 (980092 跟踪标的 '
+    f'159201/159222 重合 90%); 避开\"伪"现金流"\" (159218 实际军工); 不要一次性梭哈, 分批进场, '
     f'仓位与红利低波 100 配对降低风格切换风险。',
 ]
 for b in bullets:
@@ -214,7 +217,7 @@ story.append(Paragraph("• ETF 日线 (后复权): ak.fund_etf_hist_sina (新�
 story.append(Paragraph("• 指数日线: ak.stock_zh_index_daily (新浪源)", BULLET))
 story.append(Paragraph("• ETF 持仓: ak.fund_portfolio_hold_em (东财, 2026 Q1 季报)", BULLET))
 story.append(Paragraph(
-    f"• 样本范围: FCF ETF 自上市日至 2026-06-25; 沪深300/红利 ETF 共同窗口 "
+    f"• 样本范围: 现金流 ETF 自上市日至 2026-06-25; 沪深300/红利 ETF 共同窗口 "
     f"{S['long_term_dvd_vs_300']['window_start']} ~ {S['long_term_dvd_vs_300']['window_end']} ({S['long_term_dvd_vs_300']['years']} 年)",
     BULLET
 ))
@@ -223,18 +226,18 @@ story.append(Paragraph("2.2 分析方法", H3))
 story.append(Paragraph(
     "本报告采用三层分析框架:", BODY))
 story.append(Paragraph(
-    "<b>① 表现分层:</b> 对 5 只 FCF ETF 计算 1d/5d/20d/60d/YTD 涨跌幅 + 距 ATH 回撤, "
+    "<b>① 表现分层:</b> 对 5 只 现金流 ETF 计算 1d/5d/20d/60d/YTD 涨跌幅 + 距 ATH 回撤, "
     "对比沪深300/红利 ETF/红利低波 100/煤炭 ETF/资源 ETF 5 个基准。", BULLET))
 story.append(Paragraph(
     "<b>② 持仓归因:</b> 提取每只 ETF 2026 Q1 季报前 10 大持仓, "
     "按申万行业手动映射, 计算行业权重分布; 揭示\"同名实异\"的本质。", BULLET))
 story.append(Paragraph(
     "<b>③ 风格相关性:</b> 取最近 120 个交易日各 ETF 日收益率, 计算与基准的 Pearson 相关系数, "
-    "判断 FCF 究竟更接近哪一类风格。", BULLET))
+    "判断 现金流 究竟更接近哪一类风格。", BULLET))
 
 story.append(Paragraph("2.3 分析的局限", H3))
 story.append(Paragraph(
-    "(1) FCF 指数样本期仅 18 个月, 无法做严格滚动起点胜率回测; "
+    "(1) 现金流指数样本期仅 18 个月, 无法做严格滚动起点胜率回测; "
     "(2) 持仓数据基于 2026 Q1 季报, 存在 1-3 个月滞后, "
     "实际持仓可能已有变动; "
     "(3) 行业映射基于手动 SECTOR_MAP 覆盖前 10 大持仓, 未覆盖的尾部持仓被归类为\"未披露\"; "
@@ -248,7 +251,7 @@ story.append(PageBreak())
 story.append(Paragraph("三、主结论① 5 只 ETF 表现两极分化", H2))
 
 story.append(Image(str(FIGS / "fig_5etfs.png"), width=16 * cm, height=8.8 * cm))
-story.append(Paragraph("图 1 · 5 只 FCF ETF 近 60 日表现 (浅色版)", CAP))
+story.append(Paragraph("图 1 · 5 只 现金流 ETF 近 60 日表现 (浅色版)", CAP))
 
 # 表格: 5 只 + 6 项指标
 tab_data = [
@@ -281,14 +284,14 @@ ts = TableStyle([
     ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, LIGHT]),
     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
 ])
-# 标红负值
+# A 股配色: 负值标绿, 正值标红
 for i in range(1, len(tab_data)):
     for j in [2, 3, 4, 5]:
         v = tab_data[i][j]
         if v.startswith("-"):
-            ts.add("TEXTCOLOR", (j, i), (j, i), RED)
-        elif v.startswith("+"):
             ts.add("TEXTCOLOR", (j, i), (j, i), GREEN)
+        elif v.startswith("+"):
+            ts.add("TEXTCOLOR", (j, i), (j, i), RED)
 t.setStyle(ts)
 story.append(t)
 story.append(Spacer(1, 0.3 * cm))
@@ -306,7 +309,7 @@ story.append(PageBreak())
 story.append(Paragraph("四、主结论② 持仓行业归因 — 同名实异", H2))
 
 story.append(Image(str(FIGS / "fig_holdings.png"), width=17 * cm, height=7.7 * cm))
-story.append(Paragraph("图 2 · 5 只 FCF ETF 前 10 大持仓行业归类 (灰色为未披露/前 10 之外)", CAP))
+story.append(Paragraph("图 2 · 5 只 现金流 ETF 前 10 大持仓行业归类 (灰色为未披露/前 10 之外)", CAP))
 
 story.append(Paragraph(
     "持仓数据 (2026 Q1 季报) 揭示了\"同名实异\"的本质:", BODY))
@@ -348,7 +351,7 @@ story.append(PageBreak())
 story.append(Paragraph("五、主结论③ 发布即顶点 — 净值曲线还原", H2))
 
 story.append(Image(str(FIGS / "fig_nav.png"), width=16 * cm, height=8.8 * cm))
-story.append(Paragraph("图 3 · 国证 FCF 指数 vs 沪深300 vs 红利低波 100 净值 (起点对齐 = 100)", CAP))
+story.append(Paragraph("图 3 · 国证 现金流指数 vs 沪深300 vs 红利低波 100 净值 (起点对齐 = 100)", CAP))
 
 story.append(Paragraph(
     "国证自由现金流指数 (sz980092) 自 2024-12-23 发布起的 18 个月轨迹:",
@@ -401,7 +404,7 @@ story.append(PageBreak())
 story.append(Paragraph("六、主结论④ 当前位置诊断", H2))
 
 story.append(Image(str(FIGS / "fig_drawdown.png"), width=17 * cm, height=10 * cm))
-story.append(Paragraph("图 4 · 国证 FCF 指数价格 + 回撤双面板", CAP))
+story.append(Paragraph("图 4 · 国证 现金流指数价格 + 回撤双面板", CAP))
 
 dd_stats = S["fcf_index_drawdown_stats"]
 story.append(Paragraph(
@@ -419,7 +422,7 @@ sig_data = [
      "已超指数发布以来全部回撤", "WARN"],
     ["与红利低波相关性",
      f"{S['correlation_fcf_vs_bench']['vs_dividend_lowvol']:.2f}",
-     "弱相关 · FCF 不能替代红利", "NEUTRAL"],
+     "弱相关 · 现金流 不能替代红利", "NEUTRAL"],
     ["与煤炭 ETF 相关性",
      f"{S['correlation_fcf_vs_bench']['vs_coal']:.2f}",
      "弱-中相关 · 周期股暴露",  "WATCH"],
@@ -460,7 +463,7 @@ story.append(Paragraph("七、给个人投资者的实操手册", H2))
 
 story.append(Paragraph("7.1 买之前必做的 3 个动作", H3))
 story.append(Paragraph(
-    "<b>① 查跟踪指数。</b> 5 只 FCF ETF 跟踪 3 条不同指数 (国证 980092 / 中证自由现金流 / "
+    "<b>① 查跟踪指数。</b> 5 只 现金流 ETF 跟踪 3 条不同指数 (国证 980092 / 中证自由现金流 / "
     "国新央企现金流), 跟踪指数决定一切, 名字只是营销。",
     BULLET))
 story.append(Paragraph(
@@ -485,21 +488,21 @@ story.append(Paragraph(
 ))
 story.append(Paragraph(
     "<b>用红利低波 100 (sz159211) 做风格对冲。</b> 相关性 0.42, 是良好的负相关性对冲标的。"
-    "FCF 与红利低波 1:1 配对, 可在风格切换中降低净值波动。",
+    "现金流与红利低波 1:1 配对, 可在风格切换中降低净值波动。",
     BULLET
 ))
 
 story.append(Paragraph("7.3 退出信号", H3))
 story.append(Paragraph(
-    "<b>止损:</b> 国证 FCF 指数跌破 4500 (距今再跌 6%, 距 ATH -28%) 触发减仓; "
+    "<b>止损:</b> 国证 现金流指数跌破 4500 (距今再跌 6%, 距 ATH -28%) 触发减仓; "
     "跌破 4000 (距今 -17%, 距 ATH -36%) 触发全部清仓。",
     BULLET))
 story.append(Paragraph(
-    "<b>止盈:</b> 单次反弹 +15% 减仓 1/3; 国证 FCF 重回 5500 (距 ATH -12%) 减仓一半; "
+    "<b>止盈:</b> 单次反弹 +15% 减仓 1/3; 国证现金流 重回 5500 (距 ATH -12%) 减仓一半; "
     "重回 6000 以上分批清仓。",
     BULLET))
 story.append(Paragraph(
-    "<b>风格切换信号:</b> 红利低波 ETF 跑输 FCF 超过 5pp 连续 1 个月 → 风格切换, 全部转入 FCF; "
+    "<b>风格切换信号:</b> 红利低波 ETF 跑输 现金流 超过 5pp 连续 1 个月 → 风格切换, 全部转入现金流; "
     "反之亦然。",
     BULLET))
 
@@ -530,7 +533,7 @@ story.append(Paragraph(
     BULLET))
 story.append(Paragraph(
     "(4) <b>相关性窗口主观:</b> 120 日是惯例选择, 改窗口 (60 / 250 日) 数字会变, "
-    "但不影响 FCF ≠ 红利的核心结论。",
+    "但不影响 现金流 ≠ 红利的核心结论。",
     BULLET))
 story.append(Paragraph(
     "(5) <b>未做条件胜率:</b> 因为样本不足以分位回测, 本报告未包含\"回撤 X% 入场后 N 年胜率\""
@@ -570,7 +573,7 @@ story.append(HRFlowable(width="100%", thickness=0.5, color=GRAY))
 story.append(Spacer(1, 0.3 * cm))
 story.append(Paragraph(
     '<para alignment="center"><font size="9" color="#666">'
-    'FCF 反共识深度研报 · 复旦杰伦 (RIC)<br/>'
+    '现金流反共识深度研报 · 复旦杰伦 (RIC)<br/>'
     '数据截至 2026-06-25 · 发布日期 2026-06-26<br/>'
     '联系方式: 小红书 @复旦杰伦'
     '</font></para>',
