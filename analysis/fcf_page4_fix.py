@@ -139,7 +139,7 @@ def page_1():
             fontsize=34, color=C["red"], transform=ax.transAxes,
             ha="center", fontweight="bold")
 
-    ax.text(0.5, 0.700, "5 只现金流 ETF 同名实异 · 散户被名字坑惨了",
+    ax.text(0.5, 0.700, "先核对代码 · 再谈因子和抄底",
             fontsize=15.5, color=C["muted"], transform=ax.transAxes,
             ha="center")
 
@@ -174,9 +174,9 @@ def page_1():
             fontweight="bold")
     dvd_lowvol = S["headline"]["dvd_lowvol_60d"] * 100
     tldr = [
-        ("01", "5 只 ETF 名字都叫\"自由现金流\", 持仓最高差到 60%+", C["red"]),
+                ("01", "先纠错: 562340/563690/159218 不是本组现金流 ETF", C["red"]),
         ("02", "国证现金流指数 2024 年 12 月才发布 · ETF 集中 2025 上市 → 发布即顶点", C["orange"]),
-        ("03", f"近 60 日现金流 {fcf60*100:.1f}% / 红利低波 {dvd_lowvol:.1f}% / 沪深 300 +{hs300_60*100:.1f}%", C["gold"]),
+                ("03", f"真实现金流 ETF 近 60 日集体 -15%~-17% · 风格 ≠ 红利低波", C["gold"]),
     ]
     yy = 0.270
     for num, text, color in tldr:

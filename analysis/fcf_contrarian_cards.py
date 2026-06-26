@@ -129,7 +129,7 @@ def page_1():
             ha="center", fontweight="bold")
 
     # 副标题
-    ax.text(0.5, 0.700, "5 只现金流 ETF 同名实异 · 散户被名字坑惨了",
+        ax.text(0.5, 0.700, "先看产品名单 · 再谈因子和抄底",
             fontsize=15.5, color=C["muted"], transform=ax.transAxes,
             ha="center")
 
@@ -167,9 +167,9 @@ def page_1():
             fontsize=14, color=C["text"], transform=ax.transAxes,
             fontweight="bold")
     tldr = [
-        ("01", "5 只 ETF 名字都叫\"自由现金流\", 持仓最高差到 60%+", C["red"]),
+                ("01", "当前样本: 563390/159201/159222/159221/159223", C["red"]),
         ("02", "国证现金流指数 2024 年 12 月才发布 · ETF 集中 2025 上市 → 发布即顶点", C["orange"]),
-        ("03", "近 60 日现金流龙头 -16.9% / 红利低波 +21.9% · 风格 ≠ 红利", C["gold"]),
+        ("03", "真实现金流 ETF 近 60 日集体 -15%~-17% · 风格 ≠ 红利低波", C["gold"]),
     ]
     yy = 0.270
     for num, text, color in tldr:
@@ -189,23 +189,23 @@ def page_1():
 page_1()
 
 
-# ============ PAGE 2: 5 只现金流 ETF 同名实异 ============
+# ============ PAGE 2: 5 只真实现金流 ETF ============
 def page_2():
     fig, ax = new_card()
-    header(ax, "PAGE 02 · 5 只名字都叫\"自由现金流\"",
-           "但表现差了 34.4 个百分点",
-           "同一天买入, 同一类名字, 完全不同命运")
+        header(ax, "PAGE 02 · 真实现金流 ETF",
+                   "真实现金流 ETF 走势高度趋同",
+                   "近 60 日基本都落在 -15%~-17%")
 
     # 5 只 ETF 60 日表现条形图
     etfs = [
-        ("562340", "中证自由现金流", "华泰柏瑞"),
-        ("563690", "国新央企现金流", "国新"),
-        ("159218", "嘉实自由现金流", "嘉实"),
-        ("159201", "国证自由现金流", "易方达"),
-        ("159222", "华夏自由现金流", "华夏"),
+                ("563390", "全指现金流", "华泰柏瑞"),
+                ("159201", "自由现金流", "华夏"),
+                ("159222", "自由现金流", "易方达"),
+                ("159221", "现金流", "嘉实"),
+                ("159223", "现金流", "永赢"),
     ]
-    SYM_KEY = {"562340": "sh562340", "563690": "sh563690",
-               "159218": "sz159218", "159201": "sz159201", "159222": "sz159222"}
+    SYM_KEY = {"563390": "sh563390", "159201": "sz159201", "159222": "sz159222",
+                           "159221": "sz159221", "159223": "sz159223"}
 
     data = [(c, name, brand, S["fcf_etfs"][SYM_KEY[c]]["ret_60d"]) for c, name, brand in etfs]
     data.sort(key=lambda x: -x[3])  # 高到低
@@ -235,15 +235,13 @@ def page_2():
             rect = Rectangle((mid_x, y - 0.012), bar_w, 0.024, fc=color, ec="none",
                              transform=ax.transAxes)
             ax.add_patch(rect)
-            ax.text(mid_x + bar_w + 0.012, y, f"{ret:+.1%}", fontsize=15, color=color,
-                    transform=ax.transAxes, va="center", fontweight="bold")
         else:
             color = C["down"]
             rect = Rectangle((mid_x - bar_w, y - 0.012), bar_w, 0.024, fc=color, ec="none",
                              transform=ax.transAxes)
             ax.add_patch(rect)
-            ax.text(mid_x - bar_w - 0.012, y, f"{ret:+.1%}", fontsize=15, color=color,
-                    transform=ax.transAxes, va="center", ha="right", fontweight="bold")
+        ax.text(0.88, y, f"{ret:+.1%}", fontsize=15, color=color,
+                transform=ax.transAxes, va="center", ha="right", fontweight="bold")
 
     ax.text(0.5, 0.85, "近 60 日涨跌幅", fontsize=13, color=C["muted"],
             transform=ax.transAxes, ha="center")
@@ -253,12 +251,12 @@ def page_2():
     top = data[0]
     bot = data[-1]
     gap_pp = (top[3] - bot[3]) * 100
-    ax.text(0.5, 0.252, f"最强 vs 最弱 差距 {gap_pp:.1f} 个百分点",
+        ax.text(0.5, 0.252, f"组内最强 vs 最弱 差距 {gap_pp:.1f} 个百分点",
             fontsize=16, color=C["gold"], transform=ax.transAxes,
             ha="center", fontweight="bold")
-    ax.text(0.5, 0.212, f"{top[1]} +{top[3]*100:.1f}%   vs   {bot[1]} {bot[3]*100:.1f}%",
+    ax.text(0.5, 0.212, f"{top[1]} {top[3]*100:+.1f}%   vs   {bot[1]} {bot[3]*100:+.1f}%",
             fontsize=13, color=C["text"], transform=ax.transAxes, ha="center")
-    ax.text(0.5, 0.180, "同一类名字, 跟踪不同指数, 重仓不同行业",
+        ax.text(0.5, 0.180, "组内走势接近, 差异主要看规模/流动性/折溢价",
             fontsize=11.5, color=C["muted"], transform=ax.transAxes, ha="center")
 
     footer(ax, 2)
@@ -271,15 +269,16 @@ page_2()
 def page_3():
     fig, ax = new_card()
     header(ax, "PAGE 03 · 持仓真相",
-           "5 只 ETF 持仓行业差到离谱",
-           "想买\"自由现金流\"? 你买到的可能是军工/有色/银行")
+                                   "当前样本里, 五只产品高度同质",
+                   "核心暴露集中在汽车/石油石化/家电/航运/钢铁")
 
-    # 4 列行业堆叠条 (562340, 159201, 159218, 563690)
+        # 5 列行业堆叠条 (真实现金流 ETF)
     # 每只 ETF 一个条状结构, 显示前 5 大行业占比
     SECTOR_COLORS = {
         "汽车": C["blue"], "石油石化": "#e6a23c", "家电": C["purple"],
         "航运": C["cyan"], "钢铁": "#8b949e", "有色": C["gold"],
-        "机械": "#a0826d", "军工": C["red"], "电气设备": C["green"],
+        "机械": "#a0826d", "农牧": "#65a30d", "电子": "#0f766e",
+        "物流": "#f97316", "电气设备": C["green"],
         "建筑": "#6f7d8e", "通信": "#5b8def",
         "银行": "#2d8cf0", "医药": "#d63aff", "半导体": "#00d4aa",
         "贸易": "#7f8c8d", "游戏": "#ff7b72", "互联网": "#56d4dd",
@@ -287,12 +286,14 @@ def page_3():
     }
 
     etf_show = [
-        ("159201", "国证自由现金流ETF", "易方达"),
-        ("159222", "华夏自由现金流ETF", "华夏"),
-        ("159218", "嘉实自由现金流ETF", "嘉实"),
-        ("562340", "华泰柏瑞中证自由现金流ETF", "华泰柏瑞"),
-        ("563690", "国新央企现金流ETF", "国新"),
+                ("563390", "全指现金流ETF", "华泰柏瑞"),
+                ("159201", "自由现金流ETF", "华夏"),
+                ("159222", "自由现金流ETF", "易方达"),
+                ("159221", "现金流ETF", "嘉实"),
+                ("159223", "现金流ETF", "永赢"),
     ]
+    SYM_KEY = {"563390": "sh563390", "159201": "sz159201", "159222": "sz159222",
+                           "159221": "sz159221", "159223": "sz159223"}
 
     y_top = 0.74
     y_step = 0.105
@@ -301,8 +302,8 @@ def page_3():
     # 图例 (顶部, 最常见 8 个行业)
     legend_items = [
         ("汽车", C["blue"]), ("石油石化", "#e6a23c"), ("家电", C["purple"]),
-        ("有色", C["gold"]), ("钢铁", "#8b949e"), ("军工", C["red"]),
-        ("银行", "#2d8cf0"), ("机械", "#a0826d"),
+                ("航运", C["cyan"]), ("钢铁", "#8b949e"), ("有色", C["gold"]),
+                ("通信", "#5b8def"), ("机械", "#a0826d"),
     ]
     lg_y = 0.815
     lg_x = 0.06
@@ -320,7 +321,7 @@ def page_3():
                 fontsize=13, color=C["text"],
                 transform=ax.transAxes, fontweight="bold")
         # 持仓数据
-        sym_key = f"sh{code}" if code in ("562340", "563690") else f"sz{code}"
+        sym_key = SYM_KEY[code]
         sectors = S["holdings"][sym_key]["sectors"]
         # 按"占净值比例"绝对值 (不归一化) — 条长=100%, 没覆盖到的是\"未披露/其他持仓\"
         sectors_sorted = sorted(sectors.items(), key=lambda x: -x[1])
@@ -361,12 +362,12 @@ def page_3():
 
     # 底部反共识结论
     card_box(ax, 0.06, 0.07, 0.88, 0.09, fc="#2a1f1f", ec=C["red"])
-    ax.text(0.5, 0.13, "三个真相",
+        ax.text(0.5, 0.13, "三个持仓结论",
             fontsize=14, color=C["red"], transform=ax.transAxes,
             ha="center", fontweight="bold")
-    ax.text(0.5, 0.094, "① 159201/159222 重合 90% (都跟踪国证 980092)",
+    ax.text(0.5, 0.094, "① 真实现金流 ETF 前十大持仓高度重合",
             fontsize=11, color=C["text"], transform=ax.transAxes, ha="center")
-    ax.text(0.5, 0.073, "② 159218 (嘉实) 63% 是军工 · 名字最坑   ③ 562340 重仓有色/半导体",
+        ax.text(0.5, 0.073, "② 行业集中在周期/价值   ③ 不等于红利低波",
             fontsize=11, color=C["text"], transform=ax.transAxes, ha="center")
 
     footer(ax, 3)
@@ -455,10 +456,10 @@ def page_5():
     # 时间轴 (从 2024-12 至 2026-06)
     timeline = [
         ("2024-12", "国证自由现金流指数发布"),
-        ("2025-02", "159201 上市 (易方达)"),
-        ("2025-04", "159222 上市 (华夏)"),
-        ("2025-05", "159218 上市 (嘉实)"),
-        ("2025-10", "563690 上市 (国新)"),
+                ("2025-02", "159201 上市 (华夏)"),
+                ("2025-04", "159222 上市 (易方达)"),
+                ("2025-05", "563390/159221 上市"),
+                ("2025-07", "159223 上市 (永赢)"),
         ("2026-03", "指数到顶 6227 (距今 -22.9%)"),
         ("2026-06", "今日 4799"),
     ]
@@ -533,11 +534,11 @@ def page_6():
         },
         {
             "title": "信号 3 · 跟踪行业风险",
-            "val": "70%+",
-            "note": "周期/资源/汽车权重",
+            "val": "45%+",
+            "note": "汽车/能源/家电/航运/钢铁",
             "pill": "RISK",
             "pill_color": C["red"],
-            "expl": "本质是周期股组合\n不是防御资产",
+            "expl": "偏周期/价值组合\n不是红利低波替代品",
         },
     ]
 
@@ -586,9 +587,9 @@ def page_7():
            "5 句话教你避开 90% 的坑")
 
     strategies = [
-        ("01", "千万别看名字买", "5 只\"自由现金流 ETF\"持仓差到 60%+\n买之前先查跟踪指数 + 看 top10 持仓", C["red"]),
-        ("02", "想吃现金流因子? 选大池子", "国证自由现金流 980092 池子大 (100 股)\n对应 159201/159222 · 重合度 90%, 任选一只", C["blue"]),
-        ("03", "想吃军工? 159218 是\"伪现金流\"", "嘉实那只 63% 是军工\n不要拿它当现金流策略 buy and hold", C["orange"]),
+                ("01", "先看产品名单再讨论观点", "本组样本采用 563390/159201/159222/159221/159223\n先确认买到的是哪类产品", C["red"]),
+                ("02", "真实现金流ETF高度同质", "159201/159222/159221/159223/563390\n前十大持仓重合度很高", C["blue"]),
+                ("03", "风格风险仍然存在", "主要暴露在汽车/海油/家电/航运/钢铁\n不是红利低波替代品", C["orange"]),
         ("04", "不要单笔重仓 · 分批进", "指数发布以来仅 18 个月\n样本不足 · 不知道真正底部在哪\n建议: 现价 50% + 再跌 10% 加 30% + 再跌 10% 补 20%", C["gold"]),
         ("05", "用红利低波做对冲", "现金流和红利低波相关性只有 0.42\n两个都买可对冲风格切换风险", C["green"]),
     ]
@@ -617,7 +618,7 @@ def page_7():
     ax.text(0.5, 0.118, "核心口诀",
             fontsize=14, color=C["gold"], transform=ax.transAxes,
             ha="center", fontweight="bold")
-    ax.text(0.5, 0.085, "查持仓 · 选大池子 · 分批进 · 配红利低波",
+        ax.text(0.5, 0.085, "看名单 · 看持仓 · 分批进 · 配红利低波",
             fontsize=14, color=C["text"], transform=ax.transAxes, ha="center")
 
     footer(ax, 7)
@@ -636,7 +637,7 @@ def page_8():
             transform=ax.transAxes, ha="center", fontweight="bold")
 
     quotes = [
-        ("名字 ≠ 因子", "5 只\"自由现金流 ETF\"持仓最高差到 60%+", C["red"]),
+                ("名单 ≠ 可以想当然", "先确认当前产品属于哪一类 ETF", C["red"]),
         ("回测 ≠ 实盘", "国证现金流指数 2024-12 发布 · 散户买进就跌 22.9%", C["orange"]),
         ("现金流 ≠ 红利", "相关性 0.42 · 跑势差 38.8 pp · 不是替代品", C["blue"]),
         ("现在 ≠ 抄底", "样本不足 18 个月 · 不知道真底 · 分批 > 一次性", C["gold"]),

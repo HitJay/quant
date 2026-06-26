@@ -94,26 +94,26 @@ def save(fig, name):
     print(f"[OK] {p}")
 
 
-# ============ PAGE 2: 5 只现金流 ETF 同名实异 ============
+# ============ PAGE 2: 5 只真实现金流 ETF ============
 def page_2():
     fig, ax = new_card()
-    header(ax, "PAGE 02 · 5 只名字都叫\"自由现金流\"",
-           "但表现差了 34.4 个百分点",
-           "同一天买入, 同一类名字, 完全不同命运")
+    header(ax, "PAGE 02 · 代码修正后",
+           "真实现金流 ETF 走势高度趋同",
+           "近 60 日基本都落在 -15%~-17%")
 
     # "近 60 日涨跌幅" 小标题: 对齐到 mid_x (零轴) 正上方而非整卡居中
     ax.text(0.52, 0.815, "近 60 日涨跌幅", fontsize=13, color=C["muted"],
             transform=ax.transAxes, ha="center")
 
     etfs = [
-        ("562340", "中证自由现金流", "华泰柏瑞"),
-        ("563690", "国新央企现金流", "国新"),
-        ("159218", "嘉实自由现金流", "嘉实"),
-        ("159201", "国证自由现金流", "易方达"),
-        ("159222", "华夏自由现金流", "华夏"),
+        ("563390", "全指现金流", "华泰柏瑞"),
+        ("159201", "自由现金流", "华夏"),
+        ("159222", "自由现金流", "易方达"),
+        ("159221", "现金流", "嘉实"),
+        ("159223", "现金流", "永赢"),
     ]
-    SYM_KEY = {"562340": "sh562340", "563690": "sh563690",
-               "159218": "sz159218", "159201": "sz159201", "159222": "sz159222"}
+    SYM_KEY = {"563390": "sh563390", "159201": "sz159201", "159222": "sz159222",
+               "159221": "sz159221", "159223": "sz159223"}
 
     data = [(c, name, brand, S["fcf_etfs"][SYM_KEY[c]]["ret_60d"]) for c, name, brand in etfs]
     data.sort(key=lambda x: -x[3])
@@ -146,30 +146,25 @@ def page_2():
             rect = Rectangle((mid_x, y - 0.012), bar_w, 0.024, fc=color, ec="none",
                              transform=ax.transAxes)
             ax.add_patch(rect)
-            # 正值标签: 柱子右侧外, 红字
-            ax.text(mid_x + bar_w + 0.012, y, f"{ret:+.1%}", fontsize=15, color=color,
-                    transform=ax.transAxes, va="center", fontweight="bold")
         else:
             color = C["down"]
             rect = Rectangle((mid_x - bar_w, y - 0.012), bar_w, 0.024, fc=color, ec="none",
                              transform=ax.transAxes)
             ax.add_patch(rect)
-            # 关键修复: 负值标签放在 mid_x 右侧外 (而不是柱体左侧)
-            # 这样数字和绿色柱体在视觉上完全分开, 不撞色
-            ax.text(mid_x + 0.012, y, f"{ret:+.1%}", fontsize=15, color=color,
-                    transform=ax.transAxes, va="center", ha="left", fontweight="bold")
+            ax.text(0.88, y, f"{ret:+.1%}", fontsize=15, color=color,
+                transform=ax.transAxes, va="center", ha="right", fontweight="bold")
 
     # 底部点睛卡
     card_box(ax, 0.06, 0.16, 0.88, 0.13, fc="#1a1f26", ec=C["gold"], lw=1.2)
     top = data[0]
     bot = data[-1]
     gap_pp = (top[3] - bot[3]) * 100
-    ax.text(0.5, 0.252, f"最强 vs 最弱 差距 {gap_pp:.1f} 个百分点",
+    ax.text(0.5, 0.252, f"修正后最强 vs 最弱 差距 {gap_pp:.1f} 个百分点",
             fontsize=16, color=C["gold"], transform=ax.transAxes,
             ha="center", fontweight="bold")
-    ax.text(0.5, 0.212, f"{top[1]} +{top[3]*100:.1f}%   vs   {bot[1]} {bot[3]*100:.1f}%",
+    ax.text(0.5, 0.212, f"{top[1]} {top[3]*100:+.1f}%   vs   {bot[1]} {bot[3]*100:+.1f}%",
             fontsize=13, color=C["text"], transform=ax.transAxes, ha="center")
-    ax.text(0.5, 0.180, "同一类名字, 跟踪不同指数, 重仓不同行业",
+    ax.text(0.5, 0.180, "原先的巨大分化来自错码, 不是因子本身",
             fontsize=11.5, color=C["muted"], transform=ax.transAxes, ha="center")
 
     footer(ax, 2)

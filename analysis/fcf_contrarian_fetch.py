@@ -25,13 +25,13 @@ import akshare as ak
 CACHE = Path("/das/user/QYJI/quant/data/cache/fcf")
 CACHE.mkdir(parents=True, exist_ok=True)
 
-# 5 只 现金流 ETF (sina 必须带 sh/sz 前缀)
+# 5 只现金流 ETF (sina 必须带 sh/sz 前缀)
 FCF_ETFS = {
-    "sh562340": "中证自由现金流ETF(华泰柏瑞)",   # 2024-05-08 上市, 历史最长
-    "sz159201": "国证自由现金流ETF",              # 2025-02-27
-    "sz159222": "自由现金流ETF华夏",              # 2025-04-17
-    "sz159218": "自由现金流ETF",                  # 2025-05-22  (实际是国货航天指数)
-    "sh563690": "国新央企现金流ETF",              # 2025-10-10
+    "sh563390": "全指现金流ETF华泰柏瑞",
+    "sz159201": "自由现金流ETF华夏",
+    "sz159222": "自由现金流ETF易方达",
+    "sz159221": "现金流ETF嘉实",
+    "sz159223": "现金流ETF永赢",
 }
 
 # 基准: 沪深300 + 红利 + 红利低波 + 资源股 ETF (用于 现金流风格归因)

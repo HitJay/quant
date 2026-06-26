@@ -33,11 +33,11 @@ def fig_5etfs():
     fig, ax = plt.subplots(figsize=(10, 5.5), dpi=120)
     fig.patch.set_facecolor("white")
 
-    syms = [("562340", "中证自由现金流ETF\n华泰柏瑞", "sh562340"),
-            ("563690", "国新央企现金流ETF\n国新",       "sh563690"),
-            ("159218", "嘉实自由现金流ETF\n嘉实",       "sz159218"),
-            ("159201", "国证自由现金流ETF\n易方达",     "sz159201"),
-            ("159222", "华夏自由现金流ETF\n华夏",       "sz159222")]
+    syms = [("563390", "全指现金流ETF\n华泰柏瑞",      "sh563390"),
+            ("159201", "自由现金流ETF\n华夏",          "sz159201"),
+            ("159222", "自由现金流ETF\n易方达",        "sz159222"),
+            ("159221", "现金流ETF\n嘉实",              "sz159221"),
+            ("159223", "现金流ETF\n永赢",              "sz159223")]
     data = [(name, S["fcf_etfs"][k]["ret_60d"]) for c, name, k in syms]
     data.sort(key=lambda x: x[1])
     names = [d[0] for d in data]
@@ -54,7 +54,7 @@ def fig_5etfs():
                 color=colors[i])
     ax.set_yticks(y, names, fontsize=10)
     ax.set_xlabel("近 60 日涨跌幅 (%)", fontsize=11)
-    ax.set_title("5 只\"自由现金流 ETF\" 近 60 日表现 — 最强 vs 最弱差距 33 个百分点",
+    ax.set_title("5 只真实现金流 ETF 近 60 日表现 — 组内走势高度趋同",
                  fontsize=12, fontweight="bold", pad=12)
     ax.set_xlim(min(vals) * 1.3, max(vals) * 1.3)
     ax.grid(axis="x", alpha=0.3, ls=":")
@@ -75,20 +75,23 @@ def fig_holdings():
     SECTOR_COLORS = {
         "汽车": "#2563eb", "石油石化": "#ea580c", "家电": "#9333ea",
         "航运": "#0891b2", "钢铁": "#64748b", "有色": "#ca8a04",
-        "机械": "#a16207", "军工": "#dc2626", "电气设备": "#16a34a",
+        "机械": "#a16207", "农牧": "#65a30d", "电子": "#0f766e",
+        "物流": "#f97316", "电气设备": "#16a34a",
         "建筑": "#475569", "通信": "#3b82f6",
         "银行": "#1d4ed8", "医药": "#c026d3", "半导体": "#0d9488",
         "贸易": "#6b7280", "游戏": "#e11d48", "互联网": "#0ea5e9",
     }
-    etfs = [("159201", "国证自由现金流"),
-            ("159222", "华夏自由现金流"),
-            ("159218", "嘉实自由现金流"),
-            ("562340", "华泰柏瑞中证现金流"),
-            ("563690", "国新央企现金流")]
+    etfs = [("563390", "华泰柏瑞全指现金流"),
+            ("159201", "华夏自由现金流"),
+            ("159222", "易方达自由现金流"),
+            ("159221", "嘉实现金流"),
+            ("159223", "永赢现金流")]
+    sym_keys = {"563390": "sh563390", "159201": "sz159201", "159222": "sz159222",
+            "159221": "sz159221", "159223": "sz159223"}
 
     y_positions = []
     for i, (code, name) in enumerate(etfs):
-        sym_key = f"sh{code}" if code in ("562340", "563690") else f"sz{code}"
+        sym_key = sym_keys[code]
         sectors = S["holdings"][sym_key]["sectors"]
         sectors_sorted = sorted([s for s in sectors.items() if s[0] != "其他"], key=lambda x: -x[1])
         x = 0
@@ -107,7 +110,7 @@ def fig_holdings():
     ax.set_yticks(y_positions, [name for _, name in etfs], fontsize=10)
     ax.set_xlim(0, 100)
     ax.set_xlabel("持仓占净值比 (%) · 灰色为未披露/前 10 之外", fontsize=10)
-    ax.set_title("5 只 ETF 持仓行业归因 — 同名实异最直观证据",
+    ax.set_title("5 只真实现金流 ETF 持仓行业归因 — 当前样本高度趋同",
                  fontsize=12, fontweight="bold", pad=12)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
