@@ -129,7 +129,7 @@ def page_1():
             ha="center", fontweight="bold")
 
     # 副标题
-        ax.text(0.5, 0.700, "先看产品名单 · 再谈因子和抄底",
+    ax.text(0.5, 0.700, "五只产品走势接近 · 风险集中在持仓",
             fontsize=15.5, color=C["muted"], transform=ax.transAxes,
             ha="center")
 
@@ -151,7 +151,8 @@ def page_1():
     ax.text(0.725, 0.555, "近 60 日", fontsize=13, color=C["muted"],
             transform=ax.transAxes, ha="center")
     dvd60 = S["headline"]["dvd_lowvol_60d"]
-    ax.text(0.725, 0.475, fmt_pct(dvd60), fontsize=38, color=C["up"],
+    dvd_color = C["up"] if dvd60 >= 0 else C["down"]
+    ax.text(0.725, 0.475, fmt_pct(dvd60), fontsize=38, color=dvd_color,
             transform=ax.transAxes, ha="center", fontweight="bold")
 
     # 中部箭头 + gap
@@ -167,9 +168,9 @@ def page_1():
             fontsize=14, color=C["text"], transform=ax.transAxes,
             fontweight="bold")
     tldr = [
-                ("01", "当前样本: 563390/159201/159222/159221/159223", C["red"]),
+                                ("01", "五只现金流 ETF 走势接近, 不是红利低波替代品", C["red"]),
         ("02", "国证现金流指数 2024 年 12 月才发布 · ETF 集中 2025 上市 → 发布即顶点", C["orange"]),
-        ("03", "真实现金流 ETF 近 60 日集体 -15%~-17% · 风格 ≠ 红利低波", C["gold"]),
+                ("03", "现金流 ETF 近 60 日集体 -15%~-17% · 风格 ≠ 红利低波", C["gold"]),
     ]
     yy = 0.270
     for num, text, color in tldr:
@@ -189,11 +190,11 @@ def page_1():
 page_1()
 
 
-# ============ PAGE 2: 5 只真实现金流 ETF ============
+# ============ PAGE 2: 5 只现金流 ETF ============
 def page_2():
     fig, ax = new_card()
-        header(ax, "PAGE 02 · 真实现金流 ETF",
-                   "真实现金流 ETF 走势高度趋同",
+    header(ax, "PAGE 02 · 现金流 ETF 横向对比",
+                                   "5 只产品走势高度趋同",
                    "近 60 日基本都落在 -15%~-17%")
 
     # 5 只 ETF 60 日表现条形图
@@ -215,6 +216,8 @@ def page_2():
     y_step = (y_top - y_bot) / (len(data) - 1)
     max_abs = max(abs(d[3]) for d in data)
     bar_max_w = 0.32
+    rank_colors = [C["blue"], C["cyan"], C["gold"], C["orange"], C["pink"]]
+    rank_tags = ["相对抗跌", "接近均值", "接近均值", "偏弱", "偏弱"]
 
     for i, (code, name, brand, ret) in enumerate(data):
         y = y_top - i * y_step
@@ -228,22 +231,22 @@ def page_2():
         mid_x = 0.55
         ax.plot([mid_x, mid_x], [y - 0.02, y + 0.02], color=C["border"], lw=1, transform=ax.transAxes)
 
-        # 条 (从中线向左/右)
+        # 灰色轨道 + 组内排名色, 避免全负收益时整页只有一种绿色
         bar_w = (abs(ret) / max_abs) * bar_max_w
-        if ret > 0:
-            color = C["up"]
-            rect = Rectangle((mid_x, y - 0.012), bar_w, 0.024, fc=color, ec="none",
-                             transform=ax.transAxes)
-            ax.add_patch(rect)
-        else:
-            color = C["down"]
-            rect = Rectangle((mid_x - bar_w, y - 0.012), bar_w, 0.024, fc=color, ec="none",
-                             transform=ax.transAxes)
-            ax.add_patch(rect)
+        color = rank_colors[i]
+        track = Rectangle((mid_x - bar_max_w, y - 0.014), bar_max_w, 0.028,
+                          fc="#21262d", ec=C["border"], lw=0.5,
+                          transform=ax.transAxes)
+        ax.add_patch(track)
+        rect = Rectangle((mid_x - bar_w, y - 0.012), bar_w, 0.024, fc=color, ec="none",
+                         transform=ax.transAxes)
+        ax.add_patch(rect)
+        ax.text(mid_x + 0.018, y, rank_tags[i], fontsize=10.5, color=color,
+                transform=ax.transAxes, va="center", ha="left", fontweight="bold")
         ax.text(0.88, y, f"{ret:+.1%}", fontsize=15, color=color,
                 transform=ax.transAxes, va="center", ha="right", fontweight="bold")
 
-    ax.text(0.5, 0.85, "近 60 日涨跌幅", fontsize=13, color=C["muted"],
+        ax.text(0.5, 0.825, "近 60 日涨跌幅", fontsize=13, color=C["muted"],
             transform=ax.transAxes, ha="center")
 
     # 底部点睛 (上移让节奏更连贯)
@@ -251,12 +254,12 @@ def page_2():
     top = data[0]
     bot = data[-1]
     gap_pp = (top[3] - bot[3]) * 100
-        ax.text(0.5, 0.252, f"组内最强 vs 最弱 差距 {gap_pp:.1f} 个百分点",
+    ax.text(0.5, 0.252, f"组内最强 vs 最弱 差距 {gap_pp:.1f} 个百分点",
             fontsize=16, color=C["gold"], transform=ax.transAxes,
             ha="center", fontweight="bold")
     ax.text(0.5, 0.212, f"{top[1]} {top[3]*100:+.1f}%   vs   {bot[1]} {bot[3]*100:+.1f}%",
             fontsize=13, color=C["text"], transform=ax.transAxes, ha="center")
-        ax.text(0.5, 0.180, "组内走势接近, 差异主要看规模/流动性/折溢价",
+    ax.text(0.5, 0.180, "组内走势接近, 差异主要看规模/流动性/折溢价",
             fontsize=11.5, color=C["muted"], transform=ax.transAxes, ha="center")
 
     footer(ax, 2)
@@ -269,10 +272,10 @@ page_2()
 def page_3():
     fig, ax = new_card()
     header(ax, "PAGE 03 · 持仓真相",
-                                   "当前样本里, 五只产品高度同质",
+                                                                   "这 5 只产品高度同质",
                    "核心暴露集中在汽车/石油石化/家电/航运/钢铁")
 
-        # 5 列行业堆叠条 (真实现金流 ETF)
+        # 5 列行业堆叠条
     # 每只 ETF 一个条状结构, 显示前 5 大行业占比
     SECTOR_COLORS = {
         "汽车": C["blue"], "石油石化": "#e6a23c", "家电": C["purple"],
@@ -362,12 +365,12 @@ def page_3():
 
     # 底部反共识结论
     card_box(ax, 0.06, 0.07, 0.88, 0.09, fc="#2a1f1f", ec=C["red"])
-        ax.text(0.5, 0.13, "三个持仓结论",
+    ax.text(0.5, 0.13, "三个持仓结论",
             fontsize=14, color=C["red"], transform=ax.transAxes,
             ha="center", fontweight="bold")
-    ax.text(0.5, 0.094, "① 真实现金流 ETF 前十大持仓高度重合",
+    ax.text(0.5, 0.094, "① 五只产品前十大持仓高度重合",
             fontsize=11, color=C["text"], transform=ax.transAxes, ha="center")
-        ax.text(0.5, 0.073, "② 行业集中在周期/价值   ③ 不等于红利低波",
+    ax.text(0.5, 0.073, "② 行业集中在周期/价值   ③ 不等于红利低波",
             fontsize=11, color=C["text"], transform=ax.transAxes, ha="center")
 
     footer(ax, 3)
@@ -380,8 +383,8 @@ page_3()
 def page_4():
     fig, ax = new_card()
     header(ax, "PAGE 04 · 你以为现金流 = 红利?",
-           "数据说: 现金流跑得比红利还差",
-           "近 60 日三类\"防御资产\"对比")
+                   "红利低波也没涨, 只是跌得少",
+                   "近 60 日现金流 / 红利 / 沪深300 对比")
 
     # 4 柱: 现金流指数 / 红利ETF / 红利低波 / 沪深300
     # A 股配色: 跌用绿色阶, 涨用红色阶 (深=程度大, 浅/橙=程度小)
@@ -389,7 +392,7 @@ def page_4():
         ("国证现金流指数", S["headline"]["fcf_index_60d"], C["down"]),      # 深绿大跌
         ("红利 ETF", S["benchmarks"]["sh510880"]["ret_60d"], "#7ac686"),     # 浅绿小跌
         ("沪深 300", S["headline"]["hs300_60d"], "#ff9580"),                  # 浅红中涨
-        ("红利低波 100", S["headline"]["dvd_lowvol_60d"], C["up"]),           # 深红大涨
+        ("红利低波 100", S["headline"]["dvd_lowvol_60d"], "#5fbf6b"),          # 中绿下跌
     ]
     items.sort(key=lambda x: x[1])
 
@@ -397,8 +400,8 @@ def page_4():
     n = len(items)
     bar_w = 0.13
     gap = (0.82 - n * bar_w) / (n - 1)
-    base_y = 0.55
-    max_h = 0.22
+    base_y = 0.58
+    max_h = 0.19
     vmax = max(abs(v) for _, v, _ in items)
 
     for i, (name, v, color) in enumerate(items):
@@ -417,7 +420,7 @@ def page_4():
                     fontsize=17, color=color, transform=ax.transAxes,
                     ha="center", va="top", fontweight="bold")
         # 名称
-        ax.text(x + bar_w/2, 0.32, name, fontsize=12, color=C["text"],
+        ax.text(x + bar_w/2, 0.335, name, fontsize=12, color=C["text"],
                 transform=ax.transAxes, ha="center")
 
     # 0 线 (横贯)
@@ -426,18 +429,19 @@ def page_4():
             transform=ax.transAxes, ha="right", va="center")
 
     # 关键洞察卡
-    card_box(ax, 0.06, 0.13, 0.88, 0.16, fc="#1a1f26")
-    ax.text(0.5, 0.265, "现金流 ≠ 红利 · 现金流 ≠ 红利低波",
+    card_box(ax, 0.06, 0.11, 0.88, 0.17, fc="#1a1f26")
+    ax.text(0.5, 0.255, "现金流 ≠ 红利 · 现金流 ≠ 红利低波",
             fontsize=16, color=C["gold"], transform=ax.transAxes,
             ha="center", fontweight="bold")
     dvd_total = S["long_term_dvd_vs_300"]["dvd_total"]
     hs300_total = S["long_term_dvd_vs_300"]["hs300_total"]
     years = S["long_term_dvd_vs_30"]["years"] if "long_term_dvd_vs_30" in S else S["long_term_dvd_vs_300"]["years"]
-    ax.text(0.5, 0.225, f"14 年长期: 红利 ETF 年化 +3.2% < 沪深 300 +4.8%",
+    ax.text(0.5, 0.215, "近 60 日: 现金流跌得更深, 红利低波也不是上涨",
             fontsize=13, color=C["text"], transform=ax.transAxes, ha="center")
-    ax.text(0.5, 0.190, "→ 连\"红利打沪深\"都是迷思 · 何况现金流",
+    ax.text(0.5, 0.178, "→ 不是红利低波在涨, 是现金流跌得更多",
             fontsize=13, color=C["red"], transform=ax.transAxes, ha="center")
-    ax.text(0.5, 0.155, "三类资产的相关性最低到 0.42 (国证现金流 vs 红利低波) · 不是替代品",
+    lowvol_corr = S["correlation_fcf_vs_bench"]["vs_dividend_lowvol"]
+    ax.text(0.5, 0.140, f"现金流 vs 红利低波 120日相关性 {lowvol_corr:.2f} · 仍不是同一个风格",
             fontsize=11.5, color=C["muted"], transform=ax.transAxes, ha="center")
 
     footer(ax, 4)
@@ -526,11 +530,11 @@ def page_6():
         },
         {
             "title": "信号 2 · 风格相关性",
-            "val": "0.42",
+                        "val": f"{S['correlation_fcf_vs_bench']['vs_dividend_lowvol']:.2f}",
             "note": "现金流 vs 红利低波 (120 日)",
             "pill": "NEUTRAL",
             "pill_color": C["blue"],
-            "expl": "弱相关 · 现金流不是\n红利的替代品",
+                        "expl": "中等相关 · 现金流仍不是\n红利低波替代品",
         },
         {
             "title": "信号 3 · 跟踪行业风险",
@@ -587,11 +591,11 @@ def page_7():
            "5 句话教你避开 90% 的坑")
 
     strategies = [
-                ("01", "先看产品名单再讨论观点", "本组样本采用 563390/159201/159222/159221/159223\n先确认买到的是哪类产品", C["red"]),
-                ("02", "真实现金流ETF高度同质", "159201/159222/159221/159223/563390\n前十大持仓重合度很高", C["blue"]),
+                ("01", "买前先看持仓", "别只看名字里的现金流\n真正风险藏在前十大和行业暴露", C["red"]),
+                ("02", "五只产品高度同质", "前十大持仓重合度很高\n差异更多在规模/流动性/折溢价", C["blue"]),
                 ("03", "风格风险仍然存在", "主要暴露在汽车/海油/家电/航运/钢铁\n不是红利低波替代品", C["orange"]),
         ("04", "不要单笔重仓 · 分批进", "指数发布以来仅 18 个月\n样本不足 · 不知道真正底部在哪\n建议: 现价 50% + 再跌 10% 加 30% + 再跌 10% 补 20%", C["gold"]),
-        ("05", "用红利低波做对冲", "现金流和红利低波相关性只有 0.42\n两个都买可对冲风格切换风险", C["green"]),
+        ("05", "用红利低波控波动", f"现金流和红利低波相关性约 {S['correlation_fcf_vs_bench']['vs_dividend_lowvol']:.2f}\n搭配是降波动, 不是押同一风格", C["green"]),
     ]
 
     y_top = 0.78
@@ -618,7 +622,7 @@ def page_7():
     ax.text(0.5, 0.118, "核心口诀",
             fontsize=14, color=C["gold"], transform=ax.transAxes,
             ha="center", fontweight="bold")
-        ax.text(0.5, 0.085, "看名单 · 看持仓 · 分批进 · 配红利低波",
+    ax.text(0.5, 0.085, "看持仓 · 看行业 · 分批进 · 配红利低波",
             fontsize=14, color=C["text"], transform=ax.transAxes, ha="center")
 
     footer(ax, 7)
@@ -637,9 +641,9 @@ def page_8():
             transform=ax.transAxes, ha="center", fontweight="bold")
 
     quotes = [
-                ("名单 ≠ 可以想当然", "先确认当前产品属于哪一类 ETF", C["red"]),
+                ("名字 ≠ 风格", "同类产品也要看持仓和行业暴露", C["red"]),
         ("回测 ≠ 实盘", "国证现金流指数 2024-12 发布 · 散户买进就跌 22.9%", C["orange"]),
-        ("现金流 ≠ 红利", "相关性 0.42 · 跑势差 38.8 pp · 不是替代品", C["blue"]),
+        ("现金流 ≠ 红利", f"相关性 {S['correlation_fcf_vs_bench']['vs_dividend_lowvol']:.2f} · 近60日仍跑输 {abs(S['headline']['underperf_pp_vs_dvd'])*100:.1f} pp", C["blue"]),
         ("现在 ≠ 抄底", "样本不足 18 个月 · 不知道真底 · 分批 > 一次性", C["gold"]),
     ]
 

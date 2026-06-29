@@ -1,11 +1,11 @@
 """现金流反共识分析 + 8 页小红书深色卡片 — 2026-06-26.
 
-核心叙事 (纠错后):
-    1. 原报告误把 562340/563690/159218 当成现金流 ETF, 其中 563690 是红利低波, 159218 是卫星 ETF
-    2. 修正为真实现金流 ETF 后, 代表产品持仓高度趋同, 风格暴露主要集中在汽车/石油石化/家电/航运/钢铁
+核心叙事:
+    1. 追踪 563390/159201/159222/159221/159223 五只现金流 ETF
+    2. 代表产品持仓高度趋同, 风格暴露主要集中在汽车/石油石化/家电/航运/钢铁
     3. 国证自由现金流指数 2024-12 才发布, 现金流 ETF 集中 2025 上市 → 样本很短, 不宜夸大胜率
     4. 同期红利低波与沪深300表现差异说明: 现金流不是红利低波替代品, 更像周期/价值混合暴露
-    5. 操作策略: 先核对基金代码和持仓, 再讨论抄底; 不要把代码错误当成因子差异
+    5. 操作策略: 先看持仓和行业暴露, 再讨论抄底
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ CARD_DIR = OUT / "cards"
 for d in (DATA_DIR, FIG_DIR, CARD_DIR):
     d.mkdir(parents=True, exist_ok=True)
 
-# 5 只真实现金流 ETF
+# 5 只现金流 ETF
 FCF_ETFS = [
     ("sh563390", "563390", "全指现金流ETF华泰柏瑞", "华泰柏瑞", "现金流策略产品", "2025-04-30"),
     ("sz159201", "159201", "自由现金流ETF华夏", "华夏",       "自由现金流策略产品", "2025-02-27"),
@@ -39,7 +39,7 @@ FCF_ETFS = [
 BENCH = [
     ("sh510300", "沪深300ETF", "#58a6ff"),
     ("sh510880", "红利ETF",    "#d2991d"),
-    ("sz159211", "中证红利低波100ETF", "#3fb950"),
+    ("sh515100", "红利低波100ETF", "#3fb950"),
     ("sh515220", "煤炭ETF",    "#bc8cff"),
 ]
 
@@ -128,7 +128,7 @@ print("=" * 60)
 
 # 手工行业映射 (覆盖关键大权重)
 SECTOR_MAP = {
-    # 真实现金流 ETF 代表持仓 (159201/159222/159221/159223/563390)
+    # 现金流 ETF 代表持仓 (159201/159222/159221/159223/563390)
     "600104": "汽车", "600938": "石油石化", "000651": "家电",
     "601919": "航运", "601633": "汽车", "600019": "钢铁",
     "601600": "有色", "600050": "通信", "000338": "机械",
@@ -182,7 +182,7 @@ corr = ret_df.corr()
 # 焦点: 国证现金流 (159201) 与各基准的相关
 key_sym = "sz159201"
 print(f"\n{key_sym} 国证自由现金流ETF 与基准相关性:")
-for s in ["sh510300", "sh510880", "sz159211", "sh515220"]:
+for s in ["sh510300", "sh510880", "sh515100", "sh515220"]:
     if s in corr.columns:
         print(f"  vs {bench_perf[s]['name']:24s} corr={corr.loc[key_sym, s]:.3f}")
 
@@ -241,10 +241,10 @@ summary = {
         "fcf_index_dd": idx_fcf_perf["cur_dd"],
         "hs300_60d": idx_perf_hs300["ret_60d"],
         "hs300_ytd": idx_perf_hs300["ret_ytd"],
-        "dvd_lowvol_60d": bench_perf["sz159211"]["ret_60d"],
-        "dvd_lowvol_ytd": bench_perf["sz159211"]["ret_ytd"],
+        "dvd_lowvol_60d": bench_perf["sh515100"]["ret_60d"],
+        "dvd_lowvol_ytd": bench_perf["sh515100"]["ret_ytd"],
         "underperf_pp_60d": idx_fcf_perf["ret_60d"] - idx_perf_hs300["ret_60d"],
-        "underperf_pp_vs_dvd": idx_fcf_perf["ret_60d"] - bench_perf["sz159211"]["ret_60d"],
+        "underperf_pp_vs_dvd": idx_fcf_perf["ret_60d"] - bench_perf["sh515100"]["ret_60d"],
         "current_dd_percentile": 1 - worse_pct,
     },
     "fcf_etfs": fcf_perf,
@@ -254,7 +254,7 @@ summary = {
     "correlation_fcf_vs_bench": {
         "vs_hs300": float(corr.loc["sz159201", "sh510300"]),
         "vs_dividend": float(corr.loc["sz159201", "sh510880"]),
-        "vs_dividend_lowvol": float(corr.loc["sz159201", "sz159211"]),
+        "vs_dividend_lowvol": float(corr.loc["sz159201", "sh515100"]),
         "vs_coal": float(corr.loc["sz159201", "sh515220"]),
     },
     "long_term_dvd_vs_300": {

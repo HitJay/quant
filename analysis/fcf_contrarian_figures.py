@@ -42,7 +42,8 @@ def fig_5etfs():
     data.sort(key=lambda x: x[1])
     names = [d[0] for d in data]
     vals = [d[1] * 100 for d in data]
-    colors = ["#16a34a" if v < 0 else "#dc2626" for v in vals]
+    rank_palette = ["#ff7b72", "#d2991d", "#f0c040", "#56d4dd", "#58a6ff"]
+    colors = rank_palette[:len(vals)]
 
     y = np.arange(len(names))
     ax.barh(y, vals, color=colors, edgecolor="none", height=0.6)
@@ -54,7 +55,7 @@ def fig_5etfs():
                 color=colors[i])
     ax.set_yticks(y, names, fontsize=10)
     ax.set_xlabel("近 60 日涨跌幅 (%)", fontsize=11)
-    ax.set_title("5 只真实现金流 ETF 近 60 日表现 — 组内走势高度趋同",
+    ax.set_title("5 只现金流 ETF 近 60 日表现 — 组内走势高度趋同",
                  fontsize=12, fontweight="bold", pad=12)
     ax.set_xlim(min(vals) * 1.3, max(vals) * 1.3)
     ax.grid(axis="x", alpha=0.3, ls=":")
@@ -110,7 +111,7 @@ def fig_holdings():
     ax.set_yticks(y_positions, [name for _, name in etfs], fontsize=10)
     ax.set_xlim(0, 100)
     ax.set_xlabel("持仓占净值比 (%) · 灰色为未披露/前 10 之外", fontsize=10)
-    ax.set_title("5 只真实现金流 ETF 持仓行业归因 — 当前样本高度趋同",
+    ax.set_title("5 只现金流 ETF 持仓行业归因 — 组内高度趋同",
                  fontsize=12, fontweight="bold", pad=12)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -136,7 +137,7 @@ def fig_nav_compare():
     hs300 = pd.read_parquet(CACHE / "idx_sh000300.parquet")
     hs300["date"] = pd.to_datetime(hs300["date"])
     hs300 = hs300.set_index("date")["close"].loc[start:]
-    dvd_lv = pd.read_parquet(CACHE / "etf_sz159211.parquet")
+    dvd_lv = pd.read_parquet(CACHE / "etf_sh515100.parquet")
     dvd_lv["date"] = pd.to_datetime(dvd_lv["date"])
     dvd_lv = dvd_lv.set_index("date")["close"].loc[start:]
 

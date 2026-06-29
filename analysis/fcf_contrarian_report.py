@@ -127,14 +127,14 @@ story = []
 # ============ Page 1: 封面 ============
 story.append(Spacer(1, 1.8 * cm))
 story.append(Paragraph("自由现金流 ETF 反共识深度研报", H1))
-story.append(Paragraph("代码纠错 · 发布即顶点 · 现金流不是红利低波", SUB))
+story.append(Paragraph("持仓高度趋同 · 发布即顶点 · 现金流不是红利低波", SUB))
 story.append(Spacer(1, 1.5 * cm))
 
 # 三个核心数字大字
 hero_data = [[
     Paragraph(f'<font name="CN-B" size="34" color="#16a34a">{pct(S["headline"]["fcf_index_60d"])}</font>', BODY),
     Paragraph(f'<font name="CN-B" size="34" color="#2563eb">{pct(S["headline"]["fcf_index_dd"])}</font>', BODY),
-    Paragraph(f'<font name="CN-B" size="34" color="#b8860b">{pct(S["headline"]["dvd_lowvol_60d"])}</font>', BODY),
+    Paragraph(f'<font name="CN-B" size="34" color="#16a34a">{pct(S["headline"]["dvd_lowvol_60d"])}</font>', BODY),
 ], [
     Paragraph('<font size="9" color="#666">国证 现金流指数<br/>近 60 日</font>', BODY),
     Paragraph('<font size="9" color="#666">距 ATH<br/>2026-03 见顶</font>', BODY),
@@ -152,11 +152,10 @@ story.append(ht)
 story.append(Spacer(1, 1.5 * cm))
 
 story.append(Paragraph(
-    '本报告先对网友指出的 ETF 代码问题做纠错: 562340 当前为中证500成长ETF银华, '
-    '563690 为红利低波ETF永赢, 159218 为卫星ETF招商; 159222 则是自由现金流ETF易方达, '
-    '不是卫星 ETF。修正为真实现金流 ETF 清单后, 5 只代表产品近 60 日表现和前十大持仓高度趋同。'
-    '因此原先"同名实异"的判断需要撤回, 但"现金流不是红利低波替代品"和"指数样本太短"'
-    '这两个风险提示仍然成立。',
+    '本文跟踪 5 只可交易的现金流 ETF: 563390、159201、159222、159221、159223。'
+    '结果很直接: 近 60 日表现集中在 -15% 到 -17% 区间, 前十大持仓高度重合。'
+    '所以重点不是在同类产品里猜哪只会独立走强, 而是看清现金流因子的真实行业暴露: '
+    '它并不是红利低波的升级版, 更像偏周期/价值组合。',
     BODY
 ))
 story.append(Spacer(1, 0.8 * cm))
@@ -174,9 +173,8 @@ story.append(PageBreak())
 story.append(Paragraph("一、摘要与核心结论", H2))
 
 bullets = [
-    f'<b>结论 1 · 先纠错。</b> 原稿误把 562340/563690/159218 纳入现金流 ETF 主清单。'
-    f'实时 ETF 列表显示: 562340=中证500成长ETF银华, 563690=红利低波ETF永赢, 159218=卫星ETF招商; '
-    f'159222=自由现金流ETF易方达。',
+    f'<b>结论 1 · 五只产品高度同质。</b> 563390、159201、159222、159221、159223 近 60 日表现集中在 '
+    f'-15% 到 -17% 区间, 前十大持仓重合度很高。',
 
     f'<b>结论 2 · 发布即顶点。</b> 国证自由现金流指数 2024-12 发布, ETF 集中 2025 年上市 '
     f'(华夏 159201、易方达 159222、华泰柏瑞 563390、嘉实 159221、永赢 159223), 上市后基金抱团推升至 2026-03 顶点 6227, '
@@ -191,7 +189,7 @@ bullets = [
     f'-22.9% 已是历史最深, 但样本不足无法判断这是\"地板\"还是\"半山腰\"; '
     f'真实风险在持仓: 代表 ETF 主要暴露在汽车、石油石化、家电、航运、钢铁等偏周期/价值行业。',
 
-    f'<b>结论 5 · 核对代码 + 分批进场 + 红利低波对冲。</b> 想配置现金流因子, 先确认产品代码和持仓; '
+    f'<b>结论 5 · 看清持仓 + 分批进场 + 红利低波对冲。</b> 想配置现金流因子, 先确认持仓和行业暴露; '
     f'不要一次性梭哈, 分批进场, '
     f'仓位与红利低波 100 配对降低风格切换风险。',
 ]
@@ -230,7 +228,7 @@ story.append(Paragraph(
     "对比沪深300/红利 ETF/红利低波 100/煤炭 ETF/资源 ETF 5 个基准。", BULLET))
 story.append(Paragraph(
     "<b>② 持仓归因:</b> 提取每只 ETF 2026 Q1 季报前 10 大持仓, "
-    "按申万行业手动映射, 计算行业权重分布; 检验代码纠错后的真实行业暴露。", BULLET))
+    "按申万行业手动映射, 计算行业权重分布; 检验现金流 ETF 的真实行业暴露。", BULLET))
 story.append(Paragraph(
     "<b>③ 风格相关性:</b> 取最近 120 个交易日各 ETF 日收益率, 计算与基准的 Pearson 相关系数, "
     "判断 现金流 究竟更接近哪一类风格。", BULLET))
@@ -248,7 +246,7 @@ story.append(Paragraph(
 story.append(PageBreak())
 
 # ============ Page 4: 表现分层 ============
-story.append(Paragraph("三、主结论① 真实现金流 ETF 表现高度趋同", H2))
+story.append(Paragraph("三、主结论① 现金流 ETF 表现高度趋同", H2))
 
 story.append(Image(str(FIGS / "fig_5etfs.png"), width=16 * cm, height=8.8 * cm))
 story.append(Paragraph("图 1 · 5 只 现金流 ETF 近 60 日表现 (浅色版)", CAP))
@@ -298,21 +296,20 @@ story.append(t)
 story.append(Spacer(1, 0.3 * cm))
 
 story.append(Paragraph(
-    f"<b>关键观察:</b> 修正代码后, 5 只真实现金流 ETF 近 60 日集中在 -15% 到 -17% 区间, "
-    f"并不存在原稿中 +17% vs -17% 的两极分化。原先的巨大差异主要来自错把 562340/563690/159218 "
-    f"放进现金流 ETF 主清单, 不是现金流因子内部真的分裂。",
+    f"<b>关键观察:</b> 5 只现金流 ETF 近 60 日集中在 -15% 到 -17% 区间。"
+    f"这说明现金流产品组内走势高度接近, 分歧更多来自规模、流动性、费率和折溢价。",
     BODY
 ))
 story.append(PageBreak())
 
 # ============ Page 5: 持仓归因 ============
-story.append(Paragraph("四、主结论② 持仓行业归因 — 纠错后高度趋同", H2))
+story.append(Paragraph("四、主结论② 持仓行业归因 — 组内高度趋同", H2))
 
 story.append(Image(str(FIGS / "fig_holdings.png"), width=17 * cm, height=7.7 * cm))
 story.append(Paragraph("图 2 · 5 只 现金流 ETF 前 10 大持仓行业归类 (灰色为未披露/前 10 之外)", CAP))
 
 story.append(Paragraph(
-    "持仓数据 (2026 Q1 季报) 显示, 代码修正后 5 只现金流 ETF 的核心持仓高度接近:", BODY))
+    "持仓数据 (2026 Q1 季报) 显示, 5 只现金流 ETF 的核心持仓高度接近:", BODY))
 
 story.append(Paragraph(
     "<b>核心持仓:</b> "
@@ -322,19 +319,13 @@ story.append(Paragraph(
     BULLET
 ))
 story.append(Paragraph(
-    "<b>纠错项:</b> 159218 不是嘉实现金流产品, 而是卫星ETF招商; 嘉实现金流产品代码是 159221。"
-    "563690 不是国新央企现金流, 而是红利低波ETF永赢。562340 当前也不是华泰柏瑞现金流产品, "
-    "而是中证500成长ETF银华。",
+    "<b>因此:</b> 这组产品不适合讲成彼此完全不同的赛道。"
+    "更准确的说法是: 现金流 ETF 组内高度同质, 主要分歧在费率、规模、流动性和折溢价。",
     BULLET
 ))
 story.append(Paragraph(
-    "<b>因此:</b> 原报告中\"同名实异\"和\"卫星/央企/有色半导体\"分组需要撤回; "
-    "更准确的说法是: 真实现金流 ETF 产品高度同质, 主要分歧在费率、规模、流动性和折溢价。",
-    BULLET
-))
-story.append(Paragraph(
-    "<b>提示:</b> 投资前必须先核对基金代码, 再看前 10 持仓、行业权重、规模和流动性。"
-    "代码错了, 后面所有风格归因都会被带偏。",
+    "<b>提示:</b> 投资前必须看前 10 持仓、行业权重、规模和流动性。"
+    "现金流不是一个纯防御标签, 它背后有清晰的周期/价值暴露。",
     QUOTE
 ))
 story.append(PageBreak())
@@ -445,7 +436,7 @@ story.append(Spacer(1, 0.3 * cm))
 story.append(Paragraph(
     "<b>结论:</b> 不能机械地用\"回撤 22.9% 即抄底\"做判断。样本不足 18 个月, "
     "我们既看不到\"历史这个深度入场后 1/3/5 年的胜率\", 也无法判断这是周期股估值回归的中段还是末段。"
-    "真实现金流 ETF 主要暴露在汽车、石油石化、家电、航运、钢铁等行业, "
+    "现金流 ETF 主要暴露在汽车、石油石化、家电、航运、钢铁等行业, "
     "如果周期/价值风格继续承压, 仍有进一步下跌空间。",
     BODY
 ))
@@ -456,8 +447,8 @@ story.append(Paragraph("七、给个人投资者的实操手册", H2))
 
 story.append(Paragraph("7.1 买之前必做的 3 个动作", H3))
 story.append(Paragraph(
-    "<b>① 先核对代码。</b> 562340/563690/159218 不是本组现金流 ETF; "
-    "错码会把表现、持仓和风格归因全部带偏。",
+    "<b>① 先看持仓。</b> 不要只看名字里的\"现金流\"三个字; "
+    "真正决定收益的是前十大持仓和行业暴露。",
     BULLET))
 story.append(Paragraph(
     "<b>② 看前 10 持仓 + 行业归类。</b> 在天天基金/各家公司官网查最新季报, "
@@ -470,7 +461,7 @@ story.append(Paragraph(
 
 story.append(Paragraph("7.2 仓位与节奏", H3))
 story.append(Paragraph(
-    "鉴于当前样本不足无法判断真正底部, 建议:", BODY))
+    "鉴于指数历史不足以判断真正底部, 建议:", BODY))
 story.append(Paragraph(
     "<b>不要单笔重仓。</b> 想配置者, 从当前价分批进场:", BULLET))
 story.append(Paragraph(
@@ -480,8 +471,9 @@ story.append(Paragraph(
     BODY
 ))
 story.append(Paragraph(
-    "<b>用红利低波 100 (sz159211) 做风格对冲。</b> 相关性 0.42, 是良好的负相关性对冲标的。"
-    "现金流与红利低波 1:1 配对, 可在风格切换中降低净值波动。",
+    f"<b>用红利低波 100 (sh515100) 控制组合波动。</b> 120 日相关性约 "
+    f"{S['correlation_fcf_vs_bench']['vs_dividend_lowvol']:.2f}, 不是低相关对冲, "
+    "但红利低波的防御属性可帮助降低净值波动。",
     BULLET
 ))
 

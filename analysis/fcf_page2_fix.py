@@ -94,15 +94,15 @@ def save(fig, name):
     print(f"[OK] {p}")
 
 
-# ============ PAGE 2: 5 只真实现金流 ETF ============
+# ============ PAGE 2: 5 只现金流 ETF ============
 def page_2():
     fig, ax = new_card()
-    header(ax, "PAGE 02 · 代码修正后",
-           "真实现金流 ETF 走势高度趋同",
+    header(ax, "PAGE 02 · 现金流 ETF 横向对比",
+           "5 只产品走势高度趋同",
            "近 60 日基本都落在 -15%~-17%")
 
     # "近 60 日涨跌幅" 小标题: 对齐到 mid_x (零轴) 正上方而非整卡居中
-    ax.text(0.52, 0.815, "近 60 日涨跌幅", fontsize=13, color=C["muted"],
+    ax.text(0.52, 0.805, "近 60 日涨跌幅", fontsize=13, color=C["muted"],
             transform=ax.transAxes, ha="center")
 
     etfs = [
@@ -127,6 +127,8 @@ def page_2():
     # 让 ETF 名字栏 (左侧 0.06~0.40 区) 不会过空, 右侧 +17.6% 也不贴边
     mid_x = 0.52
     bar_max_w = 0.26
+    rank_colors = ["#58a6ff", "#56d4dd", C["gold"], "#d2991d", "#ff7b72"]
+    rank_tags = ["相对抗跌", "接近均值", "接近均值", "偏弱", "偏弱"]
 
     for i, (code, name, brand, ret) in enumerate(data):
         y = y_top - i * y_step
@@ -139,32 +141,32 @@ def page_2():
         # 中线 (0%)
         ax.plot([mid_x, mid_x], [y - 0.02, y + 0.02], color=C["border"], lw=1, transform=ax.transAxes)
 
-        # 条
+        # 灰色轨道 + 组内排名色, 避免全负收益时整页只有一种绿色
         bar_w = (abs(ret) / max_abs) * bar_max_w
-        if ret > 0:
-            color = C["up"]
-            rect = Rectangle((mid_x, y - 0.012), bar_w, 0.024, fc=color, ec="none",
-                             transform=ax.transAxes)
-            ax.add_patch(rect)
-        else:
-            color = C["down"]
-            rect = Rectangle((mid_x - bar_w, y - 0.012), bar_w, 0.024, fc=color, ec="none",
-                             transform=ax.transAxes)
-            ax.add_patch(rect)
-            ax.text(0.88, y, f"{ret:+.1%}", fontsize=15, color=color,
-                transform=ax.transAxes, va="center", ha="right", fontweight="bold")
+        color = rank_colors[i]
+        track = Rectangle((mid_x - bar_max_w, y - 0.014), bar_max_w, 0.028,
+                  fc="#21262d", ec=C["border"], lw=0.5,
+                  transform=ax.transAxes)
+        ax.add_patch(track)
+        rect = Rectangle((mid_x - bar_w, y - 0.012), bar_w, 0.024, fc=color, ec="none",
+                 transform=ax.transAxes)
+        ax.add_patch(rect)
+        ax.text(mid_x + 0.018, y, rank_tags[i], fontsize=10.5, color=color,
+            transform=ax.transAxes, va="center", ha="left", fontweight="bold")
+        ax.text(0.88, y, f"{ret:+.1%}", fontsize=15, color=color,
+            transform=ax.transAxes, va="center", ha="right", fontweight="bold")
 
     # 底部点睛卡
     card_box(ax, 0.06, 0.16, 0.88, 0.13, fc="#1a1f26", ec=C["gold"], lw=1.2)
     top = data[0]
     bot = data[-1]
     gap_pp = (top[3] - bot[3]) * 100
-    ax.text(0.5, 0.252, f"修正后最强 vs 最弱 差距 {gap_pp:.1f} 个百分点",
+    ax.text(0.5, 0.252, f"组内最强 vs 最弱 差距 {gap_pp:.1f} 个百分点",
             fontsize=16, color=C["gold"], transform=ax.transAxes,
             ha="center", fontweight="bold")
     ax.text(0.5, 0.212, f"{top[1]} {top[3]*100:+.1f}%   vs   {bot[1]} {bot[3]*100:+.1f}%",
             fontsize=13, color=C["text"], transform=ax.transAxes, ha="center")
-    ax.text(0.5, 0.180, "原先的巨大分化来自错码, 不是因子本身",
+    ax.text(0.5, 0.180, "组内走势接近, 差异主要看规模/流动性/折溢价",
             fontsize=11.5, color=C["muted"], transform=ax.transAxes, ha="center")
 
     footer(ax, 2)
