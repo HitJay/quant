@@ -18,9 +18,20 @@ DATE = "20260629"
 DAY_HUMAN = "2026-06-29"
 OUT = ROOT / "output/2026-06-29/today-hotspots/cards"
 SUMMARY = json.loads((ROOT / f"output/hotspot/{DATE}/summary.json").read_text(encoding="utf-8"))
+PERSISTENCE = json.loads((ROOT / "output/2026-06-29/today-hotspots/pharma_persistence_summary.json").read_text(encoding="utf-8"))
 ZT_POOL = pd.read_parquet(ROOT / f"output/hotspot/{DATE}/raw/zt_pool.parquet")
+SNAPSHOT_TIME = (SUMMARY.get("generated_at", "").split("T")[-1][:5] or "盘后")
 PHARMA = next((item for item in SUMMARY["industry_top5"] if item["name"] == "医药生物"), SUMMARY["industry_top5"][0])
 WORST = SUMMARY["industry_bottom5"][0]
+COMPONENT = next((item for item in SUMMARY["industry_bottom5"] if item["name"] == "元件"), WORST)
+PHARMA_UP = sum(item["up_count"] for item in SUMMARY["industry_top5"] if item["name"] in {"生物制品", "医疗服务", "化学制药", "医药生物", "中药Ⅱ"})
+PHARMA_DOWN = sum(item["down_count"] for item in SUMMARY["industry_top5"] if item["name"] in {"生物制品", "医疗服务", "化学制药", "医药生物", "中药Ⅱ"})
+PHARMA_BREADTH = PHARMA_UP / max(PHARMA_UP + PHARMA_DOWN, 1)
+PHARMA_ZT = next((item["涨停数"] for item in SUMMARY["zt_top_industries"] if item["行业"] == "化学制药"), 0)
+ZHABAN_RATE = SUMMARY["zb_count"] / max(SUMMARY["zt_count"] + SUMMARY["zb_count"], 1)
+REL_STRENGTH = PHARMA["pct_chg"] - COMPONENT["pct_chg"]
+PHARMA_NET = PHARMA.get("main_net_in", 0)
+COMPONENT_NET = COMPONENT.get("main_net_in", 0)
 
 card = XHSCard(total_pages=7, brand="复旦杰伦")
 
@@ -38,6 +49,21 @@ def save(fig, page: int) -> None:
     print(card.save(fig, OUT, page))
 
 
+def persist_row(code: str, horizon: int, threshold: float = 0.04) -> dict:
+    for row in PERSISTENCE["rows"]:
+        if row["code"] == code and row["threshold"] == threshold and row["horizon"] == horizon:
+            return row
+    raise KeyError((code, threshold, horizon))
+
+
+def pct0(value: float) -> str:
+    return f"{value:.0%}"
+
+
+def signed_pct1(value: float) -> str:
+    return f"{value:+.1%}"
+
+
 def page_1() -> None:
     fig, ax = card.canvas()
     ax.text(0.06, 0.94, "热点复盘 · 医药主线真相", fontsize=14, color=C["red"], transform=ax.transAxes, fontweight="bold")
@@ -51,24 +77,24 @@ def page_1() -> None:
     ax.text(0.275, 0.475, pct_text(PHARMA["pct_chg"]), fontsize=38, color=C["red"], transform=ax.transAxes, ha="center", fontweight="bold")
 
     card.panel(ax, 0.52, 0.42, 0.41, 0.21, face="panel2")
-    ax.text(0.725, 0.605, WORST["name"], fontsize=15, color=C["muted"], transform=ax.transAxes, ha="center")
-    ax.text(0.725, 0.555, "13:08 快照跌幅", fontsize=13, color=C["muted"], transform=ax.transAxes, ha="center")
-    ax.text(0.725, 0.475, pct_text(WORST["pct_chg"]), fontsize=38, color=C["down"], transform=ax.transAxes, ha="center", fontweight="bold")
+    ax.text(0.725, 0.605, COMPONENT["name"], fontsize=15, color=C["muted"], transform=ax.transAxes, ha="center")
+    ax.text(0.725, 0.555, f"{SNAPSHOT_TIME} 快照跌幅", fontsize=13, color=C["muted"], transform=ax.transAxes, ha="center")
+    ax.text(0.725, 0.475, pct_text(COMPONENT["pct_chg"]), fontsize=38, color=C["down"], transform=ax.transAxes, ha="center", fontweight="bold")
     ax.text(0.5, 0.475, "->", fontsize=22, color=C["muted"], transform=ax.transAxes, ha="center")
-    ax.text(0.5, 0.385, f"强弱差 {PHARMA['pct_chg'] - WORST['pct_chg']:.1f} 个百分点", fontsize=15.5, color=C["gold"], transform=ax.transAxes, ha="center", fontweight="bold")
+    ax.text(0.5, 0.385, f"强弱差 {PHARMA['pct_chg'] - COMPONENT['pct_chg']:.1f} 个百分点", fontsize=15.5, color=C["gold"], transform=ax.transAxes, ha="center", fontweight="bold")
 
     ax.text(0.06, 0.330, "TL;DR · 今天先记住 3 件事", fontsize=14, color=C["text"], transform=ax.transAxes, fontweight="bold")
     tldr = [
         ("01", "生物制品 / 化学制药 / 医疗服务 / 中药一起进涨幅榜", C["red"]),
         ("02", "化学制药 13 只涨停, 是今天最集中的药味来源", C["orange"]),
-        ("03", "79 只涨停同时有 43 只炸板, 热闹不等于好追", C["gold"]),
+        ("03", f"{SUMMARY['zt_count']} 只涨停同时有 {SUMMARY['zb_count']} 只炸板, 热闹不等于好追", C["gold"]),
     ]
     y = 0.270
     for number, text, color in tldr:
         ax.text(0.085, y, number, fontsize=22, color=color, transform=ax.transAxes, fontweight="bold")
         ax.text(0.155, y + 0.005, text, fontsize=13, color=C["text"], transform=ax.transAxes)
         y -= 0.060
-    ax.text(0.5, 0.075, f"数据截至 {DAY_HUMAN} 13:08 快照 · 共 7 页盘中复盘", fontsize=11.5, color=C["muted"], transform=ax.transAxes, ha="center")
+    ax.text(0.5, 0.075, f"数据截至 {DAY_HUMAN} {SNAPSHOT_TIME} 快照 · 共 7 页盘中复盘", fontsize=11.5, color=C["muted"], transform=ax.transAxes, ha="center")
     card.footer(ax, 1)
     save(fig, 1)
 
@@ -91,7 +117,7 @@ def page_2() -> None:
         ax.text(0.80, y, money_text(item.get("main_net_in", 0)), fontsize=11, color=C["muted"], transform=ax.transAxes, va="center", ha="left")
     card.insight_box(ax, "结论: 不是单只龙头行情", "医药 5 个细分进涨幅榜, 更像板块扩散而不是孤立脉冲", bottom=0.16, height=0.13, edge="gold")
     losers = " / ".join(f"{x['name']} {pct_text(x['pct_chg'])}" for x in SUMMARY["industry_bottom5"][:3])
-    ax.text(0.5, 0.112, f"13:08 对照组: {losers}", fontsize=11.5, color=C["down"], transform=ax.transAxes, ha="center")
+    ax.text(0.5, 0.112, f"{SNAPSHOT_TIME} 对照组: {losers}", fontsize=11.5, color=C["down"], transform=ax.transAxes, ha="center")
     card.footer(ax, 2)
     save(fig, 2)
 
@@ -149,8 +175,8 @@ def page_5() -> None:
 
 def page_6() -> None:
     fig, ax = card.canvas()
-    card.header(ax, "PAGE 06 · 现在该追吗", "三个客观信号", "热闹是真热闹, 但追高也是真难")
-    signals = [("信号 1 · 涨停热度", str(SUMMARY["zt_count"]), "今日涨停数", "HOT", C["red"], "场子很热\n医药主线够亮"), ("信号 2 · 炸板风险", str(SUMMARY["zb_count"]), "今日炸板数", "RISK", C["orange"], "追板容易坐过山车\n短线容错率不高"), ("信号 3 · 高度未开", f"{SUMMARY['zt_max_board']}板", "最高连板", "WAIT", C["gold"], "题材有热度\n但高度还没打开")]
+    card.header(ax, "PAGE 06 · 量化风险", "三个客观信号", "热闹是真热闹, 但追高也是真难")
+    signals = [("信号 1 · 涨停热度", str(SUMMARY["zt_count"]), "今日涨停数", "HOT", C["red"], f"化学制药 {PHARMA_ZT} 只涨停\n医药主线够亮"), ("信号 2 · 炸板率", f"{ZHABAN_RATE:.0%}", "炸板 / (涨停+炸板)", "RISK", C["orange"], f"{SUMMARY['zb_count']} 只炸板\n短线容错率不高"), ("信号 3 · 高度未开", f"{SUMMARY['zt_max_board']}板", "最高连板", "WAIT", C["gold"], "题材有热度\n但高度还没打开")]
     for i, (title, value, note, pill, color, expl) in enumerate(signals):
         y = 0.66 - i * 0.185
         card.panel(ax, 0.06, y, 0.88, 0.16, face="panel2")
@@ -167,16 +193,28 @@ def page_6() -> None:
 
 def page_7() -> None:
     fig, ax = card.canvas()
-    card.header(ax, "PAGE 07 · 怎么发", "买之前先认清你写的是什么", "5 句话把今天这条内容立住")
-    strategies = [("01", "主标题", "创新药又爆了: 今天医药为什么突然成主线?", C["red"]), ("02", "第一段", "先讲行业扩散: 生物制品/化学制药/医疗服务/中药一起冲", C["blue"]), ("03", "副线", "老登股没退场: 市场在重新找确定性", C["gold"]), ("04", "风险刹车", "79 只涨停背后, 还有 43 只炸板", C["orange"]), ("05", "收盘后补充", "等龙虎榜出来, 再看医药是不是机构真买", C["green"])]
-    for i, (num, title, body, color) in enumerate(strategies):
-        y = 0.76 - i * 0.124
-        ax.text(0.08, y + 0.020, num, fontsize=28, color=color, transform=ax.transAxes, fontweight="bold", va="center")
-        ax.text(0.18, y + 0.040, title, fontsize=14.5, color=C["text"], transform=ax.transAxes, fontweight="bold")
-        ax.text(0.18, y + 0.010, wrap_text(body, 30), fontsize=11.5, color=C["muted"], transform=ax.transAxes, va="top")
-        if i < len(strategies) - 1:
-            ax.plot([0.08, 0.92], [y - 0.062, y - 0.062], color=C["border"], lw=0.4, alpha=0.5, transform=ax.transAxes)
-    card.insight_box(ax, "核心口诀", "医药主线 · 老登副线 · 炸板刹车 · 收盘补证据", bottom=0.07, height=0.09, edge="gold")
+    card.header(ax, "PAGE 07 · 持久度回测", "这波能不能多走几天", "历史大涨日后, 5/10/20 日表现")
+    med5 = persist_row("159929", 5)
+    med10 = persist_row("159929", 10)
+    med20 = persist_row("159929", 20)
+    inno10 = persist_row("159992", 10)
+    latest_med = PERSISTENCE["latest"]["159929"]
+    latest_inno = PERSISTENCE["latest"]["159992"]
+    metrics = [
+        ("01", "今日触发", signed_pct1(latest_med["latest_ret"]), f"159929 医药长序列ETF当日涨幅; 创新药ETF {signed_pct1(latest_inno['latest_ret'])}", C["red"]),
+        ("02", "5日延续", pct0(med5["win_rate"]), f">=4%大涨日样本 n={med5['n']}; 5日中位收益 {signed_pct1(med5['median_ret'])}", C["orange"]),
+        ("03", "10日持久", pct0(med10["win_rate"]), f"10日中位收益 {signed_pct1(med10['median_ret'])}; 不是强持续信号", C["gold"]),
+        ("04", "20日余温", pct0(med20["win_rate"]), f"20日中位收益 {signed_pct1(med20['median_ret'])}; 胜率略过半", C["cyan"]),
+        ("05", "创新药弹性", pct0(inno10["win_rate"]), f"159992 >=4%后10日中位 {signed_pct1(inno10['median_ret'])}; 短弹强于宽基", C["green"]),
+    ]
+    for i, (num, title, value, body, color) in enumerate(metrics):
+        y = 0.705 - i * 0.116
+        card.panel(ax, 0.06, y - 0.050, 0.88, 0.086, face="panel2", edge="border", lw=0.7)
+        ax.text(0.095, y - 0.006, num, fontsize=23, color=color, transform=ax.transAxes, fontweight="bold", va="center")
+        ax.text(0.20, y + 0.012, title, fontsize=14.8, color=C["text"], transform=ax.transAxes, fontweight="bold", va="center")
+        ax.text(0.20, y - 0.024, body, fontsize=10.6, color=C["muted"], transform=ax.transAxes, va="center")
+        ax.text(0.86, y - 0.002, value, fontsize=22, color=color, transform=ax.transAxes, fontweight="bold", ha="right", va="center")
+    card.insight_box(ax, "持久度结论", "历史样本说: 这类大涨日短线容易震荡, 10-20日才略有延续胜率", bottom=0.07, height=0.095, edge="gold")
     card.footer(ax, 7)
     save(fig, 7)
 
