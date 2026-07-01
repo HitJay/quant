@@ -72,6 +72,31 @@ COMPONENT = industry_row("元件")
 ELECTRONICS = industry_row("电子")
 CONSUMER = industry_row("消费电子")
 DEFENSE = industry_row("国防军工")
+HARDWARE_ROWS = [OPTICAL, COMM, SEMI, COMPONENT, ELECTRONICS]
+
+
+def breadth(row: dict) -> float:
+    up = float(row.get("up_count", 0))
+    down = float(row.get("down_count", 0))
+    return up / max(up + down, 1)
+
+
+def pct0(value: float) -> str:
+    return f"{value:.0%}"
+
+
+def money0e(value: object) -> str:
+    try:
+        return f"{float(value) / 1e8:.0f}亿"
+    except (TypeError, ValueError):
+        return str(value)
+
+
+HARDWARE_NET = sum(float(row["main_net_in"]) for row in HARDWARE_ROWS)
+APPLE_BREADTH = float(APPLE["up_count"]) / max(float(APPLE["up_count"]) + float(APPLE["down_count"]), 1)
+ELECTRONICS_BREADTH = breadth(ELECTRONICS)
+ZHABAN_RATE = SUMMARY["zb_count"] / max(SUMMARY["zt_count"] + SUMMARY["zb_count"], 1)
+SEMI_NET_SHARE = float(SEMI["main_net_in"]) / max(HARDWARE_NET, 1)
 
 
 def save(fig, page: int) -> None:
@@ -98,7 +123,7 @@ def page_1() -> None:
     ax.text(0.5, 0.855, "苹果概念大涨", fontsize=34, color=C["text"], transform=ax.transAxes, ha="center", fontweight="bold")
     ax.text(0.5, 0.805, "先别急着喊苹果", fontsize=25, color=C["muted"], transform=ax.transAxes, ha="center", fontweight="bold")
 
-    ax.text(0.5, 0.675, "+104亿", fontsize=80, color=C["red"], transform=ax.transAxes, ha="center", fontweight="bold")
+    ax.text(0.5, 0.675, f"+{money0e(APPLE['main_net_in'])}", fontsize=80, color=C["red"], transform=ax.transAxes, ha="center", fontweight="bold")
     ax.text(0.5, 0.610, "苹果概念主力净流入", fontsize=15, color=C["muted"], transform=ax.transAxes, ha="center")
     ax.text(0.5, 0.565, f"涨幅 {pct_text(APPLE['pct_chg'])} · 上涨 {int(APPLE['up_count'])} / 下跌 {int(APPLE['down_count'])}", fontsize=14, color=C["gold"], transform=ax.transAxes, ha="center", fontweight="bold")
 
@@ -142,7 +167,7 @@ def page_2() -> None:
         ax.add_patch(Rectangle((0.43, y - 0.014), width, 0.030, fc=C["red"], alpha=0.34, ec="none", transform=ax.transAxes))
         ax.text(0.755, y + 0.002, pct_text(row["pct_chg"]), fontsize=14, color=C["red"], transform=ax.transAxes, ha="right", fontweight="bold")
         ax.text(0.895, y + 0.002, money_e(row["main_net_in"]), fontsize=10.8, color=C["gold"], transform=ax.transAxes, ha="right")
-    card.insight_box(ax, "这不是单点行情", "光学、通信、元件、电子、半导体同步进攻; 主线宽度比连板高度更重要", bottom=0.095, height=0.12, edge="gold")
+    card.insight_box(ax, "这不是单点行情", f"五条电子链合计净流入 {money_e(HARDWARE_NET)}, 电子上涨占比 {pct0(ELECTRONICS_BREADTH)}", bottom=0.095, height=0.12, edge="gold")
     card.footer(ax, 2)
     save(fig, 2)
 
@@ -187,7 +212,7 @@ def page_4() -> None:
         width = 0.30 * abs(float(row["main_net_in"])) / max_net
         ax.add_patch(Rectangle((0.45, y - 0.015), width, 0.033, fc=C[color], alpha=0.34, ec="none", transform=ax.transAxes))
         ax.text(0.865, y + 0.002, money_e(row["main_net_in"]), fontsize=14.5, color=C[color], transform=ax.transAxes, ha="right", fontweight="bold")
-    card.insight_box(ax, "数据里的反直觉", "半导体 +4.43%, 但净流入只有 4.3 亿; 通信设备是 100.5 亿", bottom=0.085, height=0.12, edge="gold")
+    card.insight_box(ax, "数据里的反直觉", f"半导体涨幅很强, 但资金只占电子链净流入 {pct0(SEMI_NET_SHARE)}; 通信设备是 {money_e(COMM['main_net_in'])}", bottom=0.085, height=0.12, edge="gold")
     card.footer(ax, 4)
     save(fig, 4)
 
@@ -244,21 +269,42 @@ def page_6() -> None:
 
 def page_7() -> None:
     fig, ax = card.canvas()
-    card.header(ax, "PAGE 07 · 明日观察", "别把复盘写成喊单", "明天只看 5 个信号, 不靠脑补")
-    checks = [
-        ("01", "苹果概念", "能否继续站在概念涨幅前列", "gold"),
-        ("02", "光学 / 通信 / 元件", "是否继续有净流入, 不只是一日游", "cyan"),
-        ("03", "半导体", "资金能否补上, 否则只是普涨标签", "purple"),
-        ("04", "涨停高度", "最高 3 板能否抬到 4-5 板", "orange"),
-        ("05", "弱势方向", "医药、银行、食品饮料是否继续失血", "blue"),
+    card.header(ax, "PAGE 07 · 量化收束", "总结和建议", "5 个指标给结论, 不靠感觉追高")
+
+    summary_cards = [
+        ("主线强度", "偏强", f"电子链净流入 {money_e(HARDWARE_NET)}\n电子上涨占比 {pct0(ELECTRONICS_BREADTH)}", "red"),
+        ("追高风险", "中等", f"炸板率 {pct0(ZHABAN_RATE)}\n最高只有 {SUMMARY['zt_max_board']} 板", "orange"),
     ]
-    for i, (num, title, body, color) in enumerate(checks):
-        y = 0.715 - i * 0.115
-        card.panel(ax, 0.07, y - 0.045, 0.86, 0.083, face="panel2", edge="border", lw=0.7)
-        ax.text(0.10, y - 0.004, num, fontsize=22, color=C[color], transform=ax.transAxes, fontweight="bold", va="center")
-        ax.text(0.205, y + 0.012, title, fontsize=15.5, color=C["text"], transform=ax.transAxes, fontweight="bold", va="center")
-        ax.text(0.205, y - 0.023, body, fontsize=11.2, color=C["muted"], transform=ax.transAxes, va="center")
-    card.insight_box(ax, "最终判断", "今天适合讲产业链扩散, 不适合追着单票讲故事", bottom=0.075, height=0.105, edge="gold")
+    for x, (title, verdict, body, color) in zip([0.06, 0.53], summary_cards):
+        card.panel(ax, x, 0.640, 0.41, 0.155, edge=color, face="panel2", lw=1.1)
+        ax.text(x + 0.205, 0.755, title, fontsize=13, color=C["muted"], transform=ax.transAxes, ha="center")
+        ax.text(x + 0.205, 0.710, verdict, fontsize=26, color=C[color], transform=ax.transAxes, ha="center", fontweight="bold")
+        ax.text(x + 0.205, 0.660, body, fontsize=10.5, color=C["text"], transform=ax.transAxes, ha="center", va="center", linespacing=1.25)
+
+    ax.text(0.06, 0.575, "量化 Checklist", fontsize=14.5, color=C["text"], transform=ax.transAxes, fontweight="bold")
+    rows = [
+        ("01", "概念宽度", f"苹果概念上涨占比 {pct0(APPLE_BREADTH)}", "强", "red"),
+        ("02", "资金集中", f"电子链合计净流入 {money_e(HARDWARE_NET)}", "强", "red"),
+        ("03", "半导体质量", f"半导体资金占比 {pct0(SEMI_NET_SHARE)}", "偏弱", "purple"),
+        ("04", "投机高度", f"{SUMMARY['zt_count']} 涨停 / {SUMMARY['zb_count']} 炸板 / 最高 {SUMMARY['zt_max_board']} 板", "一般", "orange"),
+    ]
+    for i, (num, title, body, verdict, color) in enumerate(rows):
+        y = 0.510 - i * 0.075
+        card.panel(ax, 0.06, y - 0.029, 0.88, 0.058, face="panel2", edge="border", lw=0.6)
+        ax.text(0.095, y, num, fontsize=15, color=C[color], transform=ax.transAxes, fontweight="bold", va="center")
+        ax.text(0.175, y + 0.011, title, fontsize=12.5, color=C["text"], transform=ax.transAxes, fontweight="bold", va="center")
+        ax.text(0.175, y - 0.014, body, fontsize=9.8, color=C["muted"], transform=ax.transAxes, va="center")
+        ax.text(0.875, y, verdict, fontsize=12.2, color=C[color], transform=ax.transAxes, ha="right", va="center", fontweight="bold")
+
+    card.panel(ax, 0.06, 0.075, 0.88, 0.135, face="panel", edge="gold", lw=1.2)
+    ax.text(0.10, 0.178, "建议", fontsize=14.5, color=C["gold"], transform=ax.transAxes, fontweight="bold")
+    advice = [
+        "复盘主线可以写: 苹果只是入口, AI 硬件链才是核心。",
+        "明天只追踪承接: 光学/通信/元件是否继续净流入。",
+        f"不急着追高: 最高 {SUMMARY['zt_max_board']} 板 + 炸板率 {pct0(ZHABAN_RATE)}, 说明情绪还没到无脑阶段。",
+    ]
+    for i, line in enumerate(advice):
+        ax.text(0.10, 0.146 - i * 0.030, line, fontsize=10.5, color=C["text"], transform=ax.transAxes, ha="left")
     card.footer(ax, 7)
     save(fig, 7)
 
