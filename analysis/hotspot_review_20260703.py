@@ -155,7 +155,7 @@ def on_cover(canvas, doc) -> None:
     canvas.restoreState()
 
 
-SNAPSHOT_LABEL = "2026-07-03 10:32"
+SNAPSHOT_LABEL = "2026-07-03 12:09"
 
 def md_table(headers: list[str], rows: list[list[object]]) -> str:
     out = ["| " + " | ".join(headers) + " |", "|" + "|".join(["---"] * len(headers)) + "|"]
