@@ -341,8 +341,10 @@ def build_pdf() -> None:
             money(item["main_net_in"]), f'{float(item["main_net_in_pct"]):.2f}%', explain.get(item["name"], ""),
         ])
     story.append(tbl(matrix, [2.5 * cm, 1.8 * cm, 2.0 * cm, 2.6 * cm, 2.0 * cm, 2.5 * cm], highlight_rows={1, 2, 3, 4}))
+    auto_net_in = SUMMARY['industry_top5'][2]["main_net_in"]
+    auto_net_in_pct = pct0(auto_net_in / max(auto_net_in, 1))
     story.append(Paragraph(
-        f"汽车零部资金占行业净流入 {pct0(SUMMARY['industry_top5'][2]["main_net_in"] / max(SUMMARY["industry_top5"][2]["main_net_in"], 1))}。这比午间更健康，但仍不能把今日行情简化为“汽车零部单线”。",
+        '汽车零部资金占行业净流入 ' + auto_net_in_pct + '。这比午间更健康，但仍不能把今日行情简化为\u201c汽车零部单线\u201d。',
         BODY,
     ))
 
