@@ -540,9 +540,9 @@ def page_5_html() -> str:
   display: grid;
   grid-template-columns: 140px 140px 1fr 130px;
   gap: 14px;
-  padding: 8px 14px;
+  padding: 4px 14px;
   align-items: center;
-  font-size:27px;
+  font-size: 22px;
   color: var(--text2);
   border-radius: 6px;
   font-variant-numeric: tabular-nums;
@@ -551,12 +551,12 @@ def page_5_html() -> str:
   display: grid;
   grid-template-columns: 140px 140px 1fr 130px;
   gap: 14px;
-  padding: 6px 14px;
-  font-size:23px;
+  padding: 4px 14px;
+  font-size: 18px;
   font-weight: 900;
   color: var(--muted);
   border-bottom: 1px solid var(--border);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 """
 
@@ -564,30 +564,30 @@ def page_5_html() -> str:
 <div class="top-pill"><div class="pill" style="background:var(--orange)">跨档陷阱</div></div>
 <div class="subtitle" style="font-size:42px">为什么 [6%, 7%) 是死亡档?</div>
 
-<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;margin-top:32px;padding:0 20px">
+<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;margin-top:24px;padding:0 20px">
   <div style="text-align:center">
-    <div style="font-size:32px;color:var(--muted);margin-bottom:10px">[5%, 6%)</div>
-    <div class="big-num" style="font-size:200px;color:var(--red);filter:drop-shadow(0 4px 12px rgba(248,81,73,0.3))">56%</div>
-    <div style="font-size:26px;color:var(--muted);margin-top:8px">20 日胜率</div>
+    <div style="font-size:24px;color:var(--muted);margin-bottom:8px">[5%, 6%)</div>
+    <div class="big-num" style="font-size:160px;color:var(--red);filter:drop-shadow(0 4px 12px rgba(248,81,73,0.3))">56%</div>
+    <div style="font-size:20px;color:var(--muted);margin-top:6px">20 日胜率</div>
   </div>
-  <div style="text-align:center;padding:0 16px">
-    <div style="font-size:130px;font-weight:900;color:var(--orange);line-height:1">→</div>
-    <div style="font-size:25px;color:var(--orange);margin-top:8px;font-weight:700">跨半根阳线</div>
+  <div style="text-align:center;padding:0 12px">
+    <div style="font-size:100px;font-weight:900;color:var(--orange);line-height:1">→</div>
+    <div style="font-size:18px;color:var(--orange);margin-top:6px;font-weight:700">跨半根阳线</div>
   </div>
   <div style="text-align:center">
-    <div style="font-size:32px;color:var(--muted);margin-bottom:10px">[6%, 7%)</div>
-    <div class="big-num" style="font-size:200px;color:var(--green);filter:drop-shadow(0 4px 12px rgba(63,185,80,0.3))">43%</div>
-    <div style="font-size:26px;color:var(--muted);margin-top:8px">20 日胜率</div>
+    <div style="font-size:24px;color:var(--muted);margin-bottom:8px">[6%, 7%)</div>
+    <div class="big-num" style="font-size:160px;color:var(--green);filter:drop-shadow(0 4px 12px rgba(63,185,80,0.3))">43%</div>
+    <div style="font-size:20px;color:var(--muted);margin-top:6px">20 日胜率</div>
   </div>
 </div>
 
-<div style="text-align:center;padding:18px 28px;background:var(--card2);border:1px solid var(--border);border-radius:12px;margin-top:24px;font-size:32px;font-weight:700">
+<div style="text-align:center;padding:14px 24px;background:var(--card2);border:1px solid var(--border);border-radius:12px;margin-top:14px;font-size:23px;font-weight:700">
   60 日累计:  [5-6%) 均 <span style="color:var(--muted)">-0.9%</span>   VS   [6-7%) 均 <span style="color:var(--green)">-7.0%</span>
 </div>
 
-<div style="margin-top:24px">
-  <div style="text-align:center;font-size:30px;font-weight:700;color:var(--cyan);margin-bottom:4px">历史相似形态: 短期连续两次 +5%</div>
-  <div style="text-align:center;font-size:23px;color:var(--muted);font-style:italic;margin-bottom:14px">20 日后表现 · 最近 8 次</div>
+<div style="margin-top:14px">
+  <div style="text-align:center;font-size:24px;font-weight:700;color:var(--cyan);margin-bottom:2px">历史相似形态: 短期连续两次 +5%</div>
+  <div style="text-align:center;font-size:17px;color:var(--muted);font-style:italic;margin-bottom:6px">20 日后表现 · 最近 8 次</div>
   <div class="sample-header">
     <div>首日</div>
     <div>次日</div>
@@ -597,9 +597,9 @@ def page_5_html() -> str:
   {"".join(sample_rows)}
 </div>
 
-<div style="margin-top:auto;padding:24px 32px;background:linear-gradient(135deg,var(--orange) 0%,#c48819 100%);border-radius:14px;text-align:center;margin-bottom:10px;box-shadow:0 6px 24px rgba(210,153,29,0.3)">
-  <div style="font-size:36px;font-weight:900;color:var(--bg)">⚠️ 12 次里 5 次亏钱, 4 次跌破 -3%</div>
-  <div style="font-size:26px;color:var(--bg);margin-top:10px;opacity:0.85">20 日均 +2.94%   ·   中位 +6.04%   ·   但"高开低走"是最大风险</div>
+<div style="padding:20px 32px;background:linear-gradient(135deg,var(--orange) 0%,#c48819 100%);border-radius:14px;text-align:center;box-shadow:0 6px 24px rgba(210,153,29,0.3)">
+  <div style="font-size:32px;font-weight:900;color:var(--bg)">⚠️ 12 次里 5 次亏钱, 4 次跌破 -3%</div>
+  <div style="font-size:20px;color:var(--bg);margin-top:8px;opacity:0.85">20 日均 +2.94%   ·   中位 +6.04%   ·   但"高开低走"是最大风险</div>
 </div>
 
 <div class="footer">
