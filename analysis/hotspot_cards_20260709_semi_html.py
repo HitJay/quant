@@ -191,7 +191,8 @@ def page_3_html() -> str:
 <div style="font-size:16px;color:var(--muted);margin-top:4px">全行业第一</div>
 </div>
 </div>
-
+</div>
+<div class="footer"><span>* 数据: push2 板块 + 概念</span><span>3/7</span></div>"""
 <div class="footer"><span>* 数据: push2 板块 + 概念</span><span>3/7</span></div>"""
     return base_html(body)
 
