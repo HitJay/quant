@@ -39,5 +39,9 @@ logs/
 output/
 *.png
 
+# Root screenshots (paste from clipboard)
+/image.png
+/image copy.png
+
 # Data cache (large parquet files)
 data/cache/
