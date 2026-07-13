@@ -27,25 +27,28 @@ def res(sid, hk):
     return SC[sid]["results"].get(hk, {})
 
 
-ZT_COUNT = 24
-MED_ZT = 8
+ZT_COUNT = 29
+MED_ZT = 10
 ZT_TOP10 = [
     ("国华退", "软件开发", "+10.87%", "3连板", "退市"),
     ("贵绳股份", "通用设备", "+10.05%", "3连板", "涨停"),
     ("立方制药", "化学制药", "+9.98%", "3连板", "涨停"),
-    ("中信重工", "专用设备", "+9.92%", "2连板", "涨停"),
+    ("亚联机械", "专用设备", "+9.99%", "3连板", "涨停"),
     ("九丰能源", "燃气Ⅱ", "+10.01%", "2连板", "涨停"),
     ("哈药股份", "化学制药", "+10.09%", "2连板", "涨停"),
+    ("华建集团", "工程咨询", "+10.04%", "2连板", "涨停"),
+    ("联环药业", "化学制药", "+10.01%", "2连板", "涨停"),
+    ("中信重工", "专用设备", "+9.92%", "2连板", "涨停"),
     ("沃顿科技", "塑料", "+10.04%", "2连板", "涨停"),
-    ("日科化学", "化学制品", "+20.00%", "1板", "涨停"),
-    ("晋亿实业", "通用设备", "+9.98%", "1板", "涨停"),
-    ("水发燃气", "燃气Ⅱ", "+10.04%", "1板", "涨停"),
 ]
 MED_IND = {"化学制药", "化学制品", "中药Ⅱ", "医药商业"}
 IND_BOARDS = [
-    ("化学制药", 3, "--red"), ("化学制品", 3, "--red"),
-    ("中药Ⅱ", 2, "--gold"), ("燃气Ⅱ", 2, "--muted"), ("通用设备", 2, "--muted"),
+    ("化学制药", 4, "--red"), ("化学制品", 3, "--red"),
+    ("中药Ⅱ", 3, "--gold"), ("通用设备", 2, "--muted"), ("IT服务Ⅱ", 2, "--muted"),
 ]
+# 收盘行业涨跌 (东财 push2, 真实收盘) — 数值为百分比
+IND_UP = [("中药Ⅱ", "+2.96%"), ("银行Ⅱ", "+2.07%"), ("医药商业", "+0.77%")]
+IND_DOWN = [("元件", "-8.48%"), ("国防军工", "-7.59%"), ("光学光电子", "-6.89%")]
 RISK_STOCKS = [
     ("国华退", "软件开发", "退市·3连板", "末日轮·极高风险", "--orange"),
     ("星网锐捷", "通信设备", "炸板3次", "追高被埋", "--orange"),
@@ -56,8 +59,8 @@ RISK_STOCKS = [
 ]
 XQ_TWEET = [("贵州茅台", 122786), ("比亚迪", 110783), ("赛力斯", 78112),
             ("格力电器", 46180), ("东芯股份", 39837)]
-EM_HOT = [("中国卫星", "+7.84%"), ("华天科技", "-0.40%"), ("九丰能源", "+10.01%"),
-          ("长电科技", "+0.91%"), ("京东方A", "-8.17%")]
+# 收盘领跌行业 (替代被墙的东财人气榜, 真实收盘数据)
+LEAD_DOWN = [("元件", "-8.48%"), ("国防军工", "-7.59%"), ("光学光电子", "-6.89%")]
 # 上车标的 (静态代码, 仅供参考)
 ETFS = [("中药ETF", "159647"), ("中药ETF", "562390"), ("医药ETF", "512010"),
         ("医药ETF", "512170"), ("恒瑞医药", "600276")]
@@ -145,12 +148,12 @@ def page_2_html() -> str:
 <div class="row head" style="grid-template-columns:130px 104px 1fr 76px 80px"><div>名称</div><div>行业</div><div>涨幅</div><div style="text-align:center">连板</div><div style="text-align:center">标签</div></div>
 {"".join(rows)}</div>
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
-  <div class="card" style="text-align:center;padding:14px 8px"><div class="c-label" style="font-size:22px;color:var(--muted)">化学制药</div><div class="c-val" style="font-size:52px;color:var(--red)">3只</div></div>
+  <div class="card" style="text-align:center;padding:14px 8px"><div class="c-label" style="font-size:22px;color:var(--muted)">化学制药</div><div class="c-val" style="font-size:52px;color:var(--red)">4只</div></div>
   <div class="card" style="text-align:center;padding:14px 8px"><div class="c-label" style="font-size:22px;color:var(--muted)">化学制品</div><div class="c-val" style="font-size:52px;color:var(--red)">3只</div></div>
-  <div class="card" style="text-align:center;padding:14px 8px"><div class="c-label" style="font-size:22px;color:var(--muted)">中药</div><div class="c-val" style="font-size:52px;color:var(--gold)">2只</div></div>
+  <div class="card" style="text-align:center;padding:14px 8px"><div class="c-label" style="font-size:22px;color:var(--muted)">中药</div><div class="c-val" style="font-size:52px;color:var(--gold)">3只</div></div>
 </div>
 <div style="padding:12px 20px;background:linear-gradient(135deg,var(--card) 0%,rgba(248,81,73,.06) 100%);border:1.5px solid var(--red);border-radius:12px;text-align:center;margin-top:10px">
-  <div style="font-size:24px;color:var(--text2)">3 连板天梯里医药独占 2 席 (立方制药 / 哈药股份) · 弱市最整齐梯队</div>
+  <div style="font-size:24px;color:var(--text2)">3 连板天梯里医药独占 3 席 (立方制药 / 哈药股份 / 联环药业) · 弱市最整齐梯队</div>
 </div>
 <div class="footer"><span>* 东财涨停池 TOP10</span><span>2/8</span></div>"""
     return base_html(body)
@@ -178,19 +181,19 @@ def page_3_html() -> str:
 <div class="subtitle">为什么是医药?</div>
 <div class="subtitle-sm">涨停行业分布 · 医药占前三</div>
 <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 18px;margin-top:10px">{"".join(bar_rows)}</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
   <div style="padding:14px;background:rgba(63,185,80,.12);border:1.5px solid var(--green);border-radius:12px">
-    <div style="font-size:25px;font-weight:900;color:var(--green);margin-bottom:6px">逆势走强</div>
-    <div style="font-size:23px;color:var(--text2);line-height:1.5">中药 · 化学制药 · 医药商业 · 银行 · 燃气 · 红利</div></div>
+    <div style="font-size:25px;font-weight:900;color:var(--green);margin-bottom:6px">收盘居前(逆势)</div>
+    <div style="font-size:24px;color:var(--text2);line-height:1.6">中药 <b style="color:var(--green)">{IND_UP[0][1]}</b><br>银行 <b style="color:var(--green)">{IND_UP[1][1]}</b><br>医药商业 <b style="color:var(--green)">{IND_UP[2][1]}</b></div></div>
   <div style="padding:14px;background:rgba(248,81,73,.12);border:1.5px solid var(--red);border-radius:12px">
-    <div style="font-size:25px;font-weight:900;color:var(--red);margin-bottom:6px">集体领跌</div>
-    <div style="font-size:23px;color:var(--text2);line-height:1.5">商业航天 · 算力PCB · MLCC · 军工电子</div></div>
+    <div style="font-size:25px;font-weight:900;color:var(--red);margin-bottom:6px">收盘领跌</div>
+    <div style="font-size:24px;color:var(--text2);line-height:1.6">元件 <b style="color:var(--red)">{IND_DOWN[0][1]}</b><br>国防军工 <b style="color:var(--red)">{IND_DOWN[1][1]}</b><br>光学光电子 <b style="color:var(--red)">{IND_DOWN[2][1]}</b></div></div>
 </div>
 <div style="display:flex;gap:10px;margin-top:12px">{rc}</div>
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px">
-  <div class="mini"><div style="font-size:14px;color:var(--muted)">医药占涨停</div><div style="font-size:34px;font-weight:900;color:var(--red)">33%</div><div style="font-size:18px;color:var(--muted)">8 / 24 只</div></div>
+  <div class="mini"><div style="font-size:14px;color:var(--muted)">医药占涨停</div><div style="font-size:34px;font-weight:900;color:var(--red)">34%</div><div style="font-size:18px;color:var(--muted)">10 / 29 只</div></div>
   <div class="mini"><div style="font-size:14px;color:var(--muted)">全市场下跌</div><div style="font-size:34px;font-weight:900;color:var(--green)">4573</div><div style="font-size:18px;color:var(--muted)">仅 892 涨</div></div>
-  <div class="mini"><div style="font-size:14px;color:var(--muted)">涨停 : 跌停</div><div style="font-size:34px;font-weight:900;color:var(--orange)">24 : 45</div><div style="font-size:18px;color:var(--muted)">风险偏好降</div></div>
+  <div class="mini"><div style="font-size:14px;color:var(--muted)">涨停 : 跌停</div><div style="font-size:34px;font-weight:900;color:var(--orange)">29 : 45</div><div style="font-size:18px;color:var(--muted)">风险偏好降</div></div>
 </div>
 <div style="padding:10px 18px;background:linear-gradient(135deg,var(--card) 0%,rgba(88,166,255,.05) 100%);border:1.5px solid var(--blue);border-radius:10px;text-align:center;margin-top:10px">
   <div style="font-size:22px;color:var(--text2)">风险偏好骤降, 资金从高位科技切向 <b style="color:var(--red)">低位医药 + 红利</b> 避险</div>
@@ -281,8 +284,8 @@ def page_6_html() -> str:
     body = f"""<div class="top-pill"><div class="pill" style="background:var(--orange)">风险提示</div></div>
 <div class="subtitle">追高之前看一眼</div>
 <div style="text-align:center;margin-top:8px">
-  <div style="font-size:24px;color:var(--muted)">炸板率 (13 炸板 / {ZT_COUNT} 涨停)</div>
-  <div class="big-num" style="font-size:135px;background:linear-gradient(180deg,#ffd77a 0%,#d2991d 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 4px 10px rgba(210,153,29,.3))">54%</div>
+  <div style="font-size:24px;color:var(--muted)">炸板率 (14 炸板 / {ZT_COUNT} 涨停)</div>
+  <div class="big-num" style="font-size:135px;background:linear-gradient(180deg,#ffd77a 0%,#d2991d 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 4px 10px rgba(210,153,29,.3))">48%</div>
 </div>
 <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:4px">
 <div class="row head" style="grid-template-columns:140px 120px 1fr 1fr"><div>名称</div><div>行业</div><div style="text-align:right">信号</div><div style="text-align:right">提示</div></div>
@@ -299,8 +302,8 @@ def page_6_html() -> str:
 def page_7_html() -> str:
     xq = "".join(f"""<div style="display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:25px;color:var(--text2)">
 <div>{n}</div><div style="font-weight:900;color:var({'gold' if n=='赛力斯' else 'muted'})">{v:,}</div></div>""" for n, v in XQ_TWEET)
-    em = "".join(f"""<div style="display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:25px;color:var(--text2)">
-<div>{n}</div><div style="font-weight:900;color:var({'green' if p.startswith('-') else 'red'})">{p}</div></div>""" for n, p in EM_HOT)
+    down = "".join(f"""<div style="display:flex;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:25px;color:var(--text2)">
+<div>{n}</div><div style="font-weight:900;color:var(--red)">{p}</div></div>""" for n, p in LEAD_DOWN)
     body = f"""<div class="top-pill"><div class="pill" style="background:var(--purple)">情绪照妖镜</div></div>
 <div class="subtitle">真主线 vs 假热度</div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
@@ -308,18 +311,18 @@ def page_7_html() -> str:
     <div style="font-size:25px;font-weight:900;color:var(--red);margin-bottom:6px">真主线 · 医药</div>
     <div style="font-size:23px;color:var(--text2);line-height:1.5">逆势涨停, 没人聊却天天涨<br>资金用脚投票, 弱市抱团</div></div>
   <div style="padding:14px;background:rgba(63,185,80,.12);border:2px solid var(--green);border-radius:12px">
-    <div style="font-size:25px;font-weight:900;color:var(--green);margin-bottom:6px">假热度 · 半导体</div>
-    <div style="font-size:23px;color:var(--text2);line-height:1.5">东财人气前10清一色半导体<br>今日却集体暴跌</div></div>
+    <div style="font-size:25px;font-weight:900;color:var(--green);margin-bottom:6px">假热度 · 科技</div>
+    <div style="font-size:23px;color:var(--text2);line-height:1.5">讨论榜霸屏半导体/算力<br>收盘却集体暴跌</div></div>
 </div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
   <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden"><div style="padding:8px 14px;font-size:23px;font-weight:700;color:var(--purple);background:var(--card2)">雪球讨论榜 TOP5</div>{xq}</div>
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden"><div style="padding:8px 14px;font-size:23px;font-weight:700;color:var(--gold);background:var(--card2)">东财人气榜 TOP5</div>{em}</div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden"><div style="padding:8px 14px;font-size:23px;font-weight:700;color:var(--red);background:var(--card2)">收盘领跌行业</div>{down}</div>
 </div>
 <div style="padding:12px 20px;background:linear-gradient(135deg,var(--card) 0%,rgba(188,140,255,.08) 100%);border:2px solid var(--purple);border-radius:12px;text-align:center;margin-top:10px">
   <div style="font-size:24px;font-weight:900;color:var(--purple)">人气高 ≠ 会涨 · 赛力斯突冲讨论#3 成新热点</div>
-  <div style="font-size:22px;color:var(--text2);margin-top:3px">逆势涨停的才是真主线 · 全球半导体也在退潮(韩KOSPI -7%)</div>
+  <div style="font-size:22px;color:var(--text2);margin-top:3px">逆势涨停的才是真主线 · 元件 -8.48% / 国防军工 -7.59% 收盘领跌</div>
 </div>
-<div class="footer"><span>* 东财人气榜 + 雪球讨论榜</span><span>7/8</span></div>"""
+<div class="footer"><span>* 雪球讨论榜 + 东财行业收盘</span><span>7/8</span></div>"""
     return base_html(body)
 
 
