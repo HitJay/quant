@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block body %}
+
+{# 顶部钩子 #}
+<div class="mt-2 mb-4">
+  <div class="pill bg-[#3a1a1a] border border-[#5a2a2a] text-rose">今日复盘 · 2026-07-14</div>
+  <h1 class="mt-4 text-[64px] font-black leading-[1.03] text-white">
+    涨停买到 <span class="text-rose">≠</span> 就是赚<br>
+    今天有 <span class="text-rose">21 只</span>炸了
+  </h1>
+  <p class="mt-4 text-2xl text-muted leading-snug">
+    {{ data.p1.sub_line }} —<br>
+    板上买进去, 当天可能已经浮亏 <span class="text-rose font-bold">5-10%</span>
+  </p>
+</div>
+
+{# 三大数字冲击 — 81 涨停 / 21 炸板 / 74% 封板率 #}
+<div class="card p-8 mb-5">
+  <div class="grid grid-cols-3 gap-2">
+    <div class="text-center">
+      <div class="text-muted text-sm mb-2 mono">今日涨停</div>
+      <div class="mono text-[84px] font-black text-green leading-none">{{ data.p1.zt_count }}</div>
+      <div class="text-base text-dim mt-3">{{ data.p1.hook_left }}</div>
+    </div>
+    <div class="text-center border-x border-[#30363d]">
+      <div class="text-muted text-sm mb-2 mono">今日炸板</div>
+      <div class="mono text-[84px] font-black text-rose leading-none">{{ data.p1.zb_count }}</div>
+      <div class="text-base text-dim mt-3">{{ data.p1.hook_right }}</div>
+    </div>
+    <div class="text-center">
+      <div class="text-muted text-sm mb-2 mono">封板率</div>
+      <div class="mono text-[84px] font-black text-gold leading-none">{{ data.p1.seal_rate }}<span class="text-[48px] text-orange">%</span></div>
+      <div class="text-base text-dim mt-3">震荡市水平</div>
+    </div>
+  </div>
+</div>
+
+{# 直觉解读条 #}
+<div class="card2 p-6 mb-4">
+  <div class="text-cyan text-sm font-bold mono mb-2">// 直觉解读</div>
+  <div class="text-white text-xl leading-snug">
+    每 <span class="mono text-gold font-bold">4</span> 只涨停里, 就有
+    <span class="mono text-rose font-bold">1</span> 只当天炸掉 —
+    <span class="text-orange">追板</span>之前, 先看看今天的封板率
+  </div>
+</div>
+
+{# 翻页钩子 #}
+<div class="mt-auto card2 p-5">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="text-cyan text-sm font-bold mono mb-1">// 后 6 页你会读到</div>
+      <div class="text-white text-lg leading-snug">
+        炸板机制 → 案例 → 陷阱 → 温度计 → 复盘 → <span class="text-rose">1年回测</span>
+      </div>
+    </div>
+    <div class="text-right">
+      <div class="text-dim text-xs mono">SWIPE →</div>
+      <div class="mono text-orange text-2xl font-bold">02 / 07</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

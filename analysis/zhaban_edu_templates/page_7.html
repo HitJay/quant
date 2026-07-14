@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="mt-2 mb-4">
+  <div class="pill bg-[#3a1a1a] border border-[#5a2a2a] text-rose">量化回测 · 07 / 07</div>
+  <h1 class="mt-3 text-[52px] font-black leading-[1.05] text-white">
+    <span class="text-rose">追板 1 年</span> 到底赚不赚?<br>
+    <span class="text-2xl font-bold text-muted">{{ data.p7.total_zt }} 次涨停实盘回测 · 结论扎心</span>
+  </h1>
+</div>
+
+{# 3 大胜率柱 — T1/T3/T5 #}
+<div class="card p-6 mb-4">
+  <div class="flex items-center justify-between mb-4">
+    <span class="text-cyan text-sm font-bold mono">// 策略: T日涨停 → T+1 收盘买 → T+N 收盘卖</span>
+    <span class="text-dim text-xs mono">n = {{ data.p7.headline.n }}</span>
+  </div>
+  <div class="grid grid-cols-3 gap-4">
+    {# T+1 #}
+    <div class="card2 p-5 text-center">
+      <div class="text-muted text-sm mb-1 mono">持有 T+1</div>
+      <div class="mono text-[64px] font-black text-orange leading-none">{{ data.p7.headline.winrate_T1 }}<span class="text-[30px]">%</span></div>
+      <div class="text-sm text-dim mt-2">胜率</div>
+      <div class="mt-3 pt-3 border-t border-[#30363d]">
+        <div class="mono text-2xl font-bold text-{% if data.p7.headline.avg_T1 > 0 %}green{% else %}rose{% endif %}">
+          {% if data.p7.headline.avg_T1 > 0 %}+{% endif %}{{ data.p7.headline.avg_T1 }}%
+        </div>
+        <div class="text-xs text-dim mt-1">平均收益</div>
+      </div>
+    </div>
+    {# T+3 #}
+    <div class="card2 p-5 text-center">
+      <div class="text-muted text-sm mb-1 mono">持有 T+3</div>
+      <div class="mono text-[64px] font-black text-orange leading-none">{{ data.p7.headline.winrate_T3 }}<span class="text-[30px]">%</span></div>
+      <div class="text-sm text-dim mt-2">胜率</div>
+      <div class="mt-3 pt-3 border-t border-[#30363d]">
+        <div class="mono text-2xl font-bold text-{% if data.p7.headline.avg_T3 > 0 %}green{% else %}rose{% endif %}">
+          {% if data.p7.headline.avg_T3 > 0 %}+{% endif %}{{ data.p7.headline.avg_T3 }}%
+        </div>
+        <div class="text-xs text-dim mt-1">平均收益</div>
+      </div>
+    </div>
+    {# T+5 — 最差 #}
+    <div class="card2 p-5 text-center" style="border-color: #5a2a2a;">
+      <div class="text-rose text-sm mb-1 mono font-bold">持有 T+5</div>
+      <div class="mono text-[64px] font-black text-rose leading-none">{{ data.p7.headline.winrate_T5 }}<span class="text-[30px]">%</span></div>
+      <div class="text-sm text-rose mt-2">胜率 (跑输硬币)</div>
+      <div class="mt-3 pt-3 border-t border-[#5a2a2a]">
+        <div class="mono text-2xl font-bold text-rose">
+          {{ data.p7.headline.avg_T5 }}%
+        </div>
+        <div class="text-xs text-dim mt-1">平均收益 (负期望)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# 4 个爆点数字 — 2x2 #}
+<div class="grid grid-cols-2 gap-3 mb-4">
+  <div class="card2 p-4">
+    <div class="text-dim text-xs mono mb-1">// 单笔最惨</div>
+    <div class="flex items-baseline gap-2">
+      <span class="mono text-[36px] font-black text-rose">{{ data.p7.headline.max_single_loss }}%</span>
+      <span class="text-sm text-muted">T+1 就 -12%</span>
+    </div>
+  </div>
+  <div class="card2 p-4">
+    <div class="text-dim text-xs mono mb-1">// T+1 亏 5% 以上占比</div>
+    <div class="flex items-baseline gap-2">
+      <span class="mono text-[36px] font-black text-orange">{{ data.p7.headline.pct_loss_gt_5 }}%</span>
+      <span class="text-sm text-muted">≈ 每 10 次 1 次</span>
+    </div>
+  </div>
+  <div class="card2 p-4">
+    <div class="text-dim text-xs mono mb-1">// 平均盈 (T+1)</div>
+    <div class="flex items-baseline gap-2">
+      <span class="mono text-[36px] font-black text-green">+{{ data.p7.strategy_A_all.T1.avg_win|round(1) }}%</span>
+      <span class="text-sm text-muted">赢的时候</span>
+    </div>
+  </div>
+  <div class="card2 p-4">
+    <div class="text-dim text-xs mono mb-1">// 平均亏 (T+1)</div>
+    <div class="flex items-baseline gap-2">
+      <span class="mono text-[36px] font-black text-rose">{{ data.p7.strategy_A_all.T1.avg_loss|round(1) }}%</span>
+      <span class="text-sm text-muted">输的时候</span>
+    </div>
+  </div>
+</div>
+
+{# 结论卡 — 用户视角 #}
+<div class="card p-5 mb-3" style="background: linear-gradient(135deg, #2a1414 0%, #161b22 70%);">
+  <div class="text-cyan text-sm font-bold mono mb-2">// 复旦杰伦说</div>
+  <div class="text-white text-lg leading-snug">
+    T+1 胜率 <span class="mono text-orange font-bold">50.9%</span>, 差不多就是<span class="text-gold">抛硬币</span> —
+    <span class="text-rose">扣掉双边 0.15% 手续费, 直接变成负期望</span>。
+    持有越久胜率越低, T+5 只有 <span class="mono text-rose font-bold">43.8%</span> — 追板本质上是把钱送给游资。
+  </div>
+</div>
+
+{# 免责 / 口径 #}
+<div class="card2 p-3 mt-auto">
+  <div class="text-dim text-xs leading-snug mono">
+    样本: {{ data.p7.universe_size }} 只 A 股龙头 · {{ data.p7.sample_window }} · {{ data.p7.total_zt }} 次涨停 ·
+    口径: {{ data.p7.zt_threshold }} 阈值, T+1 收盘价代替开盘价, 未扣手续费 — 实盘胜率再低 1-2pp
+  </div>
+</div>
+
+{% endblock %}

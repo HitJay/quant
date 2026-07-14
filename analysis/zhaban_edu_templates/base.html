@@ -1,0 +1,80 @@
+{# 炸板科普 base — 复用黄金深度 v3 字号方案 #}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap');
+  * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 1080px; height: 1440px;
+    background: #0d1117;
+    color: #c9d1d9;
+    font-family: 'Noto Sans SC', 'Noto Sans CJK SC', system-ui, sans-serif;
+    overflow: hidden;
+    font-size: 20px;
+  }
+  .text-xs   { font-size: 17px !important; line-height: 1.45 !important; }
+  .text-sm   { font-size: 19px !important; line-height: 1.5 !important; }
+  .text-base { font-size: 23px !important; line-height: 1.55 !important; }
+  .text-lg   { font-size: 26px !important; line-height: 1.5 !important; }
+  .text-xl   { font-size: 30px !important; line-height: 1.4 !important; }
+  .text-2xl  { font-size: 34px !important; line-height: 1.35 !important; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .card  { background: #161b22; border: 1px solid #30363d; border-radius: 16px; }
+  .card2 { background: #1c2129; border: 1px solid #30363d; border-radius: 16px; }
+  .pill {
+    display: inline-flex; align-items: center;
+    padding: 4px 14px; border-radius: 999px;
+    font-size: 14px; font-weight: 600;
+  }
+  .text-blue   { color: #58a6ff; }
+  .text-green  { color: #3fb950; }
+  .text-red    { color: #f85149; }
+  .text-orange { color: #d2991d; }
+  .text-purple { color: #bc8cff; }
+  .text-gold   { color: #f0c040; }
+  .text-cyan   { color: #56d4dd; }
+  .text-rose   { color: #ff7b72; }
+  .text-muted  { color: #8b949e; }
+  .text-dim    { color: #6e7681; }
+  .bg-card     { background: #161b22; }
+  .bg-card2    { background: #1c2129; }
+  .border-card { border-color: #30363d; }
+  .grid-pattern {
+    background-image:
+      linear-gradient(rgba(48, 54, 61, 0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(48, 54, 61, 0.15) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+</style>
+</head>
+<body>
+<div class="w-[1080px] h-[1440px] relative grid-pattern p-12 flex flex-col">
+
+  {# 顶部品牌条 #}
+  <div class="flex items-center justify-between mb-2">
+    <div class="flex items-center gap-3">
+      <span class="pill bg-card2 border border-[#30363d] text-cyan">// 复旦杰伦</span>
+      <span class="text-muted text-sm mono">炸板科普 · {{ data.date_str }}</span>
+    </div>
+    <span class="text-dim text-xs mono">{{ "%02d"|format(page_num) }} / {{ "%02d"|format(data.total_pages) }}</span>
+  </div>
+
+  {# 主体 #}
+  <div class="flex-1 flex flex-col min-h-0">
+    {% block body %}{% endblock %}
+  </div>
+
+  {# 页脚 #}
+  <div class="flex items-center justify-between mt-auto pt-3 text-xs">
+    <span class="text-dim mono">data: 东方财富 涨停池/炸板池 · {{ data.date_str }}</span>
+    <span class="text-dim">非投资建议 · 仅供参考</span>
+  </div>
+
+</div>
+</body>
+</html>

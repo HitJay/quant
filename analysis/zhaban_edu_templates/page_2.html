@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="mt-2 mb-4">
+  <div class="pill bg-[#1a3050] border border-[#2a4870] text-blue">概念解释 · 02 / 06</div>
+  <h1 class="mt-4 text-[52px] font-black leading-[1.05] text-white">
+    什么是<span class="text-rose">炸板</span>?<br>
+    <span class="text-2xl font-bold text-muted">3 秒看懂 涨停 → 没封住 → 回落 全过程</span>
+  </h1>
+</div>
+
+{# 三步机制 — 大数字 tag + 标题 + 描述 #}
+<div class="grid grid-cols-1 gap-5 flex-1">
+  {% for step in data.p2.steps %}
+  <div class="card p-7 flex items-center gap-6">
+    <div class="mono text-[88px] font-black leading-none {% if loop.index == 1 %}text-green{% elif loop.index == 2 %}text-orange{% else %}text-rose{% endif %}">
+      {{ step.tag }}
+    </div>
+    <div class="flex-1">
+      <div class="text-white text-2xl font-bold leading-tight mb-2">{{ step.title }}</div>
+      <div class="text-muted text-base leading-snug">{{ step.desc }}</div>
+    </div>
+    {% if not loop.last %}
+    <div class="text-dim text-4xl mono">↓</div>
+    {% else %}
+    <div class="mono text-rose text-4xl font-black">!</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+{# 底部术语解释 #}
+<div class="mt-4 card2 p-5">
+  <div class="text-cyan text-sm font-bold mono mb-2">// 术语</div>
+  <div class="text-white text-lg leading-snug">{{ data.p2.note }}</div>
+</div>
+
+{% endblock %}

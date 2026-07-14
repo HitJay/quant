@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="mt-2 mb-4">
+  <div class="pill bg-[#3a1a1a] border border-[#5a2a2a] text-rose">今日案例 · 03 / 06</div>
+  <h1 class="mt-3 text-[52px] font-black leading-[1.05] text-white">
+    今天最惨: 一天<span class="text-rose">炸了 3 次</span>
+  </h1>
+  <p class="mt-2 text-xl text-muted">板上买入→3 次开板→尾盘可能已经浮亏</p>
+</div>
+
+{# 主明星卡: 今天国际 #}
+<div class="card p-8 mb-5" style="background: linear-gradient(135deg, #2a1414 0%, #161b22 60%);">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <div class="text-rose text-sm font-bold mono">// 炸板王</div>
+      <div class="text-white text-[44px] font-black leading-tight mt-1">{{ data.p3.star_name }}</div>
+      <div class="text-dim text-base mono mt-1">{{ data.p3.star_code }} · {{ data.p3.star_industry }}</div>
+    </div>
+    <div class="text-center">
+      <div class="mono text-[100px] font-black text-rose leading-none">{{ data.p3.star_break }}</div>
+      <div class="text-muted text-sm mt-2">次炸板</div>
+    </div>
+  </div>
+  <div class="mt-4 border-t border-[#30363d] pt-4">
+    <div class="text-lg text-white leading-snug">{{ data.p3.star_note }}</div>
+  </div>
+</div>
+
+{# 其他炸板 4 只 #}
+<div class="mb-3">
+  <div class="text-cyan text-sm font-bold mono mb-3">// 今日炸板名单 · 摘录</div>
+</div>
+<div class="grid grid-cols-2 gap-3 flex-1">
+  {% for s in data.p3.others %}
+  <div class="card2 p-5">
+    <div class="flex items-center justify-between">
+      <div class="text-white text-xl font-bold">{{ s.name }}</div>
+      <div class="mono text-rose text-2xl font-bold">×{{ s.break }}</div>
+    </div>
+    <div class="text-dim text-sm mono mt-1">{{ s.code }} · {{ s.ind }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="mt-3 card2 p-4">
+  <div class="text-orange text-base leading-snug">
+    <span class="mono font-bold">共 21 只炸板</span> —
+    <span class="text-muted">当天板上排队买入的散户, 大部分已经在负收益</span>
+  </div>
+</div>
+
+{% endblock %}
