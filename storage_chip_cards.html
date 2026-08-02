@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>存储芯片周期反转 · 小红书7页深度调研</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    background: #EFEAE2;
+    padding: 40px 20px;
+    color: #2C1810;
+  }
+  .cards-wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  .card {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background: #FFF8F2;
+    border-radius: 28px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(44, 24, 16, 0.18);
+    display: flex;
+    flex-direction: column;
+  }
+  .pager {
+    position: absolute;
+    top: 28px;
+    right: 32px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #FF5A36;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 6px 14px;
+    border-radius: 20px;
+    z-index: 10;
+    letter-spacing: 1px;
+  }
+  .brand {
+    position: absolute;
+    top: 30px;
+    left: 32px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6B6B6B;
+    z-index: 10;
+    letter-spacing: 2px;
+  }
+  .brand::before {
+    content: "📊 ";
+  }
+
+  /* ====== Page 1 Cover ====== */
+  .cover {
+    background: linear-gradient(135deg, #1A2B4A 0%, #2C3E5A 50%, #FF5A36 130%);
+    color: #FFF8F2;
+    padding: 80px 60px 60px;
+    justify-content: space-between;
+  }
+  .cover .brand { color: rgba(255, 248, 242, 0.7); }
+  .cover .pager { color: #FFB627; background: rgba(0,0,0,0.25); }
+  .cover-tag {
+    display: inline-block;
+    padding: 8px 18px;
+    background: rgba(255, 182, 39, 0.18);
+    border: 1.5px solid #FFB627;
+    color: #FFB627;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 32px;
+  }
+  .cover h1 {
+    font-size: 86px;
+    line-height: 1.05;
+    font-weight: 900;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+  }
+  .cover h1 .hl {
+    background: linear-gradient(90deg, #FFB627, #FF5A36);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .cover h2 {
+    font-size: 32px;
+    font-weight: 500;
+    color: rgba(255, 248, 242, 0.88);
+    margin-bottom: 40px;
+    line-height: 1.4;
+  }
+  .cover-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: auto;
+  }
+  .cover-stat {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 182, 39, 0.3);
+    border-radius: 18px;
+    padding: 22px 24px;
+    backdrop-filter: blur(8px);
+  }
+  .cover-stat .num {
+    font-size: 42px;
+    font-weight: 900;
+    color: #FFB627;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .cover-stat .lab {
+    font-size: 15px;
+    color: rgba(255, 248, 242, 0.75);
+    line-height: 1.4;
+  }
+  .cover-foot {
+    margin-top: 36px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    color: rgba(255, 248, 242, 0.6);
+    border-top: 1px solid rgba(255, 248, 242, 0.15);
+    padding-top: 22px;
+  }
+
+  /* ====== Common content card ====== */
+  .content-card {
+    padding: 78px 56px 50px;
+  }
+  .eyebrow {
+    font-size: 15px;
+    font-weight: 700;
+    color: #FF5A36;
+    letter-spacing: 4px;
+    margin-bottom: 14px;
+  }
+  .title {
+    font-size: 50px;
+    font-weight: 900;
+    color: #1A2B4A;
+    line-height: 1.12;
+    margin-bottom: 10px;
+    letter-spacing: -1px;
+  }
+  .subtitle {
+    font-size: 20px;
+    color: #6B6B6B;
+    margin-bottom: 36px;
+    font-weight: 500;
+  }
+  .divider {
+    width: 60px;
+    height: 5px;
+    background: linear-gradient(90deg, #FF5A36, #FFB627);
+    border-radius: 3px;
+    margin-bottom: 32px;
+  }
+
+  /* ====== Page 2 hot map ====== */
+  .hot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .hot-item {
+    background: #FFFFFF;
+    border-radius: 14px;
+    padding: 16px 18px;
+    border-left: 4px solid #E0E0E0;
+    transition: all 0.3s;
+  }
+  .hot-item.star {
+    background: linear-gradient(135deg, #FFF4E6, #FFE9D6);
+    border-left-color: #FF5A36;
+    box-shadow: 0 6px 18px rgba(255, 90, 54, 0.15);
+  }
+  .hot-item .rank {
+    font-size: 13px;
+    color: #999;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .hot-item.star .rank { color: #FF5A36; }
+  .hot-item .name {
+    font-size: 19px;
+    font-weight: 700;
+    color: #1A2B4A;
+    margin-bottom: 4px;
+  }
+  .hot-item .desc {
+    font-size: 13px;
+    color: #6B6B6B;
+    line-height: 1.4;
+  }
+  .hot-item.star .name::after {
+    content: " ⭐";
+  }
+  .catalyst-box {
+    background: linear-gradient(135deg, #1A2B4A, #2C3E5A);
+    color: #FFF8F2;
+    border-radius: 18px;
+    padding: 26px 28px;
+    margin-top: 8px;
+  }
+  .catalyst-box .ctitle {
+    font-size: 18px;
+    font-weight: 700;
+    color: #FFB627;
+    margin-bottom: 14px;
+    letter-spacing: 1px;
+  }
+  .catalyst-box .cbody {
+    font-size: 16px;
+    line-height: 1.7;
+    color: rgba(255, 248, 242, 0.92);
+  }
+  .catalyst-box .cbody strong {
+    color: #FFB627;
+    font-weight: 700;
+  }
+  .catalyst-box .cnums {
+    display: flex;
+    gap: 24px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 248, 242, 0.15);
+  }
+  .catalyst-box .cnums div {
+    flex: 1;
+  }
+  .catalyst-box .cnums .v {
+    font-size: 28px;
+    font-weight: 900;
+    color: #FFB627;
+    line-height: 1;
+  }
+  .catalyst-box .cnums .l {
+    font-size: 13px;
+    color: rgba(255, 248, 242, 0.7);
+    margin-top: 4px;
+  }
+
+  /* ====== Page 3 three logic ====== */
+  .logic-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+  .logic-card {
+    background: #FFFFFF;
+    border-radius: 18px;
+    padding: 24px 26px;
+    box-shadow: 0 4px 16px rgba(44, 24, 16, 0.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .logic-card::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 6px;
+  }
+  .logic-card.l1::before { background: #FF5A36; }
+  .logic-card.l2::before { background: #FFB627; }
+  .logic-card.l3::before { background: #1A2B4A; }
+  .logic-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .logic-num {
+    font-size: 14px;
+    font-weight: 800;
+    color: #FFF;
+    background: #1A2B4A;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logic-card.l1 .logic-num { background: #FF5A36; }
+  .logic-card.l2 .logic-num { background: #FFB627; }
+  .logic-card.l3 .logic-num { background: #1A2B4A; }
+  .logic-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #1A2B4A;
+  }
+  .logic-body {
+    font-size: 15px;
+    color: #4A4A4A;
+    line-height: 1.65;
+    margin-bottom: 12px;
+  }
+  .logic-body strong { color: #FF5A36; }
+  .logic-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .logic-tag {
+    font-size: 13px;
+    background: #FFF4E6;
+    color: #C9302C;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+  .price-strip {
+    background: linear-gradient(90deg, #FF5A36, #FFB627);
+    border-radius: 14px;
+    padding: 18px 22px;
+    color: #FFF;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+  .price-strip .ps-item { text-align: center; }
+  .price-strip .ps-v {
+    font-size: 26px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .price-strip .ps-l {
+    font-size: 13px;
+    margin-top: 6px;
+    opacity: 0.92;
+  }
+
+  /* ====== Page 4 industry chain ====== */
+  .chain-flow {
+    background: #FFFFFF;
+    border-radius: 18px;
+    padding: 22px 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 16px rgba(44, 24, 16, 0.06);
+  }
+  .chain-row {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .chain-row:last-child { margin-bottom: 0; }
+  .chain-stage {
+    width: 110px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #1A2B4A, #2C3E5A);
+    color: #FFB627;
+    border-radius: 12px;
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .chain-stage .stage-icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+  .chain-stage .stage-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #FFF;
+    line-height: 1.3;
+  }
+  .chain-stocks {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-content: center;
+  }
+  .stock-chip {
+    font-size: 13px;
+    background: #FFF4E6;
+    color: #1A2B4A;
+    padding: 5px 11px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: 1px solid #FFE0C2;
+  }
+  .stock-chip.gold {
+    background: linear-gradient(135deg, #FFB627, #FF9500);
+    color: #FFF;
+    border-color: transparent;
+  }
+  .chain-note {
+    font-size: 13px;
+    color: #6B6B6B;
+    background: #FFF8F2;
+    padding: 14px 18px;
+    border-radius: 12px;
+    line-height: 1.6;
+    border-left: 3px solid #FFB627;
+  }
+  .chain-note strong { color: #FF5A36; }
+
+  /* ====== Page 5 earnings ====== */
+  .earnings-table {
+    background: #FFFFFF;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(44, 24, 16, 0.06);
+    margin-bottom: 18px;
+  }
+  .earn-row {
+    display: grid;
+    grid-template-columns: 36px 1fr 1.1fr 80px;
+    gap: 10px;
+    padding: 13px 16px;
+    align-items: center;
+    border-bottom: 1px solid #F5EEE5;
+  }
+  .earn-row:last-child { border-bottom: none; }
+  .earn-row.head {
+    background: #1A2B4A;
+    color: #FFB627;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px 16px;
+    letter-spacing: 1px;
+  }
+  .earn-rank {
+    font-size: 16px;
+    font-weight: 900;
+    color: #FF5A36;
+    text-align: center;
+  }
+  .earn-row.head .earn-rank { color: #FFB627; }
+  .earn-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1A2B4A;
+  }
+  .earn-name .sub {
+    font-size: 11px;
+    color: #999;
+    font-weight: 500;
+    display: block;
+    margin-top: 2px;
+  }
+  .earn-val {
+    font-size: 14px;
+    color: #4A4A4A;
+    line-height: 1.4;
+  }
+  .earn-val .big {
+    font-size: 17px;
+    font-weight: 800;
+    color: #C9302C;
+  }
+  .earn-growth {
+    text-align: right;
+    font-size: 13px;
+    font-weight: 800;
+    color: #C9302C;
+  }
+  .earn-growth .gx {
+    font-size: 18px;
+    display: block;
+  }
+  .earnings-note {
+    background: linear-gradient(135deg, #FFF4E6, #FFE9D6);
+    border-radius: 14px;
+    padding: 16px 20px;
+    font-size: 14px;
+    color: #4A4A4A;
+    line-height: 1.6;
+    border-left: 4px solid #FF5A36;
+  }
+  .earnings-note strong { color: #C9302C; }
+
+  /* ====== Page 6 risk & strategy ====== */
+  .rs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .rs-block {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 4px 14px rgba(44, 24, 16, 0.05);
+  }
+  .rs-block.risk { border-top: 4px solid #C9302C; }
+  .rs-block.strat { border-top: 4px solid #1A2B4A; }
+  .rs-head {
+    font-size: 18px;
+    font-weight: 800;
+    color: #1A2B4A;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .rs-block.risk .rs-head { color: #C9302C; }
+  .rs-list {
+    list-style: none;
+  }
+  .rs-list li {
+    font-size: 13.5px;
+    color: #4A4A4A;
+    line-height: 1.55;
+    padding: 6px 0 6px 22px;
+    position: relative;
+    border-bottom: 1px dashed #F0E8DC;
+  }
+  .rs-list li:last-child { border-bottom: none; }
+  .rs-list li::before {
+    content: "▸";
+    position: absolute;
+    left: 4px;
+    color: #FF5A36;
+    font-weight: 800;
+  }
+  .rs-list li strong { color: #1A2B4A; }
+  .dumbbell {
+    background: linear-gradient(135deg, #1A2B4A, #2C3E5A);
+    color: #FFF8F2;
+    border-radius: 16px;
+    padding: 20px 22px;
+  }
+  .dumbbell .db-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #FFB627;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+  .dumbbell .db-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 13.5px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .dumbbell .db-row:last-child { margin-bottom: 0; }
+  .dumbbell .db-tag {
+    background: #FF5A36;
+    color: #FFF;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .dumbbell .db-tag.gold { background: #FFB627; color: #1A2B4A; }
+  .dumbbell .db-tag.blue { background: #4A90E2; }
+
+  /* ====== Page 7 summary ====== */
+  .summary-card {
+    background: linear-gradient(160deg, #FFF8F2 0%, #FFE9D6 100%);
+  }
+  .verdict-box {
+    background: #FFFFFF;
+    border-radius: 18px;
+    padding: 24px 26px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 16px rgba(44, 24, 16, 0.06);
+    border-left: 5px solid #FF5A36;
+  }
+  .verdict-box .vb-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #FF5A36;
+    margin-bottom: 10px;
+  }
+  .verdict-box .vb-body {
+    font-size: 15px;
+    color: #2C1810;
+    line-height: 1.7;
+  }
+  .verdict-box .vb-body strong { color: #1A2B4A; }
+  .watch-window {
+    background: #1A2B4A;
+    color: #FFF8F2;
+    border-radius: 18px;
+    padding: 22px 26px;
+    margin-bottom: 20px;
+  }
+  .watch-window .ww-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: #FFB627;
+    margin-bottom: 14px;
+    letter-spacing: 1px;
+  }
+  .watch-item {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 248, 242, 0.1);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .watch-item:last-child { border-bottom: none; }
+  .watch-item .w-date {
+    color: #FFB627;
+    font-weight: 700;
+    flex-shrink: 0;
+    width: 90px;
+  }
+  .disclaimer {
+    background: rgba(201, 48, 44, 0.06);
+    border: 1px dashed #C9302C;
+    border-radius: 14px;
+    padding: 16px 20px;
+    font-size: 12.5px;
+    color: #6B6B6B;
+    line-height: 1.65;
+  }
+  .disclaimer .dt {
+    font-weight: 800;
+    color: #C9302C;
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+  .end-mark {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 13px;
+    color: #999;
+    letter-spacing: 4px;
+  }
+  .end-mark::before, .end-mark::after {
+    content: " — ";
+    color: #FF5A36;
+  }
+
+  .foot-bar {
+    margin-top: auto;
+    padding-top: 18px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #999;
+  }
+  .foot-bar .fb-tag {
+    color: #FF5A36;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<div class="cards-wrap">
+
+<!-- ============ PAGE 1: COVER ============ -->
+<div class="card cover">
+  <div class="brand">FINANCE · DEEP RESEARCH</div>
+  <div class="pager">01 / 07</div>
+  <div style="margin-top: 40px;">
+    <span class="cover-tag">A股 8月深度调研</span>
+    <h1>存储芯片<br><span class="hl">周期反转</span></h1>
+    <h2>AI算力×国产替代×涨价超级周期<br>三重共振下的最强确定性主线</h2>
+  </div>
+  <div>
+    <div class="cover-stats">
+      <div class="cover-stat">
+        <div class="num">465%</div>
+        <div class="lab">长鑫科技上市首日涨幅<br>市值登顶A股第一</div>
+      </div>
+      <div class="cover-stat">
+        <div class="num">622×</div>
+        <div class="lab">江波龙中报净利<br>同比最大增幅</div>
+      </div>
+      <div class="cover-stat">
+        <div class="num">125%</div>
+        <div class="lab">2026年DRAM<br>预计全年涨幅</div>
+      </div>
+      <div class="cover-stat">
+        <div class="num">2028</div>
+        <div class="lab">供需紧缺格局<br>预计持续年份</div>
+      </div>
+    </div>
+    <div class="cover-foot">
+      <span>📅 调研日期 · 2026.08.02</span>
+      <span>🔒 仅供研究参考</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PAGE 2: HOT MAP & SELECTION ============ -->
+<div class="card content-card">
+  <div class="brand">FINANCE · DEEP RESEARCH</div>
+  <div class="pager">02 / 07</div>
+  <div class="eyebrow">SELECT DIRECTION</div>
+  <div class="title">8月A股十大热点</div>
+  <div class="subtitle">为什么我选「存储芯片」作为深度方向？</div>
+  <div class="divider"></div>
+
+  <div class="hot-grid">
+    <div class="hot-item star">
+      <div class="rank">#1 最强资金主线</div>
+      <div class="name">存储芯片</div>
+      <div class="desc">长鑫上市催化 · 中报业绩爆发</div>
+    </div>
+    <div class="hot-item">
+      <div class="rank">#2</div>
+      <div class="name">AI算力硬件</div>
+      <div class="desc">光模块/液冷/HBM/PCB</div>
+    </div>
+    <div class="hot-item">
+      <div class="rank">#3</div>
+      <div class="name">MLCC被动元件</div>
+      <div class="desc">三星8月涨价30%</div>
+    </div>
+    <div class="hot-item">
+      <div class="rank">#4</div>
+      <div class="name">人形机器人</div>
+      <div class="desc">8.19世界机器人大会</div>
+    </div>
+    <div class="hot-item">
+      <div class="rank">#5</div>
+      <div class="name">贵金属黄金</div>
+      <div class="desc">避险+降息预期</div>
+    </div>
+    <div class="hot-item">
+      <div class="rank">#6</div>
+      <div class="name">特高压电网</div>
+      <div class="desc">十五五电网投资5万亿</div>
+    </div>
+    <div class="hot-item">
+      <div class="rank">#7</div>
+      <div class="name">国防军工</div>
+      <div class="desc">下半年交付旺季</div>
+    </div>
+    <div class="hot-item">
+      <div class="rank">#8</div>
+      <div class="name">低空经济</div>
+      <div class="desc">政策驱动题材</div>
+    </div>
+    <div class="hot-item">
+      <div class="rank">#9</div>
+      <div class="name">消费复苏</div>
+      <div class="desc">食品饮料领涨</div>
+    </div>
+    <div class="hot-item">
+      <div class="rank">#10</div>
+      <div class="name">油气油服</div>
+      <div class="desc">中东地缘支撑油价</div>
+    </div>
+  </div>
+
+  <div class="catalyst-box">
+    <div class="ctitle">🎯 选择理由 · 三大催化叠加</div>
+    <div class="cbody">
+      ① <strong>事件催化</strong>：长鑫科技7月27日登陆科创板，发行价8.66元，首日暴涨465.82%，市值3.28万亿超越工行，登顶A股市值第一。<br>
+      ② <strong>业绩催化</strong>：产业链公司中报集体暴增，江波龙净利同比+622倍。<br>
+      ③ <strong>产业催化</strong>：8月20日南京集成电路创新大会 + 海外云厂商资本开支验证。
+    </div>
+    <div class="cnums">
+      <div>
+        <div class="v">579亿</div>
+        <div class="l">长鑫IPO募资<br>创科创板纪录</div>
+      </div>
+      <div>
+        <div class="v">3.61万亿</div>
+        <div class="l">上市首周市值<br>累计涨幅5倍</div>
+      </div>
+      <div>
+        <div class="v">7.67%</div>
+        <div class="l">全球DRAM份额<br>跃居第四</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot-bar">
+    <span>存储芯片 · 周期反转深度调研</span>
+    <span class="fb-tag">P.02</span>
+  </div>
+</div>
+
+<!-- ============ PAGE 3: THREE CORE LOGICS ============ -->
+<div class="card content-card">
+  <div class="brand">FINANCE · DEEP RESEARCH</div>
+  <div class="pager">03 / 07</div>
+  <div class="eyebrow">CORE LOGIC</div>
+  <div class="title">三大硬核逻辑</div>
+  <div class="subtitle">为什么本轮存储超级周期 ≠ 短期炒作？</div>
+  <div class="divider"></div>
+
+  <div class="logic-list">
+    <div class="logic-card l1">
+      <div class="logic-head">
+        <div class="logic-num">1</div>
+        <div class="logic-title">🔥 AI算力需求结构性爆发</div>
+      </div>
+      <div class="logic-body">
+        单台AI训练服务器DRAM用量是传统服务器的<strong>8-10倍</strong>，NAND用量提升3倍。2026年AI相关DRAM需求占比突破<strong>53%</strong>，正式超越消费电子成为第一大需求来源。HBM单价是普通DRAM的10倍，毛利率高达60-70%。
+      </div>
+      <div class="logic-tags">
+        <span class="logic-tag">HBM缺口</span>
+        <span class="logic-tag">服务器倍增</span>
+        <span class="logic-tag">云厂商锁产</span>
+      </div>
+    </div>
+
+    <div class="logic-card l2">
+      <div class="logic-head">
+        <div class="logic-num">2</div>
+        <div class="logic-title">⚡ 全球供需缺口难以弥合</div>
+      </div>
+      <div class="logic-body">
+        三星/海力士/美光将<strong>70-80%先进产能转向HBM</strong>，主动压缩通用存储供给。DRAM供需缺口达<strong>4.9%</strong>，NAND缺口4.2%。晶圆厂建设周期18-24个月，海外新增产能最早2027下半年释放，三星明确表态紧缺持续至<strong>2028年</strong>。
+      </div>
+      <div class="logic-tags">
+        <span class="logic-tag">产能刚性</span>
+        <span class="logic-tag">库存3-5周</span>
+        <span class="logic-tag">原厂控产</span>
+      </div>
+    </div>
+
+    <div class="logic-card l3">
+      <div class="logic-head">
+        <div class="logic-num">3</div>
+        <div class="logic-title">🇨🇳 国产替代长期刚需</div>
+      </div>
+      <div class="logic-body">
+        国内DRAM需求占全球34%，但<strong>自给率不足10%</strong>，每年进口千亿规模。政策要求央企国企<strong>2027年底前完成全栈国产化</strong>替代。长鑫成本比海外低15-20%，国产设备验证率从14%升至26%，长鑫扩产直接拉动434亿设备订单。
+      </div>
+      <div class="logic-tags">
+        <span class="logic-tag">信创订单</span>
+        <span class="logic-tag">成本优势</span>
+        <span class="logic-tag">设备国产化</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="price-strip">
+    <div class="ps-item">
+      <div class="ps-v">+125%</div>
+      <div class="ps-l">2026 DRAM全年涨幅</div>
+    </div>
+    <div class="ps-item">
+      <div class="ps-v">+234%</div>
+      <div class="ps-l">2026 NAND全年涨幅</div>
+    </div>
+    <div class="ps-item">
+      <div class="ps-v">13-18%</div>
+      <div class="ps-l">Q3 DRAM合约价环比</div>
+    </div>
+  </div>
+
+  <div class="foot-bar">
+    <span>数据来源 · TrendForce / Gartner / IDC / 招股书</span>
+    <span class="fb-tag">P.03</span>
+  </div>
+</div>
+
+<!-- ============ PAGE 4: INDUSTRY CHAIN ============ -->
+<div class="card content-card">
+  <div class="brand">FINANCE · DEEP RESEARCH</div>
+  <div class="pager">04 / 07</div>
+  <div class="eyebrow">VALUE CHAIN</div>
+  <div class="title">全产业链图谱</div>
+  <div class="subtitle">从晶圆原厂到设备材料 · 一图看懂受益链</div>
+  <div class="divider"></div>
+
+  <div class="chain-flow">
+    <div class="chain-row">
+      <div class="chain-stage">
+        <div class="stage-icon">🏭</div>
+        <div class="stage-name">晶圆原厂</div>
+      </div>
+      <div class="chain-stocks">
+        <span class="stock-chip gold">长鑫科技 688825</span>
+        <span class="stock-chip gold">长江存储(未上市)</span>
+      </div>
+    </div>
+    <div class="chain-row">
+      <div class="chain-stage">
+        <div class="stage-icon">🎨</div>
+        <div class="stage-name">芯片设计</div>
+      </div>
+      <div class="chain-stocks">
+        <span class="stock-chip">兆易创新 603986</span>
+        <span class="stock-chip">北京君正 300223</span>
+        <span class="stock-chip">普冉股份 688766</span>
+        <span class="stock-chip">东芯股份 688110</span>
+        <span class="stock-chip">聚辰股份 688123</span>
+      </div>
+    </div>
+    <div class="chain-row">
+      <div class="chain-stage">
+        <div class="stage-icon">🔗</div>
+        <div class="stage-name">接口/HBM</div>
+      </div>
+      <div class="chain-stocks">
+        <span class="stock-chip gold">澜起科技 688008</span>
+        <span class="stock-chip">DDR5接口全球垄断40%+</span>
+      </div>
+    </div>
+    <div class="chain-row">
+      <div class="chain-stage">
+        <div class="stage-icon">💾</div>
+        <div class="stage-name">模组成品</div>
+      </div>
+      <div class="chain-stocks">
+        <span class="stock-chip gold">江波龙 301308</span>
+        <span class="stock-chip">佰维存储 688525</span>
+        <span class="stock-chip">德明利 001309</span>
+        <span class="stock-chip">香农芯创 300475</span>
+      </div>
+    </div>
+    <div class="chain-row">
+      <div class="chain-stage">
+        <div class="stage-icon">📦</div>
+        <div class="stage-name">先进封测</div>
+      </div>
+      <div class="chain-stocks">
+        <span class="stock-chip">长电科技 600584</span>
+        <span class="stock-chip">通富微电 002156</span>
+        <span class="stock-chip">深科技 000021</span>
+        <span class="stock-chip">华天科技</span>
+      </div>
+    </div>
+    <div class="chain-row">
+      <div class="chain-stage">
+        <div class="stage-icon">⚙️</div>
+        <div class="stage-name">半导体设备</div>
+      </div>
+      <div class="chain-stocks">
+        <span class="stock-chip gold">北方华创 002371</span>
+        <span class="stock-chip">中微公司 688012</span>
+        <span class="stock-chip">华海清科 688120</span>
+        <span class="stock-chip">拓荆科技 688072</span>
+        <span class="stock-chip">盛美上海 688082</span>
+      </div>
+    </div>
+    <div class="chain-row">
+      <div class="chain-stage">
+        <div class="stage-icon">🧪</div>
+        <div class="stage-name">关键材料</div>
+      </div>
+      <div class="chain-stocks">
+        <span class="stock-chip">雅克科技 002409</span>
+        <span class="stock-chip">安集科技 688019</span>
+        <span class="stock-chip">鼎龙股份 300054</span>
+        <span class="stock-chip">沪硅产业 688126</span>
+        <span class="stock-chip">江丰电子</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="chain-note">
+    💡 <strong>受益顺序</strong>：设备材料订单最先兑现 → 模组/封测业绩弹性最大 → 设计龙头穿越周期。<strong>金色标签</strong>为机构底仓首选 / 国产份额绝对龙头。
+  </div>
+
+  <div class="foot-bar">
+    <span>仅供产业研究 · 不构成个股推荐</span>
+    <span class="fb-tag">P.04</span>
+  </div>
+</div>
+
+<!-- ============ PAGE 5: EARNINGS ============ -->
+<div class="card content-card">
+  <div class="brand">FINANCE · DEEP RESEARCH</div>
+  <div class="pager">05 / 07</div>
+  <div class="eyebrow">EARNINGS PROOF</div>
+  <div class="title">中报业绩弹性榜</div>
+  <div class="subtitle">涨价红利兑现 · 数十倍增长不是神话</div>
+  <div class="divider"></div>
+
+  <div class="earnings-table">
+    <div class="earn-row head">
+      <div class="earn-rank">#</div>
+      <div>公司</div>
+      <div>上半年净利润</div>
+      <div style="text-align:right;">同比</div>
+    </div>
+    <div class="earn-row">
+      <div class="earn-rank">1</div>
+      <div class="earn-name">江波龙<span class="sub">301308 · 模组龙头</span></div>
+      <div class="earn-val"><span class="big">92-110亿</span></div>
+      <div class="earn-growth"><span class="gx">+622×</span>最高74394%</div>
+    </div>
+    <div class="earn-row">
+      <div class="earn-rank">2</div>
+      <div class="earn-name">佰维存储<span class="sub">688525 · 嵌入式</span></div>
+      <div class="earn-val"><span class="big">70-75亿</span></div>
+      <div class="earn-growth"><span class="gx">+32×</span>超3200%</div>
+    </div>
+    <div class="earn-row">
+      <div class="earn-rank">3</div>
+      <div class="earn-name">长鑫科技<span class="sub">688825 · DRAM原厂</span></div>
+      <div class="earn-val"><span class="big">500-570亿</span></div>
+      <div class="earn-growth"><span class="gx">+22×</span>营收1100亿+</div>
+    </div>
+    <div class="earn-row">
+      <div class="earn-rank">4</div>
+      <div class="earn-name">兆易创新<span class="sub">603986 · 设计龙头</span></div>
+      <div class="earn-val"><span class="big">≈69亿</span></div>
+      <div class="earn-growth"><span class="gx">+11×</span>近11倍</div>
+    </div>
+    <div class="earn-row">
+      <div class="earn-rank">5</div>
+      <div class="earn-name">普冉股份<span class="sub">688766 · NOR+EEPROM</span></div>
+      <div class="earn-val"><span class="big">≈8.25亿</span></div>
+      <div class="earn-growth"><span class="gx">+1925%</span>20倍</div>
+    </div>
+    <div class="earn-row">
+      <div class="earn-rank">6</div>
+      <div class="earn-name">源杰科技<span class="sub">光芯片·算力配套</span></div>
+      <div class="earn-val"><span class="big">6-6.5亿</span></div>
+      <div class="earn-growth"><span class="gx">+1305%</span>14倍</div>
+    </div>
+    <div class="earn-row">
+      <div class="earn-rank">7</div>
+      <div class="earn-name">北京君正<span class="sub">300223 · 车规存储</span></div>
+      <div class="earn-val"><span class="big">10.8-12.8亿</span></div>
+      <div class="earn-growth"><span class="gx">+531%</span>5倍+</div>
+    </div>
+    <div class="earn-row">
+      <div class="earn-rank">8</div>
+      <div class="earn-name">大族激光<span class="sub">002008 · 半导体设备</span></div>
+      <div class="earn-val"><span class="big">12.5-13.5亿</span></div>
+      <div class="earn-growth"><span class="gx">+177%</span>2.7倍</div>
+    </div>
+  </div>
+
+  <div class="earnings-note">
+    📌 <strong>关键观察</strong>：业绩弹性排序 = 模组设计 > 晶圆原厂 > 设备材料。模组环节"采购颗粒→成品涨价"传导最快，但波动也最大；设备材料订单确定性最高，是穿越周期的底仓选择。
+  </div>
+
+  <div class="foot-bar">
+    <span>数据来源 · 各公司2026年中报业绩预告</span>
+    <span class="fb-tag">P.05</span>
+  </div>
+</div>
+
+<!-- ============ PAGE 6: RISK & STRATEGY ============ -->
+<div class="card content-card">
+  <div class="brand">FINANCE · DEEP RESEARCH</div>
+  <div class="pager">06 / 07</div>
+  <div class="eyebrow">RISK & STRATEGY</div>
+  <div class="title">风险与策略</div>
+  <div class="subtitle">不踩雷 · 不追高 · 哑铃配置穿越周期</div>
+  <div class="divider"></div>
+
+  <div class="rs-grid">
+    <div class="rs-block risk">
+      <div class="rs-head">⚠️ 四大风险点</div>
+      <ul class="rs-list">
+        <li><strong>中报兑现风险</strong>：利好出尽易回调，高位筹码松动</li>
+        <li><strong>产能释放风险</strong>：2027下半年新增产能集中投放</li>
+        <li><strong>技术代差风险</strong>：HBM国产化落后国际2-3年</li>
+        <li><strong>需求疲软风险</strong>：消费电子手机PC承压转嫁成本</li>
+      </ul>
+    </div>
+    <div class="rs-block strat">
+      <div class="rs-head">🎯 三条布局主线</div>
+      <ul class="rs-list">
+        <li><strong>短期弹性</strong>：模组+设计，业绩兑现最快</li>
+        <li><strong>中期成长</strong>：封测+HBM配套，技术壁垒高</li>
+        <li><strong>长期底仓</strong>：设备+材料，订单确定性最强</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="dumbbell">
+    <div class="db-title">⚖️ 哑铃型配置思路（机构共识）</div>
+    <div class="db-row">
+      <span class="db-tag">进取型</span>
+      <span>算力硬件+存储+机器人零部件(6-7成) + 小仓贵金属对冲</span>
+    </div>
+    <div class="db-row">
+      <span class="db-tag gold">平衡型</span>
+      <span>硬科技龙头(4成) + 高股息/创新药(3成) + 黄金(1-2成)</span>
+    </div>
+    <div class="db-row">
+      <span class="db-tag blue">稳健型</span>
+      <span>红利资产打底 + 小仓位逢低布局调整后科技龙头</span>
+    </div>
+  </div>
+
+  <div style="background:#FFF4E6; border-radius:14px; padding:16px 20px; margin-top:14px; font-size:13.5px; color:#4A4A4A; line-height:1.6;">
+    🚫 <strong style="color:#C9302C;">避坑提示</strong>：远离"三无小票"——无产能、无订单、亏损。聚焦有真实订单、有中报业绩、有政策加持的硬科技龙头，回调低吸而非追涨杀跌。
+  </div>
+
+  <div class="foot-bar">
+    <span>策略仅供思路参考 · 不作为买卖依据</span>
+    <span class="fb-tag">P.06</span>
+  </div>
+</div>
+
+<!-- ============ PAGE 7: SUMMARY ============ -->
+<div class="card content-card summary-card">
+  <div class="brand">FINANCE · DEEP RESEARCH</div>
+  <div class="pager">07 / 07</div>
+  <div class="eyebrow">FINAL VERDICT</div>
+  <div class="title">核心结论</div>
+  <div class="subtitle">结构性升级 ≠ 短期脉冲 · 紧盯三大窗口</div>
+  <div class="divider"></div>
+
+  <div class="verdict-box">
+    <div class="vb-title">💡 一句话判断</div>
+    <div class="vb-body">
+      本轮存储超级周期是<strong>AI算力需求重构</strong>驱动的结构性升级，而非传统消费电子周期脉冲。<strong>涨价持续至2027下半年确定性较强</strong>，HBM及高端存储依然是核心主线，长鑫上市将带动整条国产存储产业链估值重估。
+    </div>
+  </div>
+
+  <div class="watch-window">
+    <div class="ww-title">📅 8月关键观察窗口</div>
+    <div class="watch-item">
+      <div class="w-date">8.05</div>
+      <div>宇树科技科创板上市 · 机器人板块情绪外溢至科技成长</div>
+    </div>
+    <div class="watch-item">
+      <div class="w-date">8.18-20</div>
+      <div>杭州人工智能大会 · 海外云厂商资本开支验证</div>
+    </div>
+    <div class="watch-item">
+      <div class="w-date">8.20</div>
+      <div>南京集成电路创新大会 · 半导体设备材料密集催化</div>
+    </div>
+    <div class="watch-item">
+      <div class="w-date">8月下旬</div>
+      <div>中报集中披露 · 海光/中芯/北方华创/中微扎堆8.20-8.31</div>
+    </div>
+    <div class="watch-item">
+      <div class="w-date">8月底</div>
+      <div>杰克逊霍尔全球央行年会 · 影响贵金属与成长股估值</div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <span class="dt">⚠️ 风险提示与免责声明</span>
+    本文为基于公开资料的产业研究与市场逻辑梳理，所涉及公司、数据、价格预测均来自 TrendForce、Gartner、IDC、招股书及公开报道，不构成任何投资建议、个股推荐或买卖操作指导。股市有风险，投资需谨慎，所有决策请结合自身风险承受能力独立判断，盈亏自负。存储芯片属强周期赛道，股价波动剧烈，请理性决策。
+  </div>
+
+  <div class="end-mark">END · 调研完成</div>
+
+  <div class="foot-bar">
+    <span>📅 2026.08.02 · 存储芯片深度调研</span>
+    <span class="fb-tag">P.07 / 07</span>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
